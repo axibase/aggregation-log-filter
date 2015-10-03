@@ -15,14 +15,22 @@
 
 package com.axibase.tsd.collector.writer;
 
+import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.CountedQueue;
+import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * @author Nikolay Malevanny.
@@ -30,14 +38,20 @@ import java.util.concurrent.Executors;
 public class HttpStreamingAtsdWriter implements WritableByteChannel {
     public static final int DEFAULT_SKIP_DATA_THRESHOLD = 100000;
     public static final int MIN_RECONNECTION_TIME = 30 * 1000;
+    private static final int DEFAULT_TIMEOUT_MS = 5000;
+    public static final String DEFAULT_METHOD = "POST";
+    public static final int DEFAULT_CHUNK_SIZE = 1024;
+    private String method = DEFAULT_METHOD;
     private int skipDataThreshold = DEFAULT_SKIP_DATA_THRESHOLD;
     private String url;
     private String username;
     private String password;
     private CountedQueue<ByteBuffer> data = new CountedQueue<ByteBuffer>();
-//    private StreamingWorker streamingWorker;
+    private StreamingWorker streamingWorker;
     private ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
     private long lastConnectionTryTime = 0;
+    private int timeout = DEFAULT_TIMEOUT_MS;
+    private long skippedCount = 0;
 
     public void setUrl(String url) {
         this.url = url;
@@ -55,21 +69,34 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         this.password = password;
     }
 
+    protected void setMethod(String method) {
+        this.method = method;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    protected long getSkippedCount() {
+        return skippedCount;
+    }
+
     @Override
     public int write(ByteBuffer src) throws IOException {
         if (!isConnected()) {
             connect();
         }
 
-        /*
         if (streamingWorker != null) {
             data.add(src);
-            if (data.getCount() > skipDataThreshold) {
+            if (data.getCount() > skipDataThreshold/2) {
+                LockSupport.parkNanos(1);
+            } else if (data.getCount() > skipDataThreshold) {
+                skippedCount++;
                 data.poll(); // clean oldest data item
             }
             return src.remaining();
         }
-        */
         return 0;
     }
 
@@ -80,95 +107,49 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         }
         lastConnectionTryTime = System.currentTimeMillis();
         CountDownLatch latch = new CountDownLatch(1);
-        /*
-        streamingWorker = new StreamingWorker(data, latch, url);
-        streamingWorker.setCredentials(username, password);
+        streamingWorker = new StreamingWorker(latch);
         singleThreadExecutor.execute(streamingWorker);
         try {
-            if (!latch.await(StreamingWorker.TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+            if (!latch.await(timeout, TimeUnit.MILLISECONDS)) {
                 streamingWorker.stop();
                 streamingWorker = null;
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        */
     }
 
     @Override
     public boolean isOpen() {
-//        return streamingWorker != null && !streamingWorker.isStopped();
-        return false;
+        return streamingWorker != null && !streamingWorker.isStopped();
     }
 
     @Override
     public void close() throws IOException {
-//        if (streamingWorker != null) {
-//            streamingWorker.stop();
-//        }
-//        if (singleThreadExecutor != null) {
-//            singleThreadExecutor.shutdown();
-//        }
+        if (streamingWorker != null) {
+            streamingWorker.stop();
+        }
+        if (singleThreadExecutor != null) {
+            singleThreadExecutor.shutdown();
+        }
     }
 
     public boolean isConnected() {
-//        return streamingWorker != null && !streamingWorker.isStopped();
-        return false;
+        return streamingWorker != null && !streamingWorker.isStopped();
     }
 
-    /*
-    private static class StreamingWorker implements HttpEntity, Runnable {
+    private class StreamingWorker implements Runnable {
         public static final int PING_TIMEOUT_MS = 5000;
-        public static final int BUFFER_SIZE = 64;
-        private static final int TIMEOUT_MS = 5000;
         private volatile boolean stopped = false;
-        private CountedQueue<ByteBuffer> data;
         private CountDownLatch latch;
-        private String url;
-        private BasicHttpClientConnectionManager connectionManager;
-        private CloseableHttpClient httpClient;
-        private String username;
-        private String password;
         private long lastCommandTime = System.currentTimeMillis();
+        private HttpURLConnection connection;
 
-        public StreamingWorker(CountedQueue<ByteBuffer> data, CountDownLatch latch, String url) {
-            this.data = data;
+        public StreamingWorker(CountDownLatch latch) {
             this.latch = latch;
-            this.url = url;
         }
 
-        @Override
-        public boolean isRepeatable() {
-            return false;
-        }
-
-        @Override
-        public boolean isChunked() {
-            return false;
-        }
-
-        @Override
-        public long getContentLength() {
-            return -1;
-        }
-
-        @Override
-        public Header getContentType() {
-            return null;
-        }
-
-        @Override
-        public Header getContentEncoding() {
-            return null;
-        }
-
-        @Override
-        public InputStream getContent() throws IOException, IllegalStateException {
-            return null;
-        }
-
-        @Override
-        public void writeTo(OutputStream outputStream) throws IOException {
+        private void writeTo(OutputStream outputStream) throws IOException {
             while (!stopped) {
                 if (latch.getCount() > 0) {
                     latch.countDown();
@@ -201,81 +182,100 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         }
 
         @Override
-        public boolean isStreaming() {
-            return true;
-        }
-
-        @Override
-        public void consumeContent() throws IOException {
-
-        }
-
-        @Override
         public void run() {
-            System.out.println("Creating http client to send commands to URL: " + url);
-            connectionManager = new BasicHttpClientConnectionManager();
-            ConnectionConfig connectionConfig = ConnectionConfig.custom()
-                    .setBufferSize(BUFFER_SIZE)
-                    .build();
-            connectionManager.setConnectionConfig(connectionConfig);
-            httpClient = HttpClients.custom()
-                    .setConnectionManager(connectionManager)
-                    .build();
+            System.out.println("Creating http client to send commands to URL: " + method + " " + url);
+
+            if (!checkConfiguration()) {
+                stop();
+                return;
+            }
+            stopped = false;
+
+            connection = null;
+            OutputStream outputStream = null;
 
             try {
-                checkConfiguration();
-                    HttpPost httpPost = createRequest();
-                    httpPost.setEntity(new BufferedHttpEntity(this));
-                    CloseableHttpResponse response = httpClient.execute(httpPost);
-                    StatusLine statusLine = response.getStatusLine();
-                    if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
-                        System.err.println("HTTP: " + statusLine.getStatusCode() + ", " + statusLine.getReasonPhrase());
-                    }
+                connection = (HttpURLConnection) new URL(url).openConnection();
+                initConnection(connection);
+                connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
+                connection.setUseCaches(false);
+
+                outputStream = connection.getOutputStream();
+                writeTo(outputStream);
             } catch (Exception e){
                 e.printStackTrace();
             } finally {
-                stop();
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                if (outputStream != null) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
 
-        private void checkConfiguration() throws IOException {
-            HttpPost httpPost = createRequest();
-            httpPost.setEntity(new StringEntity(AtsdUtil.PING_COMMAND));
-            CloseableHttpResponse response = httpClient.execute(httpPost);
-            StatusLine statusLine = response.getStatusLine();
-            if (statusLine.getStatusCode() != HttpStatus.SC_OK) {
-                System.err.println("HTTP: " + statusLine.getStatusCode() + ", " + statusLine.getReasonPhrase());
-                throw new IllegalStateException("Could not connect to URL: " + url + ", reason: " + statusLine.getReasonPhrase());
-            } else {
-                InputStream content = response.getEntity().getContent();
-                IOUtils.closeQuietly(content);
+        private boolean checkConfiguration() {
+            HttpURLConnection testConnection = null;
+            try {
+                testConnection = (HttpURLConnection) new URL(url).openConnection();
+                initConnection(testConnection);
+                OutputStream outputStream = null;
+                try {
+                    outputStream = testConnection.getOutputStream();
+                    outputStream.write(AtsdUtil.PING_COMMAND.getBytes());
+                    outputStream.flush();
+                } finally {
+                    if (outputStream!= null) {
+                        outputStream.close();
+                    }
+                }
+                
+                int responseCode = testConnection.getResponseCode();
+                if ((responseCode == HttpURLConnection.HTTP_OK)) {
+                    return true;
+                } else {
+                    System.err.println("HTTP response code: " + responseCode);
+                    return false;
+                }
+            } catch (SocketTimeoutException e) {
+                System.err.println("Timeout");
+                return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                if (testConnection != null) {
+                    testConnection.disconnect();
+                }
             }
         }
 
-        private HttpPost createRequest() {
-            HttpPost httpPost = new HttpPost(url);
-            RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(TIMEOUT_MS)
-                    .setConnectTimeout(TIMEOUT_MS)
-                    .setConnectionRequestTimeout(TIMEOUT_MS)
-                    .build();
-            httpPost.setConfig(requestConfig);
-            if (StringUtils.isNotEmpty(username)) {
-                httpPost.setHeader("Authorization", "Basic " + DatatypeConverter.printBase64Binary(
-                        (username + ":" + password).getBytes()
-                ));
+        private void initConnection(HttpURLConnection con) throws IOException {
+            con.setRequestMethod(method);
+            BASE64Encoder enc = new BASE64Encoder();
+            if (username != null && username.trim().length() > 0) {
+                String encodedAuthorization = enc.encode((username + ":" + password).getBytes());
+                con.setRequestProperty("Authorization",
+                        "Basic " + encodedAuthorization);
             }
-            return httpPost;
+            con.setRequestProperty("Content-Type",
+                    "text/plain; charset=\"UTF-8\"");
+            con.setConnectTimeout(timeout);
+            con.setReadTimeout(timeout);
+            con.setDoOutput(true);
         }
 
         public void stop() {
             stopped = true;
             try {
-                if (httpClient != null) {
-                    httpClient.close();
+                if (connection != null) {
+                    connection.disconnect();
                 }
-                connectionManager.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -283,11 +283,5 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         public boolean isStopped() {
             return stopped;
         }
-
-        public void setCredentials(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
     }
-    */
 }
