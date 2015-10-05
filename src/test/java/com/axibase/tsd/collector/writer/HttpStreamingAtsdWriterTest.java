@@ -51,7 +51,8 @@ public class HttpStreamingAtsdWriterTest {
         writer.setUsername("axibase");
         writer.setPassword("11111");
         writer.setTimeout(10000);
-        long cnt = 10 * M;
+        writer.setReconnectTimeout(5000);
+        long cnt = 100 * M;
         for (long i = 0; i < cnt; i++) {
             ByteBuffer data = ByteBuffer.wrap(("series e:test_entity ms:" + (st - (cnt - i) * 1000) +
                     " m:t_metric=" + i +

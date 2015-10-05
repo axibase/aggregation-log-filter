@@ -38,6 +38,7 @@ import java.util.concurrent.locks.LockSupport;
 public class HttpStreamingAtsdWriter implements WritableByteChannel {
     public static final int DEFAULT_SKIP_DATA_THRESHOLD = 100000;
     public static final int MIN_RECONNECTION_TIME = 30 * 1000;
+    public static final long DEFAULT_RECONNECT_TIMEOUT = 10 * 60 * 1000L;
     private static final int DEFAULT_TIMEOUT_MS = 5000;
     public static final String DEFAULT_METHOD = "POST";
     public static final int DEFAULT_CHUNK_SIZE = 1024;
@@ -52,6 +53,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     private long lastConnectionTryTime = 0;
     private int timeout = DEFAULT_TIMEOUT_MS;
     private long skippedCount = 0;
+    private long reconnectTimeout = DEFAULT_RECONNECT_TIMEOUT;
 
     public void setUrl(String url) {
         this.url = url;
@@ -75,6 +77,10 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public void setReconnectTimeout(long reconnectTimeout) {
+        this.reconnectTimeout = reconnectTimeout;
     }
 
     protected long getSkippedCount() {
@@ -144,6 +150,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         private CountDownLatch latch;
         private long lastCommandTime = System.currentTimeMillis();
         private HttpURLConnection connection;
+        private OutputStream outputStream;
 
         public StreamingWorker(CountDownLatch latch) {
             this.latch = latch;
@@ -156,11 +163,15 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 }
                 ByteBuffer buffer;
                 int cnt = 0;
-                while ((buffer = data.poll()) != null) {
+                while ((buffer = data.poll()) != null && outputStream != null) {
                     cnt ++;
                     byte[] data = new byte[buffer.remaining()];
                     buffer.get(data);
                     outputStream.write(data);
+                    if (System.currentTimeMillis() - lastConnectionTryTime > reconnectTimeout) {
+                        outputStream.flush();
+                        return;
+                    }
                 }
                 if (cnt > 0) {
                     data.clearCount();
@@ -183,8 +194,6 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
 
         @Override
         public void run() {
-            System.out.println("Creating http client to send commands to URL: " + method + " " + url);
-
             if (!checkConfiguration()) {
                 stop();
                 return;
@@ -192,7 +201,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
             stopped = false;
 
             connection = null;
-            OutputStream outputStream = null;
+            outputStream = null;
 
             try {
                 connection = (HttpURLConnection) new URL(url).openConnection();
@@ -205,16 +214,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
             } catch (Exception e){
                 e.printStackTrace();
             } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-                if (outputStream != null) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                stop();
             }
         }
 
@@ -238,6 +238,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 if ((responseCode == HttpURLConnection.HTTP_OK)) {
                     return true;
                 } else {
+                    System.err.println("Could not connect to: " + method + " " + url);
                     System.err.println("HTTP response code: " + responseCode);
                     return false;
                 }
@@ -245,6 +246,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 System.err.println("Timeout");
                 return false;
             } catch (Exception e) {
+                System.err.println("Could not connect to: " + method + " " + url);
                 e.printStackTrace();
                 return false;
             } finally {
@@ -271,12 +273,20 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
 
         public void stop() {
             stopped = true;
-            try {
-                if (connection != null) {
-                    connection.disconnect();
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+            if (connection != null) {
+                try {
+                    connection.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                connection = null;
             }
         }
 
