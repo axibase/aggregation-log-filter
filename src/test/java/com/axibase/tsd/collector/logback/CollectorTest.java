@@ -64,8 +64,7 @@ public class CollectorTest extends TestCase {
         }
         Thread.sleep(700);
         assertEquals(30, CountAppender.getCount());
-        // (2 (every) + 3 (rate+total_rate+total_sum)) * 2 (prefix + content) = 10
-        assertEquals(5 * 2, SendCounter.getCount());
+        assertEquals(14, SendCounter.getCount());
     }
 
     @Test

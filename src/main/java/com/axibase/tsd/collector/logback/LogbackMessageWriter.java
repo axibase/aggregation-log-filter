@@ -55,12 +55,12 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         int zeroRepeatCount = seriesSenderConfig.getZeroRepeatCount();
 
         // clean total counters
-        for (Iterator<Map.Entry<Level, CounterWithSum>> iterator = totals.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Level, CounterWithSum> entry = iterator.next();
-            if (entry.getValue().zeroRepeats < 0) {
-                iterator.remove();
-            }
-        }
+//        for (Iterator<Map.Entry<Level, CounterWithSum>> iterator = totals.entrySet().iterator(); iterator.hasNext(); ) {
+//            Map.Entry<Level, CounterWithSum> entry = iterator.next();
+//            if (entry.getValue().zeroRepeats < 0) {
+//                iterator.remove();
+//            }
+//        }
 
         // decrement all previous zero repeat counters
         for (Counter counter : story.values()) {
@@ -115,7 +115,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
                             totals.put(level, total);
                         } else {
                             total.add(value);
-                            total.setZeroRepeats(zeroRepeatCount);
+//                            total.setZeroRepeats(zeroRepeatCount);
                         }
                     }
                     counter.clean();
@@ -148,7 +148,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             } catch (Throwable e) {
                 addError("Could not write series", e);
             } finally {
-                entry.getValue().decrementZeroRepeats();
+//                entry.getValue().decrementZeroRepeats();
             }
         }
     }

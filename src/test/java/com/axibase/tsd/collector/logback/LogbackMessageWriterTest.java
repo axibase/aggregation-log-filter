@@ -32,6 +32,9 @@ import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Nikolay Malevanny.
  */
@@ -65,14 +68,14 @@ public class LogbackMessageWriterTest {
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result = " + result);
-            Assert.assertTrue(
+            assertTrue(
                     result.contains("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_rate=100.0 t:level="));
-            Assert.assertTrue(result.contains("ERROR"));
-            Assert.assertTrue(result.contains("WARN"));
-            Assert.assertTrue(result.contains("DEBUG"));
-            Assert.assertTrue(result.contains("m:test-metric_rate=100.0 "));
-            Assert.assertTrue(result.contains("m:test-metric_total_rate=100.0 "));
-            Assert.assertTrue(result.contains("m:test-metric_total_counter=100 "));
+            assertTrue(result.contains("ERROR"));
+            assertTrue(result.contains("WARN"));
+            assertTrue(result.contains("DEBUG"));
+            assertTrue(result.contains("m:test-metric_rate=100.0 "));
+            assertTrue(result.contains("m:test-metric_total_rate=100.0 "));
+            assertTrue(result.contains("m:test-metric_total_counter=100 "));
         }
 
         {
@@ -82,35 +85,43 @@ public class LogbackMessageWriterTest {
             messageBuilder.writeStatMessages(catcher, events, 60000 );
             String result = catcher.sb.toString();
             System.out.println("result = " + result);
-            Assert.assertTrue(result.contains("ERROR"));
-            Assert.assertTrue(result.contains("WARN"));
-            Assert.assertTrue(result.contains("DEBUG"));
-            Assert.assertTrue(result.contains("m:test-metric_rate=0.0"));
-            Assert.assertTrue(result.contains("m:test-metric_rate=1.0"));
-            Assert.assertTrue(result.contains("m:test-metric_total_rate=0.0"));
-            Assert.assertTrue(result.contains("m:test-metric_total_rate=1.0"));
-            Assert.assertTrue(result.contains("m:test-metric_total_counter=100"));
-            Assert.assertTrue(result.contains("m:test-metric_total_counter=101"));
+            assertTrue(result.contains("ERROR"));
+            assertTrue(result.contains("WARN"));
+            assertTrue(result.contains("DEBUG"));
+            assertTrue(result.contains("m:test-metric_rate=0.0"));
+            assertTrue(result.contains("m:test-metric_rate=1.0"));
+            assertTrue(result.contains("m:test-metric_total_rate=0.0"));
+            assertTrue(result.contains("m:test-metric_total_rate=1.0"));
+            assertTrue(result.contains("m:test-metric_total_counter=100"));
+            assertTrue(result.contains("m:test-metric_total_counter=101"));
         }
         {
             catcher.clear();
             events.clear();
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
-            Assert.assertTrue(result.contains("ERROR"));
-            Assert.assertFalse(result.contains("WARN"));
-            Assert.assertFalse(result.contains("DEBUG"));
-            Assert.assertTrue(result.contains("m:test-metric_rate=0"));
-            Assert.assertTrue(result.contains("m:test-metric_total_rate=0"));
-            Assert.assertFalse(result.contains("m:test-metric_total_counter=100"));
-            Assert.assertTrue(result.contains("m:test-metric_total_counter=101"));
+            System.out.println("result = " + result);
+            assertTrue(result.contains("ERROR"));
+            assertTrue(result.contains("WARN"));
+            assertTrue(result.contains("DEBUG"));
+            assertTrue(result.contains("m:test-metric_rate=0"));
+            assertTrue(result.contains("m:test-metric_total_rate=0"));
+            assertTrue(result.contains("m:test-metric_total_counter=100"));
+            assertTrue(result.contains("m:test-metric_total_counter=101"));
         }
         {
             catcher.clear();
             events.clear();
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
-            Assert.assertEquals("", result);
+            System.out.println("result = " + result);
+            assertTrue(result.contains("ERROR"));
+            assertTrue(result.contains("WARN"));
+            assertTrue(result.contains("DEBUG"));
+            assertFalse(result.contains("m:test-metric_rate=0"));
+            assertTrue(result.contains("m:test-metric_total_rate=0"));
+            assertTrue(result.contains("m:test-metric_total_counter=100"));
+            assertTrue(result.contains("m:test-metric_total_counter=101"));
         }
     }
 
@@ -138,7 +149,7 @@ public class LogbackMessageWriterTest {
         Assert.assertEquals(
                 "message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:\"test-message\n" +
                         "java.lang.NullPointerException: test\n" +
-                        "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java:132)\n" +
+                        "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java:143)\n" +
                         "\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n" +
                         "\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n" +
                         "\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n" +

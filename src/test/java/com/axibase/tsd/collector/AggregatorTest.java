@@ -73,8 +73,7 @@ public class AggregatorTest extends TestCase {
         assertTrue(aggregator.register(event));
         Thread.sleep(1000);
 
-        // (2 (every) + 3 (cnt) + 3 (time)) * 2 (prefix + content) = 16
-        verify(mockWriter, times(16)).write(any(ByteBuffer.class));
+        verify(mockWriter, times(28)).write(any(ByteBuffer.class));
     }
 
     @Ignore
