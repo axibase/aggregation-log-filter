@@ -96,15 +96,9 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
                 Level level = key.getLevel();
                 long value = counter.value;
                 try {
-                    writer.write(seriesRatePrefix.duplicate());
-                    StringBuilder sb = new StringBuilder();
                     String levelString = level.toString();
                     double rate = value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
-                    sb.append(rate);
-                    sb.append(" t:level=").append(levelString);
-                    sb.append(" t:logger=").append(AtsdUtil.sanitizeTagValue(key.getLogger()));
-                    sb.append(" ms:").append(time).append("\n");
-                    writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+                    writeRate(writer, time, key, levelString, rate);
                 } catch (Throwable e) {
                     addError("Could not write series", e);
                 } finally {
@@ -129,22 +123,12 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             CounterWithSum counterWithSum = entry.getValue();
             try {
                 // write total rate
-                writer.write(seriesTotalRatePrefix.duplicate());
-                StringBuilder sb = new StringBuilder();
-                String levelString = level.toString();
                 double rate = counterWithSum.value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
-                sb.append(rate);
-                sb.append(" t:level=").append(levelString);
-                sb.append(" ms:").append(time).append("\n");
-                writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+                String levelString = level.toString();
+                writeTotalRate(writer, time, rate, levelString);
                 counterWithSum.clean();
                 // write total sum
-                writer.write(seriesTotalSumPrefix.duplicate());
-                sb = new StringBuilder();
-                sb.append(counterWithSum.sum);
-                sb.append(" t:level=").append(levelString);
-                sb.append(" ms:").append(time).append("\n");
-                writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+                writeTotalSum(writer, time, counterWithSum, levelString);
             } catch (Throwable e) {
                 addError("Could not write series", e);
             } finally {
@@ -153,13 +137,56 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         }
     }
 
+    private void writeRate(WritableByteChannel writer,
+                           long time,
+                           Key key,
+                           String levelString,
+                           double rate) throws IOException {
+        StringBuilder sb = new StringBuilder().append(rate);
+        sb.append(" t:level=").append(levelString);
+        sb.append(" t:logger=").append(AtsdUtil.sanitizeTagValue(key.getLogger()));
+        sb.append(" ms:").append(time).append("\n");
+        byte[] bytes = sb.toString().getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesRatePrefix.remaining() + bytes.length)
+                .put(seriesRatePrefix.duplicate()).put(bytes);
+        byteBuffer.rewind();
+        writer.write(byteBuffer);
+    }
+
+    private void writeTotalSum(WritableByteChannel writer,
+                               long time,
+                               CounterWithSum counterWithSum,
+                               String levelString) throws IOException {
+        StringBuilder sb = new StringBuilder().append(counterWithSum.sum);
+        sb.append(" t:level=").append(levelString);
+        sb.append(" ms:").append(time).append("\n");
+        byte[] bytes = sb.toString().getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalSumPrefix.remaining() + bytes.length)
+                .put(seriesTotalSumPrefix.duplicate()).put(bytes);
+        byteBuffer.rewind();
+        writer.write(byteBuffer);
+    }
+
+    private void writeTotalRate(WritableByteChannel writer,
+                                long time,
+                                double rate,
+                                String levelString) throws IOException {
+        StringBuilder sb = new StringBuilder().append(rate);
+        sb.append(" t:level=").append(levelString);
+        sb.append(" ms:").append(time).append("\n");
+        byte[] bytes = sb.toString().getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
+                .put(seriesTotalRatePrefix.duplicate()).put(bytes);
+        byteBuffer.rewind();
+        writer.write(byteBuffer);
+    }
+
     @Override
     public void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException {
         EventWrapper<E> wrapper;
         while ((wrapper = singles.poll()) != null) {
             try {
                 E event = wrapper.getEvent();
-                writer.write(messagePrefix.duplicate());
                 StringBuilder sb = new StringBuilder();
                 String message = event.getFormattedMessage();
                 int lines = wrapper.getLines();
@@ -179,17 +206,28 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
                     }
                     message = msb.toString();
                 }
-                sb.append(AtsdUtil.sanitizeMessage(message));
-                sb.append(" t:severity=").append(event.getLevel());
-                sb.append(" t:level=").append(event.getLevel());
-                sb.append(" t:source=").append(AtsdUtil.sanitizeTagValue(event.getLoggerName()));
-                sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
-                writer.write(ByteBuffer.wrap(sb.toString().getBytes()));
+                writeMessage(writer, event, sb, message);
             } catch (IOException e) {
                 addError("Could not write message", e);
             }
         }
         singles.clearCount();
+    }
+
+    private void writeMessage(WritableByteChannel writer,
+                              E event,
+                              StringBuilder sb,
+                              String message) throws IOException {
+        sb.append(AtsdUtil.sanitizeMessage(message));
+        sb.append(" t:severity=").append(event.getLevel());
+        sb.append(" t:level=").append(event.getLevel());
+        sb.append(" t:source=").append(AtsdUtil.sanitizeTagValue(event.getLoggerName()));
+        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
+        byte[] bytes = sb.toString().getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(messagePrefix.remaining() + bytes.length)
+                .put(messagePrefix.duplicate()).put(bytes);
+        byteBuffer.rewind();
+        writer.write(byteBuffer);
     }
 
     @Override

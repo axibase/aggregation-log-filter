@@ -73,7 +73,7 @@ public class AggregatorTest extends TestCase {
         assertTrue(aggregator.register(event));
         Thread.sleep(1000);
 
-        verify(mockWriter, times(28)).write(any(ByteBuffer.class));
+        verify(mockWriter, times(14)).write(any(ByteBuffer.class));
     }
 
     @Ignore
