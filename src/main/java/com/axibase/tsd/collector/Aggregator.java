@@ -124,6 +124,7 @@ public class Aggregator<E, K, L> {
     }
 
     public void addSendMessageTrigger(SendMessageTrigger<E> messageTrigger) {
+        messageTrigger.init();
         if (triggers == null) {
             triggers = new SendMessageTrigger[] {messageTrigger};
         } else {

@@ -65,8 +65,11 @@
             <!-- default: empty -->
             <sendMessage>
                 <level>WARN</level>
-                <every>7</every>
                 <stackTraceLines>5</stackTraceLines>
+                <!-- default, ERROR:2 WARN:3 INFO:5 -->
+                <skipMultiplier>1.5</skipMultiplier>
+                <!-- default: 600 -->
+                <resetPeriodSeconds>60</resetPeriodSeconds>
             </sendMessage>
             <tag>
                 <name>ttt1</name>
@@ -98,6 +101,7 @@
                 <level>WARN</level>
                 <every>7</every>
                 <stackTraceLines>55</stackTraceLines>
+                <skipMultiplier>1.0</skipMultiplier>
             </sendMessage>
         </filter>
     </appender>
@@ -122,6 +126,7 @@
                 <level>WARN</level>
                 <every>10</every>
                 <stackTraceLines>5</stackTraceLines>
+                <skipMultiplier>1.0</skipMultiplier>
             </sendMessage>
         </filter>
     </appender>

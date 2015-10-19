@@ -90,7 +90,9 @@ public class CollectorTest extends TestCase {
             assertEquals(30, CountAppender.getCount());
             // check message content
             assertTrue(result.contains("t:ttt2=\"k=1;k2=2;k3=3\""));
-            assertTrue(result.contains("m:\"test 6\""));
+            assertTrue(result.contains("m:\"test 0\""));
+            assertFalse(result.contains("m:\"test 5\""));
+            assertTrue(result.contains("m:\"test 7\""));
             assertTrue(result.contains("t:level=WARN"));
             assertTrue(result.contains("test.tcp.write"));
             assertFalse(result.contains("t:level=DEBUG"));
@@ -132,7 +134,7 @@ public class CollectorTest extends TestCase {
             assertEquals(30, CountAppender.getCount());
             String result = udpReceiver.sb.toString();
             System.out.println("udp result = " + result);
-            assertTrue(result.contains("m:\"test 6"));
+            assertTrue(result.contains("m:\"test 0"));
             assertTrue(result.contains("com.axibase.tsd.collector.logback.CollectorTest.testUdpSend"));
             assertTrue(result.contains("sun.reflect.NativeMethodAccessorImpl.invoke"));
             assertTrue(result.contains("junit.framework.TestResult$1.protect"));

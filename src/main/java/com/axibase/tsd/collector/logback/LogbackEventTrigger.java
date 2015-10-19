@@ -24,9 +24,15 @@ import com.axibase.tsd.collector.SendMessageTrigger;
  */
 public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E>{
     public static final Level DEFAULT_LEVEL = Level.WARN;
+    public static final double ERROR_SKIP_MULTIPLIER = 2.0;
+    public static final double WARN_SKIP_MULTIPLIER = 2.0;
+    public static final double INFO_SKIP_MULTIPLIER = 5.0;
     private Level level = DEFAULT_LEVEL;
 
+    private boolean definedSkipMultiplier = false;
+
     public LogbackEventTrigger() {
+        super();
     }
 
     public LogbackEventTrigger(int every) {
@@ -39,7 +45,31 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
         return event != null && event.getLevel().isGreaterOrEqual(level) && super.onEvent(event);
     }
 
+    @Override
+    public String resolveKey(E event) {
+        return event.getLoggerName();
+    }
+
     public void setLevel(Level level) {
         this.level = level;
+    }
+
+    @Override
+    public void setSkipMultiplier(double skipMultiplier) {
+        super.setSkipMultiplier(skipMultiplier);
+        definedSkipMultiplier = true;
+    }
+
+    @Override
+    public void init() {
+        if (!definedSkipMultiplier) {
+            if (level.levelInt >= Level.ERROR_INT) {
+                setSkipMultiplier(ERROR_SKIP_MULTIPLIER);
+            } else if (level.levelInt >= Level.WARN_INT) {
+                setSkipMultiplier(WARN_SKIP_MULTIPLIER);
+            } else {
+                setSkipMultiplier(INFO_SKIP_MULTIPLIER);
+            }
+        }
     }
 }
