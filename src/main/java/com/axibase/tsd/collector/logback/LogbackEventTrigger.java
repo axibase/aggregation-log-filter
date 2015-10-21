@@ -25,7 +25,7 @@ import com.axibase.tsd.collector.SendMessageTrigger;
 public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E>{
     public static final Level DEFAULT_LEVEL = Level.WARN;
     public static final double ERROR_SKIP_MULTIPLIER = 2.0;
-    public static final double WARN_SKIP_MULTIPLIER = 2.0;
+    public static final double WARN_SKIP_MULTIPLIER = 3.0;
     public static final double INFO_SKIP_MULTIPLIER = 5.0;
     private Level level = DEFAULT_LEVEL;
 

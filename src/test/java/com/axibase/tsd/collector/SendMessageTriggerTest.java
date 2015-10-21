@@ -24,7 +24,7 @@ public class SendMessageTriggerTest {
         assertFalse(trigger.onEvent("1")); // cnt=7
         assertTrue(trigger.onEvent("1")); // cnt=8 (8-4=4) --> true
         assertFalse(trigger.onEvent("1")); // cnt=9
-        Thread.sleep(550); // > 1000ms
+        Thread.sleep(550); // < 1000ms
         assertFalse(trigger.onEvent("1")); // cnt=10
         Thread.sleep(550); // > 1000ms
         assertTrue(trigger.onEvent("1")); // cnt=1 --> true
