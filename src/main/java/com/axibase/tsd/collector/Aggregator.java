@@ -16,7 +16,6 @@
 package com.axibase.tsd.collector;
 
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 
 import java.io.IOException;
@@ -149,7 +148,7 @@ public class Aggregator<E, K, L> {
         public void run() {
             while (!stopped) {
                 try {
-                    Thread.sleep(seriesSenderConfig.getCheckPeriodMs());
+                    Thread.sleep(seriesSenderConfig.getCheckIntervalMs());
                     checkThresholds();
                 } catch (IOException e) {
                     // ignore
@@ -165,14 +164,14 @@ public class Aggregator<E, K, L> {
             long cnt = totalCounter.get() - lastTotalCounter;
             long currentTime = System.currentTimeMillis();
             long dt = currentTime - last;
-            long periodMs = seriesSenderConfig.getPeriodMs();
-            if (dt > periodMs) {
+            long intervalMs = seriesSenderConfig.getIntervalMs();
+            if (dt > intervalMs) {
                 flush(last, currentTime);
                 cnt = 0;
             }
 
-            int sendThreshold = seriesSenderConfig.getSendThreshold();
-            if (sendThreshold > 0 && dt > seriesSenderConfig.getMinPeriodMs() && cnt > sendThreshold) {
+            int minIntervalThreshold = seriesSenderConfig.getMinIntervalThreshold();
+            if (minIntervalThreshold > 0 && dt > seriesSenderConfig.getMinIntervalMs() && cnt > minIntervalThreshold) {
                 flush(last, currentTime);
             }
 

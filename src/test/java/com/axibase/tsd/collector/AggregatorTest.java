@@ -56,7 +56,7 @@ public class AggregatorTest extends TestCase {
         int cnt = 15;
 
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig(0, 1, 10);
-        seriesSenderConfig.setMinPeriodSeconds(0);
+        seriesSenderConfig.setMinIntervalSeconds(0);
         LogbackMessageWriter messageWriter = new LogbackMessageWriter();
         messageWriter.setSeriesSenderConfig(seriesSenderConfig);
         messageWriter.start();
@@ -73,7 +73,7 @@ public class AggregatorTest extends TestCase {
         assertTrue(aggregator.register(event));
         Thread.sleep(1000);
 
-        verify(mockWriter, times(14)).write(any(ByteBuffer.class));
+        verify(mockWriter, times(13)).write(any(ByteBuffer.class));
     }
 
     @Ignore
@@ -85,7 +85,7 @@ public class AggregatorTest extends TestCase {
         long st = System.currentTimeMillis();
 
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig(0, 1, 10);
-        seriesSenderConfig.setMinPeriodSeconds(0);
+        seriesSenderConfig.setMinIntervalSeconds(0);
         seriesSenderConfig.setMessageSkipThreshold(1000);
         LogbackMessageWriter messageWriter = new LogbackMessageWriter();
         messageWriter.setSeriesSenderConfig(seriesSenderConfig);

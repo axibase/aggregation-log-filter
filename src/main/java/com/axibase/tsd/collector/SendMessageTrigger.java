@@ -15,7 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-import java.lang.IllegalStateException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,21 +22,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Nikolay Malevanny.
  */
 public abstract class SendMessageTrigger<E> {
-    public static final double DEFAULT_SKIP_MULTIPLIER = 1.0;
-    public static final long DEFAULT_RESET_PERIOD = 600 * 1000L;
+    public static final double DEFAULT_SEND_MULTIPLIER = 1.0;
+    public static final long DEFAULT_RESET_INTERVAL = 600 * 1000L;
     public static final int DEFAULT_EVERY = 1;
-    public static final int MIN_RESET_PERIOD_SECONDS = 1;
+    public static final int MIN_RESET_INTERVAL_SECONDS = 1;
     private Map<String, History> keyToHistory = new ConcurrentHashMap<String, History>();
     private int every = DEFAULT_EVERY;
     private int stackTraceLines = 0;
 
-    private double skipMultiplier = DEFAULT_SKIP_MULTIPLIER;
-    private long resetPeriod = DEFAULT_RESET_PERIOD;
+    private double sendMultiplier = DEFAULT_SEND_MULTIPLIER;
+    private long resetInterval = DEFAULT_RESET_INTERVAL;
 
     public SendMessageTrigger() {
     }
 
     public boolean onEvent(E event) {
+        if (every <= 0) {
+            throw new IllegalStateException("Low every value to process event: " + event);
+        }
         long st = System.currentTimeMillis();
         String key = resolveKey(event);
         History history = keyToHistory.get(key);
@@ -46,17 +48,14 @@ public abstract class SendMessageTrigger<E> {
             history.reset(every);
             keyToHistory.put(key, history);
         }
-        if (st - history.first > resetPeriod) {
+        if (st - history.first > resetInterval) {
             // reset
             history.reset(every);
         }
         history.count++;
-        if (every <= 0) {
-            throw new IllegalStateException("Low every value to process event: " + event);
-        }
-        boolean result = (history.count-history.lastCount) % (int) history.modEvery == 0;
-        if (result && skipMultiplier > 1 && history.count > 1) {
-            history.update(skipMultiplier);
+        boolean result = (history.count >= history.modEvery);
+        if (result && sendMultiplier > 1 && history.count >= 1) {
+            history.update(sendMultiplier);
         }
         return result;
     }
@@ -81,15 +80,15 @@ public abstract class SendMessageTrigger<E> {
         return stackTraceLines;
     }
 
-    public void setSkipMultiplier(double skipMultiplier) {
-        if (skipMultiplier > DEFAULT_SKIP_MULTIPLIER) {
-            this.skipMultiplier = skipMultiplier;
+    public void setSendMultiplier(double sendMultiplier) {
+        if (sendMultiplier > DEFAULT_SEND_MULTIPLIER) {
+            this.sendMultiplier = sendMultiplier;
         }
     }
 
-    public void setResetPeriodSeconds(long resetPeriodSeconds) {
-        if (resetPeriodSeconds >= MIN_RESET_PERIOD_SECONDS) {
-            this.resetPeriod = resetPeriodSeconds * 1000;
+    public void setResetIntervalSeconds(long resetIntervalSeconds) {
+        if (resetIntervalSeconds >= MIN_RESET_INTERVAL_SECONDS) {
+            this.resetInterval = resetIntervalSeconds * 1000;
         }
     }
 
@@ -100,19 +99,16 @@ public abstract class SendMessageTrigger<E> {
     private static class History {
         private volatile long count;
         private volatile long first;
-        public volatile long lastCount = 1;
         private double modEvery;
 
         public void reset(int every) {
             count = 0;
-            lastCount = 1;
             modEvery = every;
             first = System.currentTimeMillis();
         }
 
-        public void update(double skipMultiplier) {
-            modEvery = modEvery * skipMultiplier;
-            lastCount = count;
+        public void update(double sendMultiplier) {
+            modEvery = modEvery * sendMultiplier;
         }
     }
 }

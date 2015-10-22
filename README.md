@@ -15,11 +15,11 @@ Using the collected statistics you can monitor the stability of applications on 
             </writer>
             <level>INFO</level>
             <sendSeries>
-                <zeroRepeatCount>3</zeroRepeatCount>
-                <metric>log_event</metric>
-                <periodSeconds>60</periodSeconds>
-                <sendThreshold>100</sendThreshold>
-                <minPeriodSeconds>1</minPeriodSeconds>
+                <repeatCount>3</repeatCount>
+                <metricPrefix>log_event</metricPrefix>
+                <intervalSeconds>60</intervalSeconds>
+                <minIntervalThreshold>100</minIntervalThreshold>
+                <minIntervalSeconds>1</minIntervalSeconds>
             </sendSeries>
             <sendMessage>
                 <every>100</every>
@@ -102,31 +102,31 @@ Log aggregation configuration to generate statistics and send them to ATSD.
 ```xml
 <sendSeries>
     <!-- 0+ default:1 -->
-    <zeroRepeatCount>5</zeroRepeatCount>
+    <repeatCount>5</repeatCount>
     <!-- default: log_event -->
-    <metric>log_event</metric>
+    <metricPrefix>log_event</metricPrefix>
     <!-- default: _total -->
     <totalSuffix>_sum</totalSuffix>
     <!-- default: 60 -->
-    <periodSeconds>1</periodSeconds>
+    <intervalSeconds>1</intervalSeconds>
     <!-- default: 0 -->
-    <sendThreshold>10</sendThreshold>
+    <minIntervalThreshold>10</minIntervalThreshold>
     <!-- default: 5 -->
-    <minPeriodSeconds>0</minPeriodSeconds>
+    <minIntervalSeconds>0</minIntervalSeconds>
 </sendSeries>
 ```
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
-| metric | no | log_event  | metric names prefix  |
+| metricPrefix | no | log_event  | metric names prefix  |
 | rateSuffix | no | _rate  | `rate` metric name suffix  |
 | totalSuffix | no | _total  | `total` metric name suffix  |
 | counterSuffix | no | _counter  | `counter` metric suffix  |
-| zeroRepeatCount | no | 1 | count of zero values after the last significant events |
-| periodSeconds | no | 60 | the period of sending collected log statistics (seconds) |
-| ratePeriodSeconds | no | 60 | period to calculate rate (seconds)|
-| minPeriodSeconds | no | 5 | minimum period between sending of statistics (seconds), in case `sendThreshold` is triggered|
-| sendThreshold | no | 0 | initiates sending of statistics before `periodSeconds` is completed, useful to decrease latency |
+| repeatCount | no | 1 | count of zero values after the last significant events |
+| intervalSeconds | no | 60 | the interval of sending collected log statistics (seconds) |
+| rateIntervalSeconds | no | 60 | interval to calculate rate (seconds)|
+| minIntervalSeconds | no | 5 | minimum interval between sending of statistics (seconds), in case `minIntervalThreshold` is triggered|
+| minIntervalThreshold | no | 0 | initiates sending of statistics before `intervalSeconds` is completed, useful to decrease latency |
 | messageSkipThreshold | no | 100 | remove oldest message from the internal queue if queue size more than `messageSkipThreshold` |
 
 

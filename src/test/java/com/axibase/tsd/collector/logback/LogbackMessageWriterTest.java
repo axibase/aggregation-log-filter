@@ -21,7 +21,6 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,7 +49,7 @@ public class LogbackMessageWriterTest {
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
         Assert.assertEquals(
-                "series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_rate=100.0 t:level=ERROR t:logger=test-logger ",
+                "series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level=ERROR t:logger=test-logger ",
                 result.substring(0, result.indexOf("ms:1")));
     }
 
@@ -67,13 +66,13 @@ public class LogbackMessageWriterTest {
             catcher = new StringsCatcher();
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
-            System.out.println("result = " + result);
+            System.out.println("result0 = " + result);
             assertTrue(
-                    result.contains("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_rate=100.0 t:level="));
+                    result.contains("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level="));
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric_rate=100.0 "));
+            assertTrue(result.contains("m:test-metric_counter=100 "));
             assertTrue(result.contains("m:test-metric_total_rate=100.0 "));
             assertTrue(result.contains("m:test-metric_total_counter=100 "));
         }
@@ -84,12 +83,12 @@ public class LogbackMessageWriterTest {
             events.put("test-logger", createCounter(1, Level.ERROR));
             messageBuilder.writeStatMessages(catcher, events, 60000 );
             String result = catcher.sb.toString();
-            System.out.println("result = " + result);
+            System.out.println("result1 = " + result);
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric_rate=0.0"));
-            assertTrue(result.contains("m:test-metric_rate=1.0"));
+            assertTrue(result.contains("m:test-metric_counter=100"));
+            assertTrue(result.contains("m:test-metric_counter=101"));
             assertTrue(result.contains("m:test-metric_total_rate=0.0"));
             assertTrue(result.contains("m:test-metric_total_rate=1.0"));
             assertTrue(result.contains("m:test-metric_total_counter=100"));
@@ -100,11 +99,11 @@ public class LogbackMessageWriterTest {
             events.clear();
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
-            System.out.println("result = " + result);
+            System.out.println("result2 = " + result);
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric_rate=0"));
+            assertTrue(result.contains("m:test-metric_counter=101"));
             assertTrue(result.contains("m:test-metric_total_rate=0"));
             assertTrue(result.contains("m:test-metric_total_counter=100"));
             assertTrue(result.contains("m:test-metric_total_counter=101"));
@@ -114,7 +113,7 @@ public class LogbackMessageWriterTest {
             events.clear();
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
-            System.out.println("result = " + result);
+            System.out.println("result3 = " + result);
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
@@ -149,7 +148,7 @@ public class LogbackMessageWriterTest {
         Assert.assertEquals(
                 "message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:\"test-message\n" +
                         "java.lang.NullPointerException: test\n" +
-                        "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java:143)\n" +
+                        "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java:142)\n" +
                         "\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n" +
                         "\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n" +
                         "\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n" +
@@ -171,7 +170,7 @@ public class LogbackMessageWriterTest {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = new LogbackMessageWriter<ILoggingEvent>();
         messageBuilder.setEntity("test-entity");
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
-        seriesSenderConfig.setMetric("test-metric");
+        seriesSenderConfig.setMetricPrefix("test-metric");
         messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         messageBuilder.addTag(new Tag("ttt1", "vvv1"));
         messageBuilder.addTag(new Tag("ttt2", "vvv2"));

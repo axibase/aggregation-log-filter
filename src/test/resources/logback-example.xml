@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="com.axibase.tsd.collector.logback.Collector">
+            <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
+                <url>http://atsd_server:8088/api/v1/command/</url>
+                <username>axibase</username>
+                <password>*****</password>
+            </writer>
+
+            <!--
+            <level>TRACE</level>
+            -->
+
+            <sendSeries>
+                <repeatCount>1</repeatCount>
+                <intervalSeconds>60</intervalSeconds>
+                <minIntervalThreshold>1000</minIntervalThreshold>
+                <minIntervalSeconds>5</minIntervalSeconds>
+            </sendSeries>
+
+            <sendMessage>
+                <level>ERROR</level>
+                <stackTraceLines>-1</stackTraceLines>
+                <sendMultiplier>2</sendMultiplier>
+                <resetIntervalSeconds>600</resetIntervalSeconds>
+            </sendMessage>
+
+            <sendMessage>
+                <level>WARN</level>
+                <stackTraceLines>0</stackTraceLines>
+                <sendMultiplier>3</sendMultiplier>
+                <resetIntervalSeconds>600</resetIntervalSeconds>
+            </sendMessage>
+
+            <!--
+            <sendMessage>
+                <level>TRACE</level>
+                <stackTraceLines>0</stackTraceLines>
+                <sendMultiplier>5</sendMultiplier>
+                <resetIntervalSeconds>3600</resetIntervalSeconds>
+            </sendMessage>
+            -->
+
+        </filter>
+        <encoder>
+            <pattern>%date{ISO8601} %level %thread %logger{35} - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework.batch.core.job.SimpleStepHandler" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

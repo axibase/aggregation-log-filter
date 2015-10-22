@@ -27,7 +27,10 @@ import com.axibase.tsd.collector.config.Tag;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author Nikolay Malevanny.
@@ -37,10 +40,10 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         implements MessageWriter<E, String, Level> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key, Counter> story = new HashMap<Key, Counter>();
-    private ByteBuffer seriesRatePrefix;
+    private final Map<Key, CounterWithSum> story = new HashMap<Key, CounterWithSum>();
+    private ByteBuffer seriesCounterPrefix;
     private ByteBuffer seriesTotalRatePrefix;
-    private ByteBuffer seriesTotalSumPrefix;
+    private ByteBuffer seriesTotalCounterPrefix;
     private ByteBuffer messagePrefix;
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<Level, CounterWithSum> totals = new HashMap<Level, CounterWithSum>();
@@ -52,7 +55,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         if (deltaTime < 1) {
             throw new IllegalArgumentException("Illegal delta tie value: " + deltaTime);
         }
-        int zeroRepeatCount = seriesSenderConfig.getZeroRepeatCount();
+        int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // clean total counters
 //        for (Iterator<Map.Entry<Level, CounterWithSum>> iterator = totals.entrySet().iterator(); iterator.hasNext(); ) {
@@ -73,12 +76,12 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             for (Map.Entry<Level, Long> levelAndCnt : extCounter.values()) {
                 Key key = new Key(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                Counter counter = story.get(key);
+                CounterWithSum counter = story.get(key);
                 if (counter == null) {
-                    story.put(key, new Counter(v, zeroRepeatCount));
+                    story.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
-                    counter.setZeroRepeats(zeroRepeatCount);
+                    counter.setZeroRepeats(repeatCount);
                 }
             }
         }
@@ -86,33 +89,32 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key, Counter>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Key, Counter> entry = iterator.next();
-            Counter counter = entry.getValue();
+        for (Iterator<Map.Entry<Key, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<Key, CounterWithSum> entry = iterator.next();
+            CounterWithSum counter = entry.getValue();
             if (counter.zeroRepeats < 0) {
                 iterator.remove();
             } else {
                 Key key = entry.getKey();
                 Level level = key.getLevel();
                 long value = counter.value;
+                counter.clean();
                 try {
                     String levelString = level.toString();
-                    double rate = value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
-                    writeRate(writer, time, key, levelString, rate);
+                    writeCounter(writer, time, key, levelString, counter.sum);
                 } catch (Throwable e) {
                     addError("Could not write series", e);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
                         if (total == null) {
-                            total = new CounterWithSum(value, zeroRepeatCount);
+                            total = new CounterWithSum(value, repeatCount);
                             totals.put(level, total);
                         } else {
                             total.add(value);
-//                            total.setZeroRepeats(zeroRepeatCount);
+//                            total.setZeroRepeats(repeatCount);
                         }
                     }
-                    counter.clean();
                 }
             }
         }
@@ -123,12 +125,12 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             CounterWithSum counterWithSum = entry.getValue();
             try {
                 // write total rate
-                double rate = counterWithSum.value * (double) seriesSenderConfig.getRatePeriodMs() / deltaTime;
+                double rate = counterWithSum.value * (double) seriesSenderConfig.getRateIntervalMs() / deltaTime;
                 String levelString = level.toString();
                 writeTotalRate(writer, time, rate, levelString);
                 counterWithSum.clean();
                 // write total sum
-                writeTotalSum(writer, time, counterWithSum, levelString);
+                writeTotalCounter(writer, time, counterWithSum, levelString);
             } catch (Throwable e) {
                 addError("Could not write series", e);
             } finally {
@@ -137,32 +139,32 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         }
     }
 
-    private void writeRate(WritableByteChannel writer,
-                           long time,
-                           Key key,
-                           String levelString,
-                           double rate) throws IOException {
-        StringBuilder sb = new StringBuilder().append(rate);
+    private void writeCounter(WritableByteChannel writer,
+                              long time,
+                              Key key,
+                              String levelString,
+                              long value) throws IOException {
+        StringBuilder sb = new StringBuilder().append(value);
         sb.append(" t:level=").append(levelString);
         sb.append(" t:logger=").append(AtsdUtil.sanitizeTagValue(key.getLogger()));
         sb.append(" ms:").append(time).append("\n");
         byte[] bytes = sb.toString().getBytes();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesRatePrefix.remaining() + bytes.length)
-                .put(seriesRatePrefix.duplicate()).put(bytes);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesCounterPrefix.remaining() + bytes.length)
+                .put(seriesCounterPrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
         writer.write(byteBuffer);
     }
 
-    private void writeTotalSum(WritableByteChannel writer,
-                               long time,
-                               CounterWithSum counterWithSum,
-                               String levelString) throws IOException {
+    private void writeTotalCounter(WritableByteChannel writer,
+                                   long time,
+                                   CounterWithSum counterWithSum,
+                                   String levelString) throws IOException {
         StringBuilder sb = new StringBuilder().append(counterWithSum.sum);
         sb.append(" t:level=").append(levelString);
         sb.append(" ms:").append(time).append("\n");
         byte[] bytes = sb.toString().getBytes();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalSumPrefix.remaining() + bytes.length)
-                .put(seriesTotalSumPrefix.duplicate()).put(bytes);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalCounterPrefix.remaining() + bytes.length)
+                .put(seriesTotalCounterPrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
         writer.write(byteBuffer);
     }
@@ -238,16 +240,16 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             sb.append("series e:").append(sanitizedEntity);
             appendTags(sb);
             sb.append(" m:").append(
-                    AtsdUtil.sanitizeMetric(seriesSenderConfig.getMetric() + seriesSenderConfig.getRateSuffix())).append(
+                    AtsdUtil.sanitizeMetric(seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getCounterSuffix())).append(
                     "=");
-            seriesRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
+            seriesCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
         {
             StringBuilder sb = new StringBuilder();
             sb.append("series e:").append(sanitizedEntity);
             appendTags(sb);
             sb.append(" m:").append(AtsdUtil.sanitizeMetric(
-                    seriesSenderConfig.getMetric() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getRateSuffix())).append(
+                    seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getRateSuffix())).append(
                     "=");
             seriesTotalRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
@@ -256,9 +258,9 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             sb.append("series e:").append(sanitizedEntity);
             appendTags(sb);
             sb.append(" m:").append(AtsdUtil.sanitizeMetric(
-                    seriesSenderConfig.getMetric() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getCounterSuffix())).append(
+                    seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getCounterSuffix())).append(
                     "=");
-            seriesTotalSumPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
+            seriesTotalCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
         {
             StringBuilder sb = new StringBuilder();

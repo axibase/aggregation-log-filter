@@ -27,9 +27,9 @@
             <writer class="com.axibase.tsd.collector.logback.SendCounter"/>
             <level>WARN</level>
             <sendSeries>
-                <sendThreshold>10</sendThreshold>
-                <minPeriodSeconds>0</minPeriodSeconds>
-                <zeroRepeatCount>0</zeroRepeatCount>
+                <minIntervalThreshold>10</minIntervalThreshold>
+                <minIntervalSeconds>0</minIntervalSeconds>
+                <repeatCount>0</repeatCount>
             </sendSeries>
             <sendMessage>
                 <every>7</every>
@@ -50,26 +50,26 @@
             <entity>localhost</entity>
             <sendSeries>
                 <!-- 0+ default:1 -->
-                <zeroRepeatCount>5</zeroRepeatCount>
+                <repeatCount>5</repeatCount>
                 <!-- default: log_event -->
-                <metric>log_event</metric>
+                <metricPrefix>log_event</metricPrefix>
                 <!-- default: _total -->
                 <totalSuffix>_sum</totalSuffix>
                 <!-- default: 60 -->
-                <periodSeconds>1</periodSeconds>
+                <intervalSeconds>1</intervalSeconds>
                 <!-- default: 0 -->
-                <sendThreshold>10</sendThreshold>
+                <minIntervalThreshold>10</minIntervalThreshold>
                 <!-- default: 5 -->
-                <minPeriodSeconds>0</minPeriodSeconds>
+                <minIntervalSeconds>0</minIntervalSeconds>
             </sendSeries>
             <!-- default: empty -->
             <sendMessage>
                 <level>WARN</level>
                 <stackTraceLines>5</stackTraceLines>
                 <!-- default, ERROR:2 WARN:3 INFO:5 -->
-                <skipMultiplier>1.5</skipMultiplier>
+                <sendMultiplier>1.5</sendMultiplier>
                 <!-- default: 600 -->
-                <resetPeriodSeconds>60</resetPeriodSeconds>
+                <resetIntervalSeconds>60</resetIntervalSeconds>
             </sendMessage>
             <tag>
                 <name>ttt1</name>
@@ -91,17 +91,17 @@
             <level>WARN</level>
             <entity>localhost</entity>
             <sendSeries>
-                <zeroRepeatCount>5</zeroRepeatCount>
-                <metric>log_event</metric>
-                <periodSeconds>30</periodSeconds>
-                <sendThreshold>10</sendThreshold>
-                <minPeriodSeconds>0</minPeriodSeconds>
-            </sendSeries>
+            <repeatCount>5</repeatCount>
+            <metricPrefix>log_event</metricPrefix>
+            <intervalSeconds>30</intervalSeconds>
+            <minIntervalThreshold>10</minIntervalThreshold>
+            <minIntervalSeconds>0</minIntervalSeconds>
+        </sendSeries>
             <sendMessage>
                 <level>WARN</level>
                 <every>7</every>
                 <stackTraceLines>55</stackTraceLines>
-                <skipMultiplier>1.0</skipMultiplier>
+                <sendMultiplier>1.0</sendMultiplier>
             </sendMessage>
         </filter>
     </appender>
@@ -116,17 +116,17 @@
             <level>WARN</level>
             <entity>localhost</entity>
             <sendSeries>
-                <zeroRepeatCount>5</zeroRepeatCount>
-                <metric>log_event</metric>
-                <periodSeconds>30</periodSeconds>
-                <sendThreshold>1000</sendThreshold>
-                <minPeriodSeconds>0</minPeriodSeconds>
+                <repeatCount>5</repeatCount>
+                <metricPrefix>log_event</metricPrefix>
+                <intervalSeconds>30</intervalSeconds>
+                <minIntervalThreshold>1000</minIntervalThreshold>
+                <minIntervalSeconds>0</minIntervalSeconds>
             </sendSeries>
             <sendMessage>
                 <level>WARN</level>
                 <every>10</every>
                 <stackTraceLines>5</stackTraceLines>
-                <skipMultiplier>1.0</skipMultiplier>
+                <sendMultiplier>1.0</sendMultiplier>
             </sendMessage>
         </filter>
     </appender>

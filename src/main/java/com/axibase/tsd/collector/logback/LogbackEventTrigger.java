@@ -29,7 +29,7 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
     public static final double INFO_SKIP_MULTIPLIER = 5.0;
     private Level level = DEFAULT_LEVEL;
 
-    private boolean definedSkipMultiplier = false;
+    private boolean definedSendMultiplier = false;
 
     public LogbackEventTrigger() {
         super();
@@ -55,20 +55,20 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
     }
 
     @Override
-    public void setSkipMultiplier(double skipMultiplier) {
-        super.setSkipMultiplier(skipMultiplier);
-        definedSkipMultiplier = true;
+    public void setSendMultiplier(double sendMultiplier) {
+        super.setSendMultiplier(sendMultiplier);
+        definedSendMultiplier = true;
     }
 
     @Override
     public void init() {
-        if (!definedSkipMultiplier) {
+        if (!definedSendMultiplier) {
             if (level.levelInt >= Level.ERROR_INT) {
-                setSkipMultiplier(ERROR_SKIP_MULTIPLIER);
+                setSendMultiplier(ERROR_SKIP_MULTIPLIER);
             } else if (level.levelInt >= Level.WARN_INT) {
-                setSkipMultiplier(WARN_SKIP_MULTIPLIER);
+                setSendMultiplier(WARN_SKIP_MULTIPLIER);
             } else {
-                setSkipMultiplier(INFO_SKIP_MULTIPLIER);
+                setSendMultiplier(INFO_SKIP_MULTIPLIER);
             }
         }
     }

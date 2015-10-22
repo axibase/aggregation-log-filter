@@ -54,7 +54,7 @@ public class CollectorTest extends TestCase {
     public void testDecide() throws Exception {
         CountAppender.clear();
         SendCounter.clear();
-        // 15 > <sendThreshold>10</sendThreshold>
+        // 15 > <minIntervalThreshold>10</minIntervalThreshold>
         // 15 > <sendEvery>7</sendEvery>
         for (int i = 0; i < 15; i++) {
             log.error("test {}", i);
@@ -64,7 +64,7 @@ public class CollectorTest extends TestCase {
         }
         Thread.sleep(700);
         assertEquals(30, CountAppender.getCount());
-        assertEquals(7, SendCounter.getCount());
+        assertEquals(6, SendCounter.getCount());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class CollectorTest extends TestCase {
         try {
             tcpReceiver.start();
 
-            // 15 > <sendThreshold>10</sendThreshold>
+            // 15 > <minIntervalThreshold>10</minIntervalThreshold>
             // 15 > <sendEvery>7</sendEvery>
             // <level>WARN</level>
             for (int i = 0; i < 15; i++) {
@@ -91,13 +91,14 @@ public class CollectorTest extends TestCase {
             // check message content
             assertTrue(result.contains("t:ttt2=\"k=1;k2=2;k3=3\""));
             assertTrue(result.contains("m:\"test 0\""));
-            assertFalse(result.contains("m:\"test 5\""));
+            assertFalse(result.contains("m:\"test 4\""));
+            assertTrue(result.contains("m:\"test 5\""));
             assertTrue(result.contains("m:\"test 7\""));
             assertTrue(result.contains("t:level=WARN"));
             assertTrue(result.contains("test.tcp.write"));
             assertFalse(result.contains("t:level=DEBUG"));
             // check series content
-            assertTrue(result.contains("m:log_event_rate="));
+            assertTrue(result.contains("m:log_event_counter="));
             assertTrue(result.contains("m:log_event_sum_rate="));
             assertTrue(result.contains("m:log_event_sum_counter="));
         } finally {
@@ -112,7 +113,7 @@ public class CollectorTest extends TestCase {
         try {
             udpReceiver.start();
 
-            // 15 > <sendThreshold>10</sendThreshold>
+            // 15 > <minIntervalThreshold>10</minIntervalThreshold>
             // 15 > <sendEvery>7</sendEvery>
             // <level>WARN</level>
             for (int i = 0; i < 15; i++) {
@@ -134,13 +135,13 @@ public class CollectorTest extends TestCase {
             assertEquals(30, CountAppender.getCount());
             String result = udpReceiver.sb.toString();
             System.out.println("udp result = " + result);
-            assertTrue(result.contains("m:\"test 0"));
+            assertTrue(result.contains("m:\"test 6"));
             assertTrue(result.contains("com.axibase.tsd.collector.logback.CollectorTest.testUdpSend"));
             assertTrue(result.contains("sun.reflect.NativeMethodAccessorImpl.invoke"));
             assertTrue(result.contains("junit.framework.TestResult$1.protect"));
             assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("t:level=DEBUG"));
-            assertTrue(result.contains("m:log_event_rate"));
+            assertTrue(result.contains("m:log_event_counter"));
             assertTrue(result.contains("m:log_event_total_rate"));
             assertTrue(result.contains("m:log_event_total_counter"));
         } finally {
