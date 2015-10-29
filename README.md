@@ -142,5 +142,5 @@ Log example selection configuration to send them as messages to ATSD.
 |---|---|---|---|
 | level | no | WARN | minimum level to send message |
 | stackTraceLines | no | 0 | count of stack trace line that will be included in the message, -1 -- all lines |
-| sendMultiplier | no | 2.0 for ERROR; 3.0 for WARN; 5.0 for INFO | determines which messages are sent within the period; skipMultiplier = 2 : send the following messages 1, 2, 4, 8, …, n, n*2 within each period; skipMultiplier = 3 : send the following messages 1, 3, 9, 27, …, n, n*3 within each period; skipMultiplier = M : send the following messages 1, 1*M, …, n, n*M within each period |
+| sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | determines which messages are sent within the period; skipMultiplier = 2 : send the following messages 1, 2, 4, 8, 16, … within each period; skipMultiplier = 3 : send the following messages 1, 3, 9, 27, 81, … within each period; skipMultiplier = M : send the following messages 1, M, M*M, M*M*M, … within each period |
 | resetIntervalSeconds | no | 600 | interval when message count is reset |
