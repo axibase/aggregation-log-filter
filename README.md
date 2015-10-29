@@ -128,7 +128,7 @@ Log example selection configuration to send them as messages to ATSD.
 
 ```xml
 <sendMessage>
-    <every>1000</every>
+    <level>WARN</level>
 </sendMessage>
 <sendMessage>
     <level>ERROR</level>
