@@ -103,10 +103,6 @@ Log aggregation configuration to generate statistics and send them to ATSD.
 <sendSeries>
     <!-- 0+ default:1 -->
     <repeatCount>5</repeatCount>
-    <!-- default: log_event -->
-    <metricPrefix>log_event</metricPrefix>
-    <!-- default: _total -->
-    <totalSuffix>_sum</totalSuffix>
     <!-- default: 60 -->
     <intervalSeconds>1</intervalSeconds>
     <!-- default: 0 -->
@@ -119,15 +115,11 @@ Log aggregation configuration to generate statistics and send them to ATSD.
 | Name | Required | Default Value | Description |
 |---|---|---|---|
 | metricPrefix | no | log_event  | metric names prefix  |
-| rateSuffix | no | _rate  | `rate` metric name suffix  |
-| totalSuffix | no | _total  | `total` metric name suffix  |
-| counterSuffix | no | _counter  | `counter` metric suffix  |
 | repeatCount | no | 1 | count of zero values after the last significant events |
 | intervalSeconds | no | 60 | the interval of sending collected log statistics (seconds) |
 | rateIntervalSeconds | no | 60 | interval to calculate rate (seconds)|
 | minIntervalSeconds | no | 5 | minimum interval between sending of statistics (seconds), in case `minIntervalThreshold` is triggered|
 | minIntervalThreshold | no | 0 | initiates sending of statistics before `intervalSeconds` is completed, useful to decrease latency |
-| messageSkipThreshold | no | 100 | remove oldest message from the internal queue if queue size more than `messageSkipThreshold` |
 
 
 ## sendMessage
@@ -140,13 +132,15 @@ Log example selection configuration to send them as messages to ATSD.
 </sendMessage>
 <sendMessage>
     <level>ERROR</level>
-    <every>10</every>
     <stackTraceLines>15</stackTraceLines>
+    <sendMultiplier>3</sendMultiplier>
+    <resetIntervalSeconds>600</resetIntervalSeconds>
 </sendMessage>
 ```
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
 | level | no | WARN | minimum level to send message |
-| every | yes | - | one of every n log events will be sent to ATSD as message |
 | stackTraceLines | no | 0 | count of stack trace line that will be included in the message, -1 -- all lines |
+| sendMultiplier | no | 2.0 for ERROR; 3.0 for WARN; 5.0 for INFO | determines which messages are sent within the period; skipMultiplier = 2 : send the following messages 1, 2, 4, 8, …, n, n*2 within each period; skipMultiplier = 3 : send the following messages 1, 3, 9, 27, …, n, n*3 within each period; skipMultiplier = M : send the following messages 1, 1*M, …, n, n*M within each period |
+| resetIntervalSeconds | no | 600 | interval when message count is reset |
