@@ -1,15 +1,12 @@
 # Aggregation Log Filter
 
-For developers of major systems a typical situation is that with the system's growth, new functionality and new system logs are added. Under certain circumstances, there are failures in the systems, which are written into the logs. When applications run on multiple servers, the task of monitoring service status is complicated.
+The filter plugs into the logging pipeline and computes log event counters and interval rates for each trace level. These statistics can be used to monitor error levels for the entire application and for individual Java classes. In addition to measuring logging activity, the filter can be configured to send a small subset of log events into a backend storage system such as Axibase Time-Series Database to facilitate root-cause analysis.
 
-Log statistics collector is used to gather statistics on errors and warnings in log files and selectively send messages from the logs for fast browsing (no need to go to the server and examine the logs in detail), without any modifications to the application's source code.
-
-Using the collected statistics you can monitor the stability of applications on different servers in the long term. You can configure rules to be notified of application errors, which will reduce the time it takes to eliminate the errors.
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
             <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-                <url>http://localhost:8088/api/v1/command/</url>
+                <url>http://atsd_server:8088/api/v1/command/</url>
                 <username>USERNAME</username>
                 <password>PASSWORD</password>
             </writer>
@@ -38,23 +35,23 @@ Using the collected statistics you can monitor the stability of applications on 
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| level | no | TRACE | minimum level to process event |
-| entity | no | current hostname | entity name for series and messages |
-| tag | no | - | custom tag(s) to attach to series and messages, MULTIPLE |
 | writer | yes | - | see `writer` config |
+| level | no | TRACE | minimum level to process event |
+| entity | no | current hostname | entity name for series and messages, for example application name or hostname |
+| tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
 | sendSeries | yes | - | see `sendSeries` config |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
 
 
 ## writer
 
-Data transmission configuration that will be used to send statistics and messages to ATSD.
+Configures a TCP, UDP or HTTP writer to send statistics and messages to a backend storage system such as Axibase Time-Series Database.
 
 ### TCP writer
 
 ```xml
 <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
-    <host>localhost</host>
+    <host>atsd_server</host>
     <port>8081</port>
 </writer>
 ```
@@ -68,7 +65,7 @@ Data transmission configuration that will be used to send statistics and message
 
 ```xml
 <writer class="com.axibase.tsd.collector.writer.UdpAtsdWriter">
-    <host>localhost</host>
+    <host>atsd_server</host>
     <port>8082</port>
 </writer>
 ```
@@ -82,7 +79,7 @@ Data transmission configuration that will be used to send statistics and message
 
 ```xml
 <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-    <url>http://localhost:8088/api/v1/command/</url>
+    <url>http://atsd_server:8088/api/v1/command/</url>
     <username>axibase</username>
     <password>*****</password>
 </writer>
@@ -90,41 +87,39 @@ Data transmission configuration that will be used to send statistics and message
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | ATSD API command URL like 'http://localhost:8088/api/v1/command/', string |
+| url | yes | - | ATSD API command URL like 'http://atsd_server:8088/api/v1/command/', string |
 | username | yes | - | user name, string |
 | password | yes | - | password, string |
 
-
 ## sendSeries
 
-Log aggregation configuration to generate statistics and send them to ATSD.
+Configures how often counter and rate statistics are sent to the storage system.
 
 ```xml
 <sendSeries>
-    <!-- 0+ default:1 -->
-    <repeatCount>5</repeatCount>
     <!-- default: 60 -->
-    <intervalSeconds>1</intervalSeconds>
+    <intervalSeconds>60</intervalSeconds>
+    <!-- 0+ default:1 -->
+    <repeatCount>5</repeatCount>    
     <!-- default: 0 -->
-    <minIntervalThreshold>10</minIntervalThreshold>
+    <minIntervalThreshold>0</minIntervalThreshold>
     <!-- default: 5 -->
-    <minIntervalSeconds>0</minIntervalSeconds>
+    <minIntervalSeconds>5</minIntervalSeconds>
 </sendSeries>
 ```
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
-| metricPrefix | no | log_event  | metric names prefix  |
-| repeatCount | no | 1 | count of zero values after the last significant events |
-| intervalSeconds | no | 60 | the interval of sending collected log statistics (seconds) |
-| rateIntervalSeconds | no | 60 | interval to calculate rate (seconds)|
-| minIntervalSeconds | no | 5 | minimum interval between sending of statistics (seconds), in case `minIntervalThreshold` is triggered|
-| minIntervalThreshold | no | 0 | initiates sending of statistics before `intervalSeconds` is completed, useful to decrease latency |
-
+| intervalSeconds | no | 60 | Interval in seconds for sending collected log statistics |
+| minIntervalSeconds | no | 5 | Minimum interval between sending of statistics (seconds), in case `minIntervalThreshold` is triggered|
+| minIntervalThreshold | no | 0 | Initiates sending of statistics ahead of schedule if number of messages exceeds minIntervalThreshold |
+| repeatCount | no | 1 | Maximum number of repeat values for each counter to send |
+| metricPrefix | no | log_event  | Metric name prefix  |
+| rateIntervalSeconds | no | 60 | Interval for rate calculation |
 
 ## sendMessage
 
-Log example selection configuration to send them as messages to ATSD.
+Configures which log events should be sent to the storage system.
 
 ```xml
 <sendMessage>
@@ -140,7 +135,7 @@ Log example selection configuration to send them as messages to ATSD.
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
-| level | no | WARN | minimum level required for the message to be sent |
-| stackTraceLines | no | 0 | count of stack trace line that will be included in the message, -1 -- all lines |
-| sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | determines which messages are sent within the period; sendMultiplier = 2 : send the following messages 1, 2, 4, 8, 16, … within each period; sendMultiplier = 3 : send the following messages 1, 3, 9, 27, 81, … within each period; sendMultiplier = M : send the following messages 1, M, M*M, M*M*M, … within each period |
-| resetIntervalSeconds | no | 600 | interval after which the message count is reset. |
+| level | no | WARN | Minimum trace level to which this configuration applies. For example, WARN applies to WARN, ERROR, and FATAL events. |
+| stackTraceLines | no | 0 | number of stacktrace lines that will be included in the message, -1 -- all lines |
+| sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | Determines how many events are sent within each interval, determined with resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
+| resetIntervalSeconds | no | 600 | Interval after which the event count is reset. |
