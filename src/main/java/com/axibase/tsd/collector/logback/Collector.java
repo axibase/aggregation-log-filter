@@ -21,6 +21,8 @@ import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.FilterReply;
 import com.axibase.tsd.collector.Aggregator;
+import com.axibase.tsd.collector.AtsdUtil;
+import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 
@@ -82,6 +84,27 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     @Override
     public void stop() {
+        AtsdUtil.setInternalLogger(new InternalLogger() {
+            @Override
+            public void error(String message, Throwable exception) {
+                addError(message, exception);
+            }
+
+            @Override
+            public void error(String message) {
+                addError(message);
+            }
+
+            @Override
+            public void warn(String message) {
+                addWarn(message);
+            }
+
+            @Override
+            public void info(String message) {
+                addInfo(message);
+            }
+        });
         super.stop();
         aggregator.stop();
         logbackMessageBuilder.stop();

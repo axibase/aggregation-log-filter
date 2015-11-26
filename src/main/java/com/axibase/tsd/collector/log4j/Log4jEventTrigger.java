@@ -13,37 +13,37 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.tsd.collector.logback;
+package com.axibase.tsd.collector.log4j;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.axibase.tsd.collector.SendMessageTrigger;
+import org.apache.log4j.Level;
+import org.apache.log4j.spi.LoggingEvent;
 
 /**
  * @author Nikolay Malevanny.
  */
-public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E>{
+public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
     public static final Level DEFAULT_LEVEL = Level.WARN;
     private Level level = DEFAULT_LEVEL;
 
     private boolean definedSendMultiplier = false;
 
-    public LogbackEventTrigger() {
+    public Log4jEventTrigger() {
         super();
     }
 
-    public LogbackEventTrigger(int every) {
+    public Log4jEventTrigger(int every) {
         super();
         setEvery(every);
     }
 
     @Override
-    public boolean onEvent(E event) {
+    public boolean onEvent(LoggingEvent event) {
         return event != null && event.getLevel().isGreaterOrEqual(level) && super.onEvent(event);
     }
 
     @Override
-    public String resolveKey(E event) {
+    public String resolveKey(LoggingEvent event) {
         return event.getLoggerName();
     }
 
@@ -60,9 +60,9 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
     @Override
     public void init() {
         if (!definedSendMultiplier) {
-            if (level.levelInt >= Level.ERROR_INT) {
+            if (level.isGreaterOrEqual(Level.ERROR)) {
                 setSendMultiplier(ERROR_SKIP_MULTIPLIER);
-            } else if (level.levelInt >= Level.WARN_INT) {
+            } else if (level.isGreaterOrEqual(Level.WARN)) {
                 setSendMultiplier(WARN_SKIP_MULTIPLIER);
             } else {
                 setSendMultiplier(INFO_SKIP_MULTIPLIER);

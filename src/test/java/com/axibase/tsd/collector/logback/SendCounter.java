@@ -36,6 +36,9 @@ public class SendCounter implements WritableByteChannel {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
+        byte[] array = new byte[src.remaining()];
+        src.duplicate().get(array);
+        System.out.println("count:" + new String(array));
         count++;
         return 1;
     }

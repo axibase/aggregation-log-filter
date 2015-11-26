@@ -13,16 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.tsd.collector.logback;
+package com.axibase.tsd.collector.log4j;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.IThrowableProxy;
-import ch.qos.logback.classic.spi.StackTraceElementProxy;
-import ch.qos.logback.core.spi.ContextAwareBase;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
+import org.apache.log4j.Level;
+import org.apache.log4j.helpers.LogLog;
+import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -34,9 +33,7 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-public class LogbackMessageWriter<E extends ILoggingEvent>
-        extends ContextAwareBase
-        implements MessageWriter<E, String, Level> {
+public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, Level> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
     private final Map<Key<Level>, CounterWithSum> story = new HashMap<Key<Level>, CounterWithSum>();
@@ -91,7 +88,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
                     String levelString = level.toString();
                     messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
                 } catch (Throwable e) {
-                    addError("Could not write series", e);
+                    LogLog.error("Could not write series", e);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -120,7 +117,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
                 // write total sum
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
             } catch (Throwable e) {
-                addError("Could not write series", e);
+                LogLog.error("Could not write series", e);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -128,40 +125,40 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
     }
 
     @Override
-    public void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException {
-        EventWrapper<E> wrapper;
+    public void writeSingles(WritableByteChannel writer,
+                             CountedQueue<EventWrapper<LoggingEvent>> singles) throws IOException {
+        EventWrapper<LoggingEvent> wrapper;
         while ((wrapper = singles.poll()) != null) {
             try {
-                E event = wrapper.getEvent();
+                LoggingEvent event = wrapper.getEvent();
                 StringBuilder sb = new StringBuilder();
-                String message = event.getFormattedMessage();
+                String message = event.getMessage().toString();
                 int lines = wrapper.getLines();
-                if (lines > 0 && event.getCallerData() != null) {
+                if (lines > 0 && event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() != null) {
                     StringBuilder msb = new StringBuilder(message);
-                    IThrowableProxy throwableProxy = event.getThrowableProxy();
+                    final ThrowableInformation throwableInfo = event.getThrowableInformation();
                     int s = 0;
-                    while (throwableProxy != null && s++ < lines) {
-                        msb.append("\n").append(throwableProxy.getClassName())
-                                .append(": ").append(throwableProxy.getMessage());
-                        StackTraceElementProxy[] traceElementProxyArray = throwableProxy.getStackTraceElementProxyArray();
+                    final Throwable throwableProxy = throwableInfo.getThrowable();
+                    msb.append("\n").append(throwableProxy.getClass().getName())
+                            .append(": ").append(throwableProxy.getMessage());
+                    String[] traceElementProxyArray = throwableInfo.getThrowableStrRep();
+                    if (traceElementProxyArray != null) {
                         for (int i = 0; i < traceElementProxyArray.length && s < lines; i++, s++) {
-                            StackTraceElementProxy traceElement = traceElementProxyArray[i];
-                            msb.append("\n\t").append(traceElement.toString());
+                            msb.append("\n\t").append(traceElementProxyArray[i]);
                         }
-                        throwableProxy = throwableProxy.getCause();
                     }
                     message = msb.toString();
                 }
                 writeMessage(writer, event, sb, message);
             } catch (IOException e) {
-                addError("Could not write message", e);
+                LogLog.error("Could not write message", e);
             }
         }
         singles.clearCount();
     }
 
     private void writeMessage(WritableByteChannel writer,
-                              E event,
+                              LoggingEvent event,
                               StringBuilder sb,
                               String message) throws IOException {
         final String levelValue = event.getLevel().toString();

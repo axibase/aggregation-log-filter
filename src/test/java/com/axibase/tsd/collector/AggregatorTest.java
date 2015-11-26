@@ -19,6 +19,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
+import com.axibase.tsd.collector.config.TotalCountInit;
 import com.axibase.tsd.collector.logback.CountAppender;
 import com.axibase.tsd.collector.logback.LogbackEventProcessor;
 import com.axibase.tsd.collector.logback.LogbackEventTrigger;
@@ -56,6 +57,9 @@ public class AggregatorTest extends TestCase {
         int cnt = 15;
 
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig(0, 1, 10);
+        seriesSenderConfig.setTotalCountInit(new TotalCountInit("INFO", -1));
+        seriesSenderConfig.setTotalCountInit(new TotalCountInit("WARN", -1));
+        seriesSenderConfig.setTotalCountInit(new TotalCountInit("ERROR", -1));
         seriesSenderConfig.setMinIntervalSeconds(0);
         LogbackMessageWriter messageWriter = new LogbackMessageWriter();
         messageWriter.setSeriesSenderConfig(seriesSenderConfig);

@@ -21,7 +21,6 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,8 +30,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Nikolay Malevanny.
@@ -48,9 +46,8 @@ public class LogbackMessageWriterTest {
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
-        Assert.assertEquals(
-                "series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level=ERROR t:logger=test-logger ",
-                result.substring(0, result.indexOf("ms:1")));
+        assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
+                "t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level=ERROR t:logger=test-logger"));
     }
 
     @Test
@@ -68,7 +65,9 @@ public class LogbackMessageWriterTest {
             String result = catcher.sb.toString();
             System.out.println("result0 = " + result);
             assertTrue(
-                    result.contains("series e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level="));
+                    result.contains("series e:test-entity"));
+            assertTrue(
+                    result.contains("t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level="));
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
@@ -131,9 +130,8 @@ public class LogbackMessageWriterTest {
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
-        Assert.assertEquals(
-                "message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger ",
-                result.substring(0, result.indexOf("ms:1")));
+        assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
+                "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger "));
     }
 
     @Test
@@ -145,19 +143,10 @@ public class LogbackMessageWriterTest {
         messageBuilder.writeSingles(catcher, createSingles(event, 10));
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
-        Assert.assertEquals(
-                "message e:test-entity t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:\"test-message\n" +
-                        "java.lang.NullPointerException: test\n" +
-                        "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java:142)\n" +
-                        "\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n" +
-                        "\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n" +
-                        "\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n" +
-                        "\tat java.lang.reflect.Method.invoke(Method.java:597)\n" +
-                        "\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n" +
-                        "\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n" +
-                        "\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n" +
-                        "\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\" t:severity=ERROR t:level=ERROR t:source=test-logger ",
-                result.substring(0, result.indexOf("ms:1")));
+        final String text = "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:\"test-message\n" +
+                "java.lang.NullPointerException: test\n" +
+                "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java";
+        assertTrue(result, result.contains(text));
     }
 
     private CountedQueue<EventWrapper<ILoggingEvent>> createSingles(LoggingEvent event, int lines) {

@@ -15,6 +15,8 @@
 
 package com.axibase.tsd.collector.logback;
 
+import com.axibase.tsd.collector.TcpReceiver;
+import com.axibase.tsd.collector.TestUtils;
 import junit.framework.TestCase;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,8 +29,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,10 +41,6 @@ public class CollectorTest extends TestCase {
     private static final Logger tcpSendLog = LoggerFactory.getLogger("test.tcp.write");
     private static final Logger udpSendLog = LoggerFactory.getLogger("test.udp.write");
     private static final Logger httpSendLog = LoggerFactory.getLogger("test.http.write");
-    public static final int TEST_TCP_PORT = 35791;
-    public static final int TEST_UDP_PORT = 35793;
-    public static final int BUFFER_SIZE = 16 * 1024;
-    public static final String UTF_8 = "UTF-8";
 
     @Override
     public void setUp() throws Exception {
@@ -70,7 +66,7 @@ public class CollectorTest extends TestCase {
     @Test
     public void testTcpSend() throws Exception {
         CountAppender.clear();
-        TcpReceiver tcpReceiver = new TcpReceiver();
+        TcpReceiver tcpReceiver = new TcpReceiver(TestUtils.TEST_TCP_PORT_LOGBACK);
         try {
             tcpReceiver.start();
 
@@ -85,7 +81,7 @@ public class CollectorTest extends TestCase {
             }
             // debug events are not filtered
             Thread.sleep(1100);
-            String result = tcpReceiver.sb.toString();
+            String result = tcpReceiver.getSb().toString();
             System.out.println("tcp result = " + result);
             assertEquals(30, CountAppender.getCount());
             // check message content
@@ -95,6 +91,8 @@ public class CollectorTest extends TestCase {
             assertTrue(result.contains("m:\"test 5\""));
             assertTrue(result.contains("m:\"test 7\""));
             assertTrue(result.contains("t:level=WARN"));
+            assertFalse(result.contains("m:log_event_sum_counter=0 t:level=INFO"));
+            assertTrue(result.contains("m:log_event_sum_counter=0 t:level=TRACE"));
             assertTrue(result.contains("test.tcp.write"));
             assertFalse(result.contains("t:level=DEBUG"));
             // check series content
@@ -191,52 +189,6 @@ public class CollectorTest extends TestCase {
         Thread.sleep(1100);
     }
 
-    private static class TcpReceiver {
-        private ServerSocketChannel serverSocketChannel;
-        private StringBuilder sb;
-
-        void start() throws Exception {
-            sb = new StringBuilder();
-            serverSocketChannel = ServerSocketChannel.open();
-            try {
-                serverSocketChannel.socket().bind(new InetSocketAddress(TEST_TCP_PORT));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    while (sb != null && serverSocketChannel.isOpen()) {
-                        try {
-                            System.out.println("start TCP receiving");
-                            ByteBuffer bb = ByteBuffer.allocate(BUFFER_SIZE);
-
-                            SocketChannel socketChannel = serverSocketChannel.accept();
-                            while (socketChannel.read(bb) > 0) {
-                                bb.flip();
-                                CharBuffer cb = Charset.forName(UTF_8).decode(bb);
-                                sb.append(cb);
-                                bb.clear();
-                            }
-                        } catch (AsynchronousCloseException e) {
-                            // ok
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-        }
-
-        void stop() throws Exception {
-            if (serverSocketChannel != null) {
-                serverSocketChannel.close();
-            }
-        }
-    }
-
     private static class UdpReceiver {
 
         private DatagramChannel datagramChannel;
@@ -245,7 +197,7 @@ public class CollectorTest extends TestCase {
         void start() throws Exception {
             sb = new StringBuilder();
             datagramChannel = DatagramChannel.open();
-            datagramChannel.socket().bind(new InetSocketAddress(TEST_UDP_PORT));
+            datagramChannel.socket().bind(new InetSocketAddress(TestUtils.TEST_UDP_PORT));
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             executorService.execute(new Runnable() {
                 @Override
@@ -253,10 +205,10 @@ public class CollectorTest extends TestCase {
                     System.out.println("start UDP receiving");
                     while (datagramChannel.isOpen()) {
                         try {
-                            ByteBuffer bb = ByteBuffer.allocate(BUFFER_SIZE);
+                            ByteBuffer bb = ByteBuffer.allocate(TestUtils.BUFFER_SIZE);
                             datagramChannel.receive(bb);
                             bb.flip();
-                            CharBuffer cb = Charset.forName(UTF_8).decode(bb);
+                            CharBuffer cb = Charset.forName(TestUtils.UTF_8).decode(bb);
                             sb.append(cb);
                             bb.clear();
                         } catch (AsynchronousCloseException e) {

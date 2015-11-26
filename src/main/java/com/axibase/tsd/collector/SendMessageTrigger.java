@@ -22,6 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Nikolay Malevanny.
  */
 public abstract class SendMessageTrigger<E> {
+    public static final double ERROR_SKIP_MULTIPLIER = 2.0;
+    public static final double WARN_SKIP_MULTIPLIER = 3.0;
+    public static final double INFO_SKIP_MULTIPLIER = 5.0;
+
     public static final double DEFAULT_SEND_MULTIPLIER = 1.0;
     public static final long DEFAULT_RESET_INTERVAL = 600 * 1000L;
     public static final int DEFAULT_EVERY = 1;

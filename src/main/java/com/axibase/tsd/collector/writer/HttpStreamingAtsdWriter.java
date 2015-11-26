@@ -123,6 +123,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        AtsdUtil.logInfo("Connected to " + url);
     }
 
     @Override
@@ -212,7 +213,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 outputStream = connection.getOutputStream();
                 writeTo(outputStream);
             } catch (Exception e){
-                e.printStackTrace();
+                AtsdUtil.logError("Could not write messages", e);
             } finally {
                 stop();
             }
@@ -221,6 +222,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         private boolean checkConfiguration() {
             HttpURLConnection testConnection = null;
             try {
+                AtsdUtil.logInfo("Connecting to: " + url);
                 testConnection = (HttpURLConnection) new URL(url).openConnection();
                 initConnection(testConnection);
                 OutputStream outputStream = null;
@@ -238,16 +240,15 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 if ((responseCode == HttpURLConnection.HTTP_OK)) {
                     return true;
                 } else {
-                    System.err.println("Could not connect to: " + method + " " + url);
-                    System.err.println("HTTP response code: " + responseCode);
+                    AtsdUtil.logError("Could not connect to: " + method + " " + url);
+                    AtsdUtil.logError("HTTP response code: " + responseCode);
                     return false;
                 }
             } catch (SocketTimeoutException e) {
-                System.err.println("Timeout");
+                AtsdUtil.logError("Timeout", e);
                 return false;
             } catch (Exception e) {
-                System.err.println("Could not connect to: " + method + " " + url);
-                e.printStackTrace();
+                AtsdUtil.logError("Could not connect to: " + method + " " + url, e);
                 return false;
             } finally {
                 if (testConnection != null) {
@@ -277,14 +278,14 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 try {
                     outputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    AtsdUtil.logError("Could not close output stream", e);
                 }
             }
             if (connection != null) {
                 try {
                     connection.disconnect();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    AtsdUtil.logError("Could not disconnect", e);
                 }
                 connection = null;
             }

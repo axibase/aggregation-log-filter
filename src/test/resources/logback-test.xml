@@ -30,6 +30,15 @@
                 <minIntervalThreshold>10</minIntervalThreshold>
                 <minIntervalSeconds>0</minIntervalSeconds>
                 <repeatCount>0</repeatCount>
+                <totalCountInit>
+                    <level>INFO</level>
+                </totalCountInit>
+                <totalCountInit>
+                    <level>WARN</level>
+                </totalCountInit>
+                <totalCountInit>
+                    <level>ERROR</level>
+                </totalCountInit>
             </sendSeries>
             <sendMessage>
                 <every>7</every>
@@ -61,6 +70,20 @@
                 <minIntervalThreshold>10</minIntervalThreshold>
                 <!-- default: 5 -->
                 <minIntervalSeconds>0</minIntervalSeconds>
+                <!--skip default-->
+                <totalCountInit>
+                    <level>INFO</level>
+                </totalCountInit>
+                <!--default-->
+                <totalCountInit>
+                    <level>ERROR</level>
+                    <value>0</value>
+                </totalCountInit>
+                <!--new-->
+                <totalCountInit>
+                    <level>TRACE</level>
+                    <value>0</value>
+                </totalCountInit>
             </sendSeries>
             <!-- default: empty -->
             <sendMessage>
@@ -91,12 +114,12 @@
             <level>WARN</level>
             <entity>localhost</entity>
             <sendSeries>
-            <repeatCount>5</repeatCount>
-            <metricPrefix>log_event</metricPrefix>
-            <intervalSeconds>30</intervalSeconds>
-            <minIntervalThreshold>10</minIntervalThreshold>
-            <minIntervalSeconds>0</minIntervalSeconds>
-        </sendSeries>
+                <repeatCount>5</repeatCount>
+                <metricPrefix>log_event</metricPrefix>
+                <intervalSeconds>30</intervalSeconds>
+                <minIntervalThreshold>10</minIntervalThreshold>
+                <minIntervalSeconds>0</minIntervalSeconds>
+            </sendSeries>
             <sendMessage>
                 <level>WARN</level>
                 <every>7</every>
@@ -132,15 +155,15 @@
     </appender>
 
     <logger name="test.tcp.write" level="debug" additivity="false">
-        <appender-ref ref="TCP_SENDER" />
+        <appender-ref ref="TCP_SENDER"/>
     </logger>
 
     <logger name="test.udp.write" level="debug" additivity="false">
-        <appender-ref ref="UDP_SENDER" />
+        <appender-ref ref="UDP_SENDER"/>
     </logger>
 
     <logger name="test.http.write" level="debug" additivity="false">
-        <appender-ref ref="HTTP_SENDER" />
+        <appender-ref ref="HTTP_SENDER"/>
     </logger>
 
     <root level="debug">

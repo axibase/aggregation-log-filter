@@ -31,6 +31,15 @@
                 <intervalSeconds>60</intervalSeconds>
                 <minIntervalThreshold>1000</minIntervalThreshold>
                 <minIntervalSeconds>5</minIntervalSeconds>
+                <!--
+                <totalCountInit>
+                    <level>INFO</level>
+                </totalCountInit>
+                -->
+                <totalCountInit>
+                    <level>ERROR</level>
+                    <value>0</value>
+                </totalCountInit>
             </sendSeries>
 
             <sendMessage>

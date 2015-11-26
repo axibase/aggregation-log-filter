@@ -23,10 +23,7 @@ import java.lang.Integer;import java.lang.InterruptedException;import java.lang.
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -42,7 +39,7 @@ public class Aggregator<E, K, L> {
     private final MessageWriter<E, K, L> messageWriter;
     private final EventProcessor<E, K, L> eventProcessor;
     private ExecutorService senderExecutor;
-    private SendMessageTrigger<E>[] triggers = null;
+    private SendMessageTrigger[] triggers = null;
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
 
     private int skippedCount = 0;
@@ -98,7 +95,7 @@ public class Aggregator<E, K, L> {
     }
 
     public void start() {
-        senderExecutor = Executors.newSingleThreadExecutor();
+        senderExecutor = Executors.newSingleThreadExecutor(AtsdUtil.DAEMON_THREAD_FACTORY);
         senderExecutor.execute(worker);
     }
 
@@ -113,7 +110,7 @@ public class Aggregator<E, K, L> {
             try {
                 writer.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                AtsdUtil.logError("Could not close writer", e);
             }
         }
     }
@@ -149,18 +146,19 @@ public class Aggregator<E, K, L> {
             while (!stopped) {
                 try {
                     Thread.sleep(seriesSenderConfig.getCheckIntervalMs());
-                    checkThresholds();
+                    checkThresholdsAndWrite();
                 } catch (IOException e) {
+                    AtsdUtil.logError("Could not write messages", e);
                     // ignore
-                    e.printStackTrace();
                 } catch (InterruptedException e) {
+                    AtsdUtil.logError("Interrupted", e);
                     // ignore
                     Thread.currentThread().interrupt();
                 }
             }
         }
 
-        private void checkThresholds() throws IOException {
+        private void checkThresholdsAndWrite() throws IOException {
             long cnt = totalCounter.get() - lastTotalCounter;
             long currentTime = System.currentTimeMillis();
             long dt = currentTime - last;

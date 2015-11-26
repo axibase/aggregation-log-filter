@@ -15,6 +15,9 @@
 
 package com.axibase.tsd.collector.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Nikolay Malevanny.
  */
@@ -49,12 +52,18 @@ public class SeriesSenderConfig {
     private int messageSkipThreshold = DEFAULT_MESSAGE_SKIP_THRESHOLD;
     private int checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS;
 
+    private Map<String, Integer> totalCountInitMap = new HashMap<String, Integer>();
+
     public SeriesSenderConfig() {
+        totalCountInitMap.put("INFO",0);
+        totalCountInitMap.put("WARN",0);
+        totalCountInitMap.put("ERROR",0);
     }
 
     public SeriesSenderConfig(int repeatCount,
                               int intervalSeconds,
                               int minIntervalThreshold) {
+        this();
         this.repeatCount = repeatCount;
         this.minIntervalThreshold = minIntervalThreshold;
         setIntervalSeconds(intervalSeconds);
@@ -162,5 +171,15 @@ public class SeriesSenderConfig {
 
     public void setCheckIntervalMs(int checkIntervalMs) {
         this.checkIntervalMs = checkIntervalMs;
+    }
+
+    public void setTotalCountInit(TotalCountInit countInit) {
+        if (countInit != null && countInit.getLevel() != null && countInit.getLevel().trim().length() > 0) {
+            totalCountInitMap.put(countInit.getLevel().trim(), countInit.getValue());
+        }
+    }
+
+    public Map<String, Integer> getTotalCountInitMap() {
+        return totalCountInitMap;
     }
 }

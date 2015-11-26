@@ -18,10 +18,23 @@ package com.axibase.tsd.collector;
 import java.lang.String;import java.lang.StringBuilder;import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
 public class AtsdUtil {
+    private static InternalLogger internalLogger = InternalLogger.SYSTEM;
+
     public static final String DEFAULT_ENTITY = "defaultEntity";
+
+    public static final ThreadFactory DAEMON_THREAD_FACTORY = new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread result = Executors.defaultThreadFactory().newThread(runnable);
+            result.setDaemon(true);
+            return result;
+        }
+    };
     private static final Pattern SPACE = Pattern.compile("[[\\s]]");
     private static final Pattern QUOTES = Pattern.compile("[[\'|\"]]");
     private static final Pattern D_QUOTE = Pattern.compile("[[\"]]");
@@ -69,8 +82,28 @@ public class AtsdUtil {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            AtsdUtil.logError("Could not resolve hostname", e);
             return DEFAULT_ENTITY;
         }
+    }
+
+    public static void logError(String message, Throwable exception) {
+        internalLogger.error(message, exception);
+    }
+
+    public static void logError(String message) {
+        internalLogger.error(message);
+    }
+
+    public static void logWarn(String message) {
+        internalLogger.warn(message);
+    }
+
+    public static void logInfo(String message) {
+        internalLogger.info(message);
+    }
+
+    public static void setInternalLogger(InternalLogger internalLogger) {
+        AtsdUtil.internalLogger = internalLogger;
     }
 }

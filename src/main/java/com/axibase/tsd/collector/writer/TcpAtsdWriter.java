@@ -15,6 +15,8 @@
 
 package com.axibase.tsd.collector.writer;
 
+import com.axibase.tsd.collector.AtsdUtil;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -30,13 +32,16 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
 
     public void connect() throws IllegalStateException, IOException {
         if (isConnected()) {
-            throw new IllegalStateException("Already connected");
+            final String msg = "Already connected";
+            AtsdUtil.logError(msg);
+            throw new IllegalStateException(msg);
         }
         java.net.InetSocketAddress address = getAddress();
         if (address.getAddress() == null) {
+            AtsdUtil.logError("Illegal address: " + address);
             throw new java.net.UnknownHostException(address.getHostName());
         }
-        System.out.println("Connecting to: " + getAddress());
+        AtsdUtil.logInfo("Connecting to: " + getAddress());
         client = SocketChannel.open(address);
     }
 
@@ -57,7 +62,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
                 client.write(message);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            AtsdUtil.logError("Could not write messages", e);
             close();
             throw e;
         }

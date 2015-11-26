@@ -13,18 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.tsd.collector.logback;
-
-import ch.qos.logback.classic.Level;
+package com.axibase.tsd.collector;
 
 /**
  * @author Nikolay Malevanny.
  */
-class Key {
-    private final Level level;
+public class Key<L> {
+    private final L level;
     private final String logger;
 
-    public Key(Level level, String logger) {
+    public Key(L level, String logger) {
         if (level == null) {
             throw new IllegalArgumentException("Level is null");
         }
@@ -50,7 +48,7 @@ class Key {
         return result;
     }
 
-    public Level getLevel() {
+    public L getLevel() {
         return level;
     }
 
