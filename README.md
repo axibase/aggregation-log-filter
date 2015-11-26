@@ -4,8 +4,8 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ## Supported Logging Frameworks
 
-- logback 0.9.21+, 1.0.*, 1.1.* (slf4j 1.6.0+) [configuration](#lc) 
-- log4j 1.2.16-1.2.17
+- logback 0.9.21+, 1.0.*, 1.1.* (slf4j 1.6.0+) [configuration](#logback-configuration) 
+- log4j 1.2.13-1.2.17 
 
 ## Supported Storage Backends
 
@@ -32,7 +32,7 @@ The filter plugs into a logging framework and measures the number of raised log 
 java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.3.2.jar com.axibase.tsd.Server
 ```
 
-## <a name="lc"/>Logback Configuration 
+## Logback Configuration 
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
@@ -171,5 +171,54 @@ Configures which log events should be sent to the storage system.
 | sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | Determines how many events are sent within each interval, determined with resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
 | resetIntervalSeconds | no | 600 | Interval after which the event count is reset. |
 
+## Log4j Configuration
+ 
+### XML example
+
+```xml
+    <appender name="APPENDER" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
+        </layout>
+        <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
+            <param name="intervalSeconds" value="1"/>
+            <param name="level" value="INFO"/>
+            <param name="messages" value="ERROR;WARN=5,1.5,60"/>
+            <param name="metricPrefix" value="log_event"/>
+            <param name="minIntervalSeconds" value="0"/>
+            <param name="minIntervalThreshold" value="10"/>
+            <param name="repeatCount" value="5"/>
+            <param name="totalCountInit" value="INFO=-1;ERROR=0;TRACE=0"/>
+            <param name="writer" value="tcp"/>
+            <param name="writerHost" value="localhost"/>
+            <param name="writerPort" value="35771"/>
+        </filter>
+    </appender>
+```
+ 
+### Properties example 
+
+```properties
+log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
+
+log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
+
+log4j.appender.APPENDER.filter=com.axibase.tsd.collector.log4j.Log4jCollector
+log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
+log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
+log4j.appender.APPENDER.filter.COLLECTOR.writerPort=35771
+#log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
+#log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/command/
+#log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
+#log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
+log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
+log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=5
+log4j.appender.APPENDER.filter.COLLECTOR.metricPrefix=log_event
+log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=1
+log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=10
+log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=0
+log4j.appender.APPENDER.filter.COLLECTOR.totalCountInit=INFO=-1;ERROR=0;TRACE=0
+log4j.appender.APPENDER.filter.COLLECTOR.messages=ERROR;WARN=5,1.5,60
+```
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
