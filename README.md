@@ -4,7 +4,8 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ## Supported Logging Frameworks
 
-- logback
+- logback 0.9.21+ (slf4j 1.6.0+)
+- log4j 1.2.16-1.2.17
 
 ## Supported Storage Backends
 
@@ -24,14 +25,14 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ### Option 2: Add aggregation-log-filter to classpath
 
-- Dowload aggregation-log-filter-0.3.2.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Copy aggregation-log-filter-0.3.2.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
+- Dowload aggregation-log-filter-0.4.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Copy aggregation-log-filter-0.4.3.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
 
 ```
 java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.3.2.jar com.axibase.tsd.Server
 ```
 
-## Configuration
+## Configuration (logback)
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
