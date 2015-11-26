@@ -1,6 +1,7 @@
 package com.axibase.tsd.collector.log4j;
 
 import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
 import java.util.concurrent.atomic.AtomicInteger;

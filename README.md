@@ -4,12 +4,12 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ## Supported Logging Frameworks
 
-- logback 0.9.21+ (slf4j 1.6.0+)
+- logback 0.9.21+, 1.0.*, 1.1.* (slf4j 1.6.0+) [configuration](#lc) 
 - log4j 1.2.16-1.2.17
 
 ## Supported Storage Backends
 
-- Axibase Time-Series Database
+- [Axibase Time-Series Database][atsd]
 
 ## Installation
 
@@ -32,7 +32,7 @@ The filter plugs into a logging framework and measures the number of raised log 
 java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.3.2.jar com.axibase.tsd.Server
 ```
 
-## Configuration (logback)
+## <a name="lc"/>Logback Configuration 
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
@@ -170,3 +170,6 @@ Configures which log events should be sent to the storage system.
 | stackTraceLines | no | 0 | number of stacktrace lines that will be included in the message, -1 -- all lines |
 | sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | Determines how many events are sent within each interval, determined with resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
 | resetIntervalSeconds | no | 600 | Interval after which the event count is reset. |
+
+
+[atsd]:https://axibase.com/products/axibase-time-series-database/
