@@ -4,7 +4,7 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ## Supported Logging Frameworks
 
-- logback 0.9.21+, 1.0.*, 1.1.* (slf4j 1.6.0+) [configuration](#logback-configuration) 
+- logback 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) [configuration](#logback-configuration) 
 - log4j 1.2.13-1.2.17 
 
 ## Supported Storage Backends
@@ -19,17 +19,17 @@ The filter plugs into a logging framework and measures the number of raised log 
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter</artifactId>
-            <version>0.3.2</version>
+            <version>0.4.5</version>
 </dependency>
 ```
 
 ### Option 2: Add aggregation-log-filter to classpath
 
-- Dowload aggregation-log-filter-0.4.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Copy aggregation-log-filter-0.4.3.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
+- Dowload aggregation-log-filter-0.4.5.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Copy aggregation-log-filter-0.4.5.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
 
 ```
-java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.3.2.jar com.axibase.tsd.Server
+java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4.5.jar com.axibase.tsd.Server
 ```
 
 ## Logback Configuration 
@@ -220,5 +220,10 @@ log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=0
 log4j.appender.APPENDER.filter.COLLECTOR.totalCountInit=INFO=-1;ERROR=0;TRACE=0
 log4j.appender.APPENDER.filter.COLLECTOR.messages=ERROR;WARN=5,1.5,60
 ```
+
+## Log Counter Portal Example
+
+![Log Counter Portal](https://axibase.com/wp-content/uploads/2015/11/log_filter.png)
+Format: ![Alt Text](url)
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
