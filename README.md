@@ -4,7 +4,7 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ## Supported Logging Frameworks
 
-- logback 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) [configuration](#logback-configuration) 
+- logback 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+)
 - log4j 1.2.13-1.2.17 
 
 ## Supported Storage Backends
