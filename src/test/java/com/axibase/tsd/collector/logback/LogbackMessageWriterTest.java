@@ -126,7 +126,7 @@ public class LogbackMessageWriterTest {
     @Test
     public void testBuildSingleMessage() throws Exception {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
+        LoggingEvent event = LogbackUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
@@ -137,7 +137,7 @@ public class LogbackMessageWriterTest {
     @Test
     public void testBuildSingleMessageWithLines() throws Exception {
         LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
+        LoggingEvent event = LogbackUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
                 new NullPointerException("test"));
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 10));

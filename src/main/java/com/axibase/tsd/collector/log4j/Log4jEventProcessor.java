@@ -26,15 +26,15 @@ import org.apache.log4j.spi.LoggingEvent;
  * @author Nikolay Malevanny.
  */
 public class Log4jEventProcessor
-        implements EventProcessor <LoggingEvent, String, Level> {
+        implements EventProcessor <LoggingEvent, String, String> {
     @Override
-    public SyncEventCounter<LoggingEvent, Level> createSyncCounter() {
+    public SyncEventCounter<LoggingEvent, String> createSyncCounter() {
         return new Log4jSyncCounter();
     }
 
     @Override
-    public EventCounter<Level> createCounter() {
-        return new SimpleCounter<Level>();
+    public EventCounter<String> createCounter() {
+        return new SimpleCounter<String>();
     }
 
     @Override

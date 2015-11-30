@@ -159,18 +159,21 @@ public class Aggregator<E, K, L> {
         }
 
         private void checkThresholdsAndWrite() throws IOException {
-            long cnt = totalCounter.get() - lastTotalCounter;
+            final long total = totalCounter.get();
+            long cnt = total - lastTotalCounter;
             long currentTime = System.currentTimeMillis();
             long dt = currentTime - last;
             long intervalMs = seriesSenderConfig.getIntervalMs();
             if (dt > intervalMs) {
                 flush(last, currentTime);
                 cnt = 0;
+                lastTotalCounter = total;
             }
 
             int minIntervalThreshold = seriesSenderConfig.getMinIntervalThreshold();
             if (minIntervalThreshold > 0 && dt > seriesSenderConfig.getMinIntervalMs() && cnt > minIntervalThreshold) {
                 flush(last, currentTime);
+                lastTotalCounter = total;
             }
 
             if (!singles.isEmpty()) {
@@ -183,9 +186,9 @@ public class Aggregator<E, K, L> {
 
             Map<K, EventCounter<L>> diff = new HashMap<K, EventCounter<L>>();
 
-            for (Map.Entry<K, SyncEventCounter<E, L>> kcEntry : total.entrySet()) {
-                K key = kcEntry.getKey();
-                SyncEventCounter<E, L> currentCount = kcEntry.getValue();
+            for (Map.Entry<K, SyncEventCounter<E, L>> keyAndCounter : total.entrySet()) {
+                K key = keyAndCounter.getKey();
+                SyncEventCounter<E, L> currentCount = keyAndCounter.getValue();
                 EventCounter<L> lastCount = lastTotal.get(key);
                 if (lastCount == null) {
                     lastCount = eventProcessor.createCounter();

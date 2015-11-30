@@ -19,7 +19,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.axibase.tsd.collector.EventCounter;
 import com.axibase.tsd.collector.SimpleCounter;
-import com.axibase.tsd.collector.TestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -33,7 +32,7 @@ public class LogbackSyncCounterTest {
         LogbackSyncCounter<ILoggingEvent> counter = new LogbackSyncCounter<ILoggingEvent>();
         int cnt = 15;
         for (int i = 0; i < cnt; i++) {
-            counter.increment(TestUtils.createLoggingEvent());
+            counter.increment(LogbackUtils.createLoggingEvent());
         }
         SimpleCounter<Level> simpleCounter = new SimpleCounter<Level>();
         EventCounter<Level> diff = counter.updateAndCreateDiff(simpleCounter);
@@ -41,7 +40,7 @@ public class LogbackSyncCounterTest {
         assertEquals(15, (long) simpleCounter.values().iterator().next().getValue());
         assertEquals(1, diff.values().size());
         assertEquals(15, (long) diff.values().iterator().next().getValue());
-        counter.increment(TestUtils.createLoggingEvent());
+        counter.increment(LogbackUtils.createLoggingEvent());
         diff = counter.updateAndCreateDiff(simpleCounter);
         assertEquals(1, simpleCounter.values().size());
         assertEquals(16, (long) simpleCounter.values().iterator().next().getValue());

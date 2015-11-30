@@ -13,8 +13,8 @@ import static org.junit.Assert.*;
 /**
  * @author Nikolay Malevanny.
  */
-public class Log4JCollectorTest {
-    private static final Logger log = Logger.getLogger(Log4JCollectorTest.class);
+public class Log4jCollectorTest {
+    private static final Logger log = Logger.getLogger(Log4jCollectorTest.class);
 
     static {
         final URL url = ClassLoader.getSystemClassLoader().getResource("./log4j-test.xml");
@@ -37,6 +37,7 @@ public class Log4JCollectorTest {
             for (int i = 0; i < 15; i++) {
                 log.debug("test " + i);
             }
+//            log.error("test " +  0);
             // debug events are not filtered
             Thread.sleep(1100);
             String result = tcpReceiver.getSb().toString();
@@ -51,7 +52,7 @@ public class Log4JCollectorTest {
             assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("m:log_event_total_counter=0 t:level=INFO"));
             assertTrue(result.contains("m:log_event_total_counter=0 t:level=TRACE"));
-            assertTrue(result.contains("com.axibase.tsd.collector.log4j.Log4JCollectorTest"));
+            assertTrue(result.contains("com.axibase.tsd.collector.log4j.Log4jCollectorTest"));
             assertFalse(result.contains("t:level=DEBUG"));
             // check series content
             assertTrue(result.contains("m:log_event_counter="));

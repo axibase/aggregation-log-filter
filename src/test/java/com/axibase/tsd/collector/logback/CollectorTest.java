@@ -60,7 +60,9 @@ public class CollectorTest extends TestCase {
         }
         Thread.sleep(700);
         assertEquals(30, CountAppender.getCount());
-        assertEquals(6, SendCounter.getCount());
+        // 3 -- series
+        // 1 -- message
+        assertEquals(4, SendCounter.getCount());
     }
 
     @Test

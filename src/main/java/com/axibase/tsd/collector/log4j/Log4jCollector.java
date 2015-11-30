@@ -13,7 +13,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
-import sun.rmi.runtime.Log;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -24,7 +23,7 @@ import java.util.List;
  * @author Nikolay Malevanny.
  */
 public class Log4jCollector extends Filter {
-    private Aggregator<LoggingEvent, String, Level> aggregator;
+    private Aggregator<LoggingEvent, String, String> aggregator;
     private final List<Log4jEventTrigger> triggers = new ArrayList<Log4jEventTrigger>();
     private Log4jMessageWriter messageBuilder;
 
@@ -96,7 +95,7 @@ public class Log4jCollector extends Filter {
         for (Tag tag : tags) {
             messageBuilder.addTag(tag);
         }
-        aggregator = new Aggregator<LoggingEvent, String, Level>(messageBuilder, new Log4jEventProcessor());
+        aggregator = new Aggregator<LoggingEvent, String, String>(messageBuilder, new Log4jEventProcessor());
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);

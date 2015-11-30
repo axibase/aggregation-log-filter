@@ -32,29 +32,4 @@ public class TestUtils {
     public static final int BUFFER_SIZE = 16 * 1024;
     public static final String UTF_8 = "UTF-8";
 
-    public static LoggingEvent createLoggingEvent(Level level, String loggerName, String message, String threadName) {
-        LoggingEvent le = new LoggingEvent();
-        le.setLevel(level);
-        le.setLoggerName(loggerName);
-        le.setMessage(message);
-        le.setThreadName(threadName);
-        le.setTimeStamp(System.currentTimeMillis());
-        return le;
-    }
-
-    public static LoggingEvent createLoggingEvent(Level level,
-                                                  String loggerName,
-                                                  String message,
-                                                  String threadName,
-                                                  Throwable e) {
-        final LoggerContext ctx = new LoggerContext();
-        Logger logger = ctx.getLogger(loggerName);
-        LoggingEvent loggingEvent = new LoggingEvent(null, logger, level, message, e, null);
-        loggingEvent.setLoggerName(loggerName);
-        return loggingEvent;
-    }
-
-    public static ILoggingEvent createLoggingEvent() {
-        return createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
-    }
 }

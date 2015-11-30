@@ -1,22 +1,30 @@
 package com.axibase.tsd.collector.log4j;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
+
+import org.apache.log4j.Category;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
 
 /**
  * @author Nikolay Malevanny.
  */
 public class Log4jUtils {
-    public static LoggingEvent createLoggingEvent(Level level, String loggerName, String message, String threadName) {
-        LoggingEvent le = new LoggingEvent();
-        le.setLevel(level);
-        le.setLoggerName(loggerName);
-        le.setMessage(message);
-        le.setThreadName(threadName);
-        le.setTimeStamp(System.currentTimeMillis());
+    public static LoggingEvent createLoggingEvent(Level level,
+                                                  String loggerName,
+                                                  String message,
+                                                  String threadName) {
+        LoggingEvent le = new LoggingEvent(loggerName,
+                Logger.getLogger(loggerName),
+                System.currentTimeMillis(),
+                level,
+                message,
+                threadName,
+                null,
+                null,
+                null,
+                null);
         return le;
     }
 
@@ -25,14 +33,20 @@ public class Log4jUtils {
                                                   String message,
                                                   String threadName,
                                                   Throwable e) {
-        final LoggerContext ctx = new LoggerContext();
-        Logger logger = ctx.getLogger(loggerName);
-        LoggingEvent loggingEvent = new LoggingEvent(null, logger, level, message, e, null);
-        loggingEvent.setLoggerName(loggerName);
-        return loggingEvent;
+        LoggingEvent le = new LoggingEvent(loggerName,
+                Logger.getLogger(loggerName),
+                System.currentTimeMillis(),
+                level,
+                message,
+                threadName,
+                new ThrowableInformation(e),
+                null,
+                null,
+                null);
+        return le;
     }
 
-    public static ILoggingEvent createLoggingEvent() {
+    public static LoggingEvent createLoggingEvent() {
         return createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
     }
 }

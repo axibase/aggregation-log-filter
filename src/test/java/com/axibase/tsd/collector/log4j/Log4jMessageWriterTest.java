@@ -15,13 +15,11 @@
 
 package com.axibase.tsd.collector.log4j;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.logback.LogbackMessageWriter;
+import org.apache.log4j.Level;
+import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,7 +29,8 @@ import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Nikolay Malevanny.
@@ -40,9 +39,9 @@ public class Log4jMessageWriterTest {
 
     @Test
     public void testBuildSingleStatMessage() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        Map<String, EventCounter<Level>> events = new HashMap<String, EventCounter<Level>>();
-        events.put("test-logger", createCounter(100, Level.ERROR));
+        Log4jMessageWriter messageBuilder = createMessageBuilder();
+        Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
+        events.put("test-logger", createCounter(100, Level.ERROR.toString()));
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
@@ -53,11 +52,11 @@ public class Log4jMessageWriterTest {
 
     @Test
     public void testBuildMultipleStatMessage() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
+        Log4jMessageWriter messageBuilder = createMessageBuilder();
         messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
 
-        Map<String, EventCounter<Level>> events = new HashMap<String, EventCounter<Level>>();
-        events.put("test-logger", createCounter(100, Level.ERROR, Level.WARN, Level.DEBUG));
+        Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
+        events.put("test-logger", createCounter(100, Level.ERROR.toString(), Level.WARN.toString(), Level.DEBUG.toString()));
 
         StringsCatcher catcher;
         {
@@ -80,7 +79,7 @@ public class Log4jMessageWriterTest {
         {
             catcher.clear();
             events.clear();
-            events.put("test-logger", createCounter(1, Level.ERROR));
+            events.put("test-logger", createCounter(1, Level.ERROR.toString()));
             messageBuilder.writeStatMessages(catcher, events, 60000 );
             String result = catcher.sb.toString();
             System.out.println("result1 = " + result);
@@ -126,8 +125,8 @@ public class Log4jMessageWriterTest {
 
     @Test
     public void testBuildSingleMessage() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
+        Log4jMessageWriter messageBuilder = createMessageBuilder();
+        LoggingEvent event = Log4jUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
@@ -137,8 +136,8 @@ public class Log4jMessageWriterTest {
 
     @Test
     public void testBuildSingleMessageWithLines() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        LoggingEvent event = TestUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
+        Log4jMessageWriter messageBuilder = createMessageBuilder();
+        LoggingEvent event = Log4jUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
                 new NullPointerException("test"));
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 10));
@@ -146,18 +145,19 @@ public class Log4jMessageWriterTest {
         System.out.println("result = " + result);
         final String text = "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:\"test-message\n" +
                 "java.lang.NullPointerException: test\n" +
-                "\tat com.axibase.tsd.collector.logback.LogbackMessageWriterTest.testBuildSingleMessageWithLines(LogbackMessageWriterTest.java";
+                "\tjava.lang.NullPointerException: test\n" +
+                "\t\tat com.axibase.tsd.collector.log4j.Log4jMessageWriterTest.testBuildSingleMessageWithLines";
         assertTrue(result, result.contains(text));
     }
 
-    private CountedQueue<EventWrapper<ILoggingEvent>> createSingles(LoggingEvent event, int lines) {
-        CountedQueue<EventWrapper<ILoggingEvent>> singles = new CountedQueue<EventWrapper<ILoggingEvent>>();
-        singles.add(new EventWrapper<ILoggingEvent>(event, lines));
+    private CountedQueue<EventWrapper<LoggingEvent>> createSingles(LoggingEvent event, int lines) {
+        CountedQueue<EventWrapper<LoggingEvent>> singles = new CountedQueue<EventWrapper<LoggingEvent>>();
+        singles.add(new EventWrapper<LoggingEvent>(event, lines));
         return singles;
     }
 
-    private LogbackMessageWriter<ILoggingEvent> createMessageBuilder() {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = new LogbackMessageWriter<ILoggingEvent>();
+    private Log4jMessageWriter createMessageBuilder() {
+        Log4jMessageWriter messageBuilder = new Log4jMessageWriter();
         messageBuilder.setEntity("test-entity");
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
         seriesSenderConfig.setMetricPrefix("test-metric");
@@ -168,9 +168,9 @@ public class Log4jMessageWriterTest {
         return messageBuilder;
     }
 
-    private SimpleCounter<Level> createCounter(int cnt, Level... levels) {
-        SimpleCounter<Level> simpleCounter = new SimpleCounter<Level>();
-        for (Level level : levels) {
+    private SimpleCounter<String> createCounter(int cnt, String... levels) {
+        SimpleCounter<String> simpleCounter = new SimpleCounter<String>();
+        for (String level : levels) {
             simpleCounter.updateAndGetDiff(level, cnt);
         }
         return simpleCounter;

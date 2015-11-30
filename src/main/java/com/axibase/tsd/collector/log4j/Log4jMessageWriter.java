@@ -19,7 +19,6 @@ import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import org.apache.log4j.Level;
-import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
@@ -33,20 +32,20 @@ import java.util.Map;
 /**
  * @author Nikolay Malevanny.
  */
-public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, Level> {
+public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<Level>, CounterWithSum> story = new HashMap<Key<Level>, CounterWithSum>();
+    private final Map<Key<String>, CounterWithSum> story = new HashMap<Key<String>, CounterWithSum>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
-    private final Map<Level, CounterWithSum> totals = new HashMap<Level, CounterWithSum>();
+    private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
-                                  Map<String, EventCounter<Level>> diff,
+                                  Map<String, EventCounter<String>> diff,
                                   long deltaTime) throws IOException {
         if (deltaTime < 1) {
-            throw new IllegalArgumentException("Illegal delta tie value: " + deltaTime);
+            throw new IllegalArgumentException("Illegal delta time value: " + deltaTime);
         }
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
@@ -56,10 +55,10 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
         }
 
         // increment using new events
-        for (Map.Entry<String, EventCounter<Level>> loggerAndCounter : diff.entrySet()) {
-            EventCounter<Level> extCounter = loggerAndCounter.getValue();
-            for (Map.Entry<Level, Long> levelAndCnt : extCounter.values()) {
-                Key<Level> key = new Key<Level>(levelAndCnt.getKey(), loggerAndCounter.getKey());
+        for (Map.Entry<String, EventCounter<String>> loggerAndCounter : diff.entrySet()) {
+            EventCounter<String> extCounter = loggerAndCounter.getValue();
+            for (Map.Entry<String, Long> levelAndCnt : extCounter.values()) {
+                Key<String> key = new Key<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
                 CounterWithSum counter = story.get(key);
                 if (counter == null) {
@@ -74,21 +73,20 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<Level>, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Key<Level>, CounterWithSum> entry = iterator.next();
+        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<Key<String>, CounterWithSum> entry = iterator.next();
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
                 iterator.remove();
             } else {
-                Key<Level> key = entry.getKey();
-                Level level = key.getLevel();
+                Key<String> key = entry.getKey();
+                String level = key.getLevel();
                 long value = counter.getValue();
                 counter.clean();
                 try {
-                    String levelString = level.toString();
-                    messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
+                    messageHelper.writeCounter(writer, time, key, level, counter.getSum());
                 } catch (Throwable e) {
-                    LogLog.error("Could not write series", e);
+                    AtsdUtil.logError("Could not write series", e);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -105,19 +103,18 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
         }
 
         // send totals
-        for (Map.Entry<Level, CounterWithSum> entry : totals.entrySet()) {
-            Level level = entry.getKey();
+        for (Map.Entry<String, CounterWithSum> entry : totals.entrySet()) {
+            String level = entry.getKey();
             CounterWithSum counterWithSum = entry.getValue();
             try {
                 // write total rate
                 double rate = counterWithSum.getValue() * (double) seriesSenderConfig.getRateIntervalMs() / deltaTime;
-                String levelString = level.toString();
-                messageHelper.writeTotalRate(writer, time, rate, levelString);
+                messageHelper.writeTotalRate(writer, time, rate, level);
                 counterWithSum.clean();
-                // write total sum
-                messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
+                // write total count
+                messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
             } catch (Throwable e) {
-                LogLog.error("Could not write series", e);
+                AtsdUtil.logError("Could not write series", e);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -125,14 +122,14 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
     }
 
     @Override
-    public void writeSingles(WritableByteChannel writer,
-                             CountedQueue<EventWrapper<LoggingEvent>> singles) throws IOException {
+    public void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<LoggingEvent>> singles) throws IOException {
         EventWrapper<LoggingEvent> wrapper;
         while ((wrapper = singles.poll()) != null) {
             try {
                 LoggingEvent event = wrapper.getEvent();
                 StringBuilder sb = new StringBuilder();
-                String message = event.getMessage().toString();
+                final Object om = event.getMessage();
+                String message = (om == null?"":om.toString());
                 int lines = wrapper.getLines();
                 if (lines > 0 && event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() != null) {
                     StringBuilder msb = new StringBuilder(message);
@@ -150,8 +147,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
                     message = msb.toString();
                 }
                 writeMessage(writer, event, sb, message);
-            } catch (IOException e) {
-                LogLog.error("Could not write message", e);
+            } catch (Exception e) {
+                AtsdUtil.logError("Could not write message", e);
             }
         }
         singles.clearCount();
@@ -175,8 +172,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
 
         Map<String, Integer> initMap = seriesSenderConfig.getTotalCountInitMap();
         for (Map.Entry<String, Integer> levelAndValue : initMap.entrySet()) {
-            Level level = Level.toLevel(levelAndValue.getKey(), null);
-            if (level != null && levelAndValue.getValue() != null && levelAndValue.getValue() >= 0) {
+            String level = levelAndValue.getKey().toUpperCase();
+            if (levelAndValue.getValue() != null && levelAndValue.getValue() >= 0) {
                 totals.put(level,
                         new CounterWithSum(levelAndValue.getValue(), seriesSenderConfig.getRepeatCount()));
             }
@@ -199,3 +196,4 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, L
         this.seriesSenderConfig = seriesSenderConfig;
     }
 }
+

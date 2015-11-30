@@ -20,10 +20,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.TotalCountInit;
-import com.axibase.tsd.collector.logback.CountAppender;
-import com.axibase.tsd.collector.logback.LogbackEventProcessor;
-import com.axibase.tsd.collector.logback.LogbackEventTrigger;
-import com.axibase.tsd.collector.logback.LogbackMessageWriter;
+import com.axibase.tsd.collector.logback.*;
 import com.axibase.tsd.collector.writer.UdpAtsdWriter;
 import junit.framework.TestCase;
 import org.junit.Ignore;
@@ -31,8 +28,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.Exception;import java.lang.InterruptedException;import java.lang.Override;import java.lang.Runnable;import java.lang.String;import java.lang.System;import java.lang.Thread;import java.lang.Throwable;import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;import java.util.concurrent.ConcurrentMap;import java.util.concurrent.CountDownLatch;import java.util.concurrent.ExecutorService;import java.util.concurrent.Executors;import java.util.concurrent.TimeUnit;import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,13 +42,12 @@ import static org.mockito.Mockito.*;
  * @author Nikolay Malevanny.
  */
 public class AggregatorTest extends TestCase {
-    private static final Logger log = LoggerFactory.getLogger(AggregatorTest.class);
-    private WritableByteChannel mockWriter;
+    private MockWritableByteChannel mockWriter;
 
     @Override
     public void setUp() throws Exception {
         CountAppender.clear();
-        mockWriter = mock(WritableByteChannel.class);
+        mockWriter = new MockWritableByteChannel();
     }
 
     @Test
@@ -69,15 +67,23 @@ public class AggregatorTest extends TestCase {
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
         aggregator.addSendMessageTrigger(new LogbackEventTrigger(7));
         aggregator.start();
-        LoggingEvent event = TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
+        LoggingEvent event = LogbackUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
+        System.out.println(timePrefix() + "START");
         for (int i = 0; i < cnt; i++) {
             assertTrue(aggregator.register(event));
         }
+        System.out.println(timePrefix() + "AFTER 15 EVENTS");
         Thread.sleep(750);
+        System.out.println(timePrefix() + "+750MS");
         assertTrue(aggregator.register(event));
-        Thread.sleep(1000);
+        System.out.println(timePrefix() + "+16 EVENT");
+        Thread.sleep(1001);
+        System.out.println(timePrefix() + "+1000MS");
 
-        verify(mockWriter, times(13)).write(any(ByteBuffer.class));
+        // 3 -- series fired by cnt
+        // 1 -- warn message
+        // 3 -- series fired by time
+        assertEquals(7, mockWriter.cnt);
     }
 
     @Ignore
@@ -103,7 +109,7 @@ public class AggregatorTest extends TestCase {
         aggregator.addSendMessageTrigger(new LogbackEventTrigger(1));
         aggregator.start();
 
-        final LoggingEvent event = TestUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
+        final LoggingEvent event = LogbackUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
 
         final CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -164,7 +170,8 @@ public class AggregatorTest extends TestCase {
                 @Override
                 public void run() {
                     for (int i = 0; i < cnt; i++) {
-                        LoggingEvent event = TestUtils.createLoggingEvent(Level.WARN, loggers[i % loggers.length], "test",
+                        LoggingEvent event = LogbackUtils.createLoggingEvent(Level.WARN, loggers[i % loggers.length],
+                                "test",
                                 Thread.currentThread().getName());
                         receiver.onEvent(event);
                     }
@@ -258,5 +265,32 @@ public class AggregatorTest extends TestCase {
                 return next.offer(e);
             }
         }
+    }
+
+    private static class MockWritableByteChannel implements WritableByteChannel {
+        private int cnt;
+        @Override
+        public int write(ByteBuffer src) throws IOException {
+            cnt++;
+            byte[] data = new byte[src.remaining()];
+            src.duplicate().get(data);
+            System.out.println(timePrefix() + new String(data));
+            return 0;
+        }
+
+        @Override
+        public boolean isOpen() {
+            return false;
+        }
+
+        @Override
+        public void close() throws IOException {
+
+        }
+    }
+
+    private static String timePrefix() {
+        return "[" + System.currentTimeMillis() + ":" + new Date() +
+                "] data = ";
     }
 }

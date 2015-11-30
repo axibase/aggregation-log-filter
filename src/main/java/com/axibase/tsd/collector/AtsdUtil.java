@@ -15,7 +15,9 @@
 
 package com.axibase.tsd.collector;
 
-import java.lang.String;import java.lang.StringBuilder;import java.net.InetAddress;
+import java.lang.String;
+import java.lang.StringBuilder;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.concurrent.Executors;
@@ -64,6 +66,7 @@ public class AtsdUtil {
     }
 
     public static String sanitizeMessage(String s) {
+        s = s == null ? "" : s.trim();
         s = D_QUOTE.matcher(s).replaceAll("\\\\\"");
         if (s.contains(" ")) {
             StringBuilder sb = new StringBuilder("\"");
