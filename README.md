@@ -181,17 +181,15 @@ Configures which log events should be sent to the storage system.
             <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
-            <param name="intervalSeconds" value="1"/>
+            <param name="intervalSeconds" value="60"/>
             <param name="level" value="INFO"/>
-            <param name="messages" value="ERROR;WARN=5,1.5,60"/>
-            <param name="metricPrefix" value="log_event"/>
-            <param name="minIntervalSeconds" value="0"/>
-            <param name="minIntervalThreshold" value="10"/>
-            <param name="repeatCount" value="5"/>
-            <param name="totalCountInit" value="INFO=-1;ERROR=0;TRACE=0"/>
+            <param name="messages" value="WARN;ERROR=-1"/>
+            <param name="minIntervalSeconds" value="5"/>
+            <param name="minIntervalThreshold" value="100"/>
+            <param name="repeatCount" value="3"/>
             <param name="writer" value="tcp"/>
             <param name="writerHost" value="localhost"/>
-            <param name="writerPort" value="35771"/>
+            <param name="writerPort" value="8081"/>
         </filter>
     </appender>
 ```
@@ -206,19 +204,17 @@ log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
 log4j.appender.APPENDER.filter=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
 log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
-log4j.appender.APPENDER.filter.COLLECTOR.writerPort=35771
+log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/command/
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
 #log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
 log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
-log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=5
-log4j.appender.APPENDER.filter.COLLECTOR.metricPrefix=log_event
-log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=1
-log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=10
-log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=0
-log4j.appender.APPENDER.filter.COLLECTOR.totalCountInit=INFO=-1;ERROR=0;TRACE=0
-log4j.appender.APPENDER.filter.COLLECTOR.messages=ERROR;WARN=5,1.5,60
+log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
+log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
+log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=5
+log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=100
+log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ```
 
 ## Log Counter Portal Example
