@@ -181,15 +181,15 @@ Configures which log events should be sent to the storage system.
             <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
-            <param name="intervalSeconds" value="60"/>
-            <param name="level" value="INFO"/>
-            <param name="messages" value="WARN;ERROR=-1"/>
-            <param name="minIntervalSeconds" value="5"/>
-            <param name="minIntervalThreshold" value="100"/>
-            <param name="repeatCount" value="3"/>
             <param name="writer" value="tcp"/>
             <param name="writerHost" value="localhost"/>
             <param name="writerPort" value="8081"/>
+            <param name="level" value="INFO"/>
+            <param name="repeatCount" value="3"/>
+            <param name="intervalSeconds" value="60"/>
+            <param name="minIntervalSeconds" value="5"/>
+            <param name="minIntervalThreshold" value="100"/>
+            <param name="messages" value="WARN;ERROR=-1"/>
         </filter>
     </appender>
 ```
