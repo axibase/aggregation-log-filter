@@ -37,9 +37,11 @@ public class Log4jCollector extends Filter {
     private WritableByteChannel writer;
     private String writerHost;
     private int writerPort;
+
     private String writerUrl;
     private String writerUsername;
     private String writerPassword;
+    private long writerReconnectTimeoutMs;
 
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
@@ -162,6 +164,7 @@ public class Log4jCollector extends Filter {
             httpWriter.setUrl(writerUrl);
             httpWriter.setUsername(writerUsername);
             httpWriter.setPassword(writerPassword);
+            httpWriter.setReconnectTimeoutMs(writerReconnectTimeoutMs);
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             LogLog.error(msg);
@@ -208,6 +211,10 @@ public class Log4jCollector extends Filter {
 
     public void setWriterPassword(String writerPassword) {
         this.writerPassword = writerPassword;
+    }
+
+    public void setWriterReconnectTimeoutMs(long writerReconnectTimeoutMs) {
+        this.writerReconnectTimeoutMs = writerReconnectTimeoutMs;
     }
 
     public void setEntity(String entity) {

@@ -38,7 +38,7 @@ import java.util.concurrent.locks.LockSupport;
 public class HttpStreamingAtsdWriter implements WritableByteChannel {
     public static final int DEFAULT_SKIP_DATA_THRESHOLD = 100000;
     public static final int MIN_RECONNECTION_TIME = 30 * 1000;
-    public static final long DEFAULT_RECONNECT_TIMEOUT = 10 * 60 * 1000L;
+    public static final long DEFAULT_RECONNECT_TIMEOUT = 1 * 60 * 1000L;
     private static final int DEFAULT_TIMEOUT_MS = 5000;
     public static final String DEFAULT_METHOD = "POST";
     public static final int DEFAULT_CHUNK_SIZE = 1024;
@@ -53,7 +53,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     private long lastConnectionTryTime = 0;
     private int timeout = DEFAULT_TIMEOUT_MS;
     private long skippedCount = 0;
-    private long reconnectTimeout = DEFAULT_RECONNECT_TIMEOUT;
+    private long reconnectTimeoutMs = DEFAULT_RECONNECT_TIMEOUT;
 
     public void setUrl(String url) {
         this.url = url;
@@ -79,8 +79,8 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         this.timeout = timeout;
     }
 
-    public void setReconnectTimeout(long reconnectTimeout) {
-        this.reconnectTimeout = reconnectTimeout;
+    public void setReconnectTimeoutMs(long reconnectTimeoutMs) {
+        this.reconnectTimeoutMs = reconnectTimeoutMs;
     }
 
     protected long getSkippedCount() {
@@ -169,7 +169,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                     byte[] data = new byte[buffer.remaining()];
                     buffer.get(data);
                     outputStream.write(data);
-                    if (System.currentTimeMillis() - lastConnectionTryTime > reconnectTimeout) {
+                    if (System.currentTimeMillis() - lastConnectionTryTime > reconnectTimeoutMs) {
                         outputStream.flush();
                         return;
                     }

@@ -113,6 +113,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a backen
     <url>http://atsd_server:8088/api/v1/command/</url>
     <username>axibase</username>
     <password>*****</password>
+    <reconnectTimeoutMs>60000</reconnectTimeoutMs>
 </writer>
 ```
 
@@ -184,6 +185,13 @@ Configures which log events should be sent to the storage system.
             <param name="writer" value="tcp"/>
             <param name="writerHost" value="localhost"/>
             <param name="writerPort" value="8081"/>
+            <!--
+            <param name="writer" value="http"/>
+            <param name="writerUrl" value="http://atsd_server:8088/api/v1/command/"/>
+            <param name="writerUsername" value="USERNAME"/>
+            <param name="writerPassword" value="PASSWORD"/>
+            <param name="writerReconnectTimeoutMs" value="60000"/>
+            -->
             <param name="level" value="INFO"/>
             <param name="repeatCount" value="3"/>
             <param name="intervalSeconds" value="60"/>
@@ -198,7 +206,6 @@ Configures which log events should be sent to the storage system.
 
 ```properties
 log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
-
 log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
 
 log4j.appender.APPENDER.filter=com.axibase.tsd.collector.log4j.Log4jCollector
@@ -209,6 +216,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/command/
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
 #log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
+#log4j.appender.APPENDER.filter.COLLECTOR.writerReconnectTimeoutMs=60000
 log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
 log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
 log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
