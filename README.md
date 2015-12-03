@@ -19,7 +19,7 @@ The filter plugs into a logging framework and measures the number of raised log 
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter</artifactId>
-            <version>0.4.5</version>
+            <version>0.4.6</version>
 </dependency>
 ```
 
@@ -29,7 +29,7 @@ The filter plugs into a logging framework and measures the number of raised log 
 - Copy aggregation-log-filter-0.4.6.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
 
 ```
-java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4.5.jar com.axibase.tsd.Server
+java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4.6.jar com.axibase.tsd.Server
 ```
 
 ## Logback Configuration 
