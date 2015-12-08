@@ -4,8 +4,8 @@ The filter plugs into a logging framework and measures the number of raised log 
 
 ## Supported Logging Frameworks
 
-- logback 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+)
-- log4j 1.2.13-1.2.17 
+- [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+).
+- [Log4j](http://logging.apache.org/log4j) 1.2.13-1.2.17. Note: Log4j 2.x is currently not supported.
 
 ## Supported Storage Backends
 
@@ -42,27 +42,17 @@ java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4
                 <password>PASSWORD</password>
             </writer>
             <level>INFO</level>
-            <sendSeries>
-                <repeatCount>3</repeatCount>
-                <metricPrefix>log_event</metricPrefix>
-                <intervalSeconds>60</intervalSeconds>
-                <minIntervalThreshold>100</minIntervalThreshold>
-                <minIntervalSeconds>1</minIntervalSeconds>
-            </sendSeries>
             <sendMessage>
-                <every>100</every>
-            </sendMessage>
+                <level>WARN</level>
+            </sendMessage>            
             <sendMessage>
                 <level>ERROR</level>
-                <every>30</every>
                 <stackTraceLines>-1</stackTraceLines>
             </sendMessage>
-            <tag>
-                <name>CUSTOM_TAG</name>
-                <value>TAG_VALUE</value>
-            </tag>
         </filter>
 ```
+
+  - [View complete logback.xml example with RollingFileAppender.](src/test/resources/logback-atsd-example.xml)
 
 | Name | Required | Default | Description |
 |---|---|---|---|
@@ -173,6 +163,31 @@ Configures which log events should be sent to the storage system.
 | resetIntervalSeconds | no | 600 | Interval after which the event count is reset. |
 
 ## Log4j Configuration
+
+### Properties example 
+
+```properties
+log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
+log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
+
+log4j.appender.APPENDER.filter=com.axibase.tsd.collector.log4j.Log4jCollector
+log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
+log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
+log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
+#log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
+#log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/command/
+#log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
+#log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
+#log4j.appender.APPENDER.filter.COLLECTOR.writerReconnectTimeoutMs=60000
+log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
+log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
+log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
+log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=5
+log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=100
+log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
+```
+
+  - [View complete log4j.properties example.](src/test/resources/log4j-test.properties)
  
 ### XML example
 
@@ -201,29 +216,9 @@ Configures which log events should be sent to the storage system.
         </filter>
     </appender>
 ```
- 
-### Properties example 
 
-```properties
-log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
-log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
+  - [View complete log4j.xml example.](src/test/resources/log4j-test.xml)
 
-log4j.appender.APPENDER.filter=com.axibase.tsd.collector.log4j.Log4jCollector
-log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
-log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
-log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
-#log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
-#log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/command/
-#log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
-#log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
-#log4j.appender.APPENDER.filter.COLLECTOR.writerReconnectTimeoutMs=60000
-log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
-log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
-log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
-log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=5
-log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=100
-log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
-```
 
 ## Log Counter Portal Example
 
