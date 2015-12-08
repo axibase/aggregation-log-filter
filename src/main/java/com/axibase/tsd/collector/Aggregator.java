@@ -19,11 +19,14 @@ package com.axibase.tsd.collector;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 
 import java.io.IOException;
-import java.lang.Integer;import java.lang.InterruptedException;import java.lang.Runnable;import java.lang.System;import java.lang.Thread;import java.lang.Throwable;import java.nio.channels.WritableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -43,6 +46,7 @@ public class Aggregator<E, K, L> {
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
 
     private int skippedCount = 0;
+    private WorkerFinisher workerFinisher = new WorkerFinisher();
 
     public Aggregator(MessageWriter<E, K, L> messageWriter, EventProcessor<E, K, L> eventProcessor) {
         this.messageWriter = messageWriter;
@@ -97,15 +101,27 @@ public class Aggregator<E, K, L> {
     public void start() {
         senderExecutor = Executors.newSingleThreadExecutor(AtsdUtil.DAEMON_THREAD_FACTORY);
         senderExecutor.execute(worker);
+
+        Runtime.getRuntime().addShutdownHook(workerFinisher);
     }
 
     public void stop() {
         if (worker != null) {
+            try {
+                worker.finish();
+            } catch (Exception e) {
+                AtsdUtil.logError("Could not finish worker", e);
+            }
             worker.stop();
         }
         if (senderExecutor != null && !senderExecutor.isShutdown()) {
             senderExecutor.shutdown();
         }
+        closeWriter();
+        Runtime.getRuntime().removeShutdownHook(workerFinisher);
+    }
+
+    private void closeWriter() {
         if (writer != null && writer.isOpen()) {
             try {
                 writer.close();
@@ -122,7 +138,7 @@ public class Aggregator<E, K, L> {
     public void addSendMessageTrigger(SendMessageTrigger<E> messageTrigger) {
         messageTrigger.init();
         if (triggers == null) {
-            triggers = new SendMessageTrigger[] {messageTrigger};
+            triggers = new SendMessageTrigger[]{messageTrigger};
         } else {
             int l = triggers.length;
             triggers = Arrays.copyOf(triggers, l + 1);
@@ -205,6 +221,22 @@ public class Aggregator<E, K, L> {
 
         public void stop() {
             stopped = true;
+        }
+
+        public void finish() throws IOException {
+            flush(last, System.currentTimeMillis());
+            closeWriter();
+        }
+    }
+
+    private class WorkerFinisher extends Thread {
+        @Override
+        public void run() {
+            try {
+                worker.finish();
+            } catch (Exception e) {
+                AtsdUtil.logError("Could not finish worker", e);
+            }
         }
     }
 }

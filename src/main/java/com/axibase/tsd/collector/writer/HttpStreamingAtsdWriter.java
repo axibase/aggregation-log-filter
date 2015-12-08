@@ -42,6 +42,8 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     private static final int DEFAULT_TIMEOUT_MS = 5000;
     public static final String DEFAULT_METHOD = "POST";
     public static final int DEFAULT_CHUNK_SIZE = 1024;
+    public static final int CLOSE_TIMEOUT_MS = 30000;
+    public static final int CLOSE_TIMEOUT_STEPS = 30;
     private String method = DEFAULT_METHOD;
     private int skipDataThreshold = DEFAULT_SKIP_DATA_THRESHOLD;
     private String url;
@@ -49,7 +51,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     private String password;
     private CountedQueue<ByteBuffer> data = new CountedQueue<ByteBuffer>();
     private StreamingWorker streamingWorker;
-    private ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(AtsdUtil.DAEMON_THREAD_FACTORY);
     private long lastConnectionTryTime = 0;
     private int timeout = DEFAULT_TIMEOUT_MS;
     private long skippedCount = 0;
@@ -95,7 +97,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
 
         if (streamingWorker != null) {
             data.add(src);
-            if (data.getCount() > skipDataThreshold/2) {
+            if (data.getCount() > skipDataThreshold / 2) {
                 LockSupport.parkNanos(1);
             } else if (data.getCount() > skipDataThreshold) {
                 skippedCount++;
@@ -134,6 +136,15 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     @Override
     public void close() throws IOException {
         if (streamingWorker != null) {
+            long st = System.currentTimeMillis();
+            while (!data.isEmpty() && System.currentTimeMillis() - st < CLOSE_TIMEOUT_MS) {
+                try {
+                    AtsdUtil.logWarn("Waiting to close http stream");
+                    Thread.sleep(CLOSE_TIMEOUT_MS / CLOSE_TIMEOUT_STEPS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
             streamingWorker.stop();
         }
         if (singleThreadExecutor != null) {
@@ -165,7 +176,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 ByteBuffer buffer;
                 int cnt = 0;
                 while ((buffer = data.poll()) != null && outputStream != null) {
-                    cnt ++;
+                    cnt++;
                     byte[] data = new byte[buffer.remaining()];
                     buffer.get(data);
                     outputStream.write(data);
@@ -212,7 +223,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
 
                 outputStream = connection.getOutputStream();
                 writeTo(outputStream);
-            } catch (Exception e){
+            } catch (Exception e) {
                 AtsdUtil.logError("Could not write messages", e);
             } finally {
                 stop();
@@ -231,11 +242,11 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                     outputStream.write(AtsdUtil.PING_COMMAND.getBytes());
                     outputStream.flush();
                 } finally {
-                    if (outputStream!= null) {
+                    if (outputStream != null) {
                         outputStream.close();
                     }
                 }
-                
+
                 int responseCode = testConnection.getResponseCode();
                 if ((responseCode == HttpURLConnection.HTTP_OK)) {
                     return true;
