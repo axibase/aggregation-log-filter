@@ -139,7 +139,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
             long st = System.currentTimeMillis();
             while (!data.isEmpty() && System.currentTimeMillis() - st < CLOSE_TIMEOUT_MS) {
                 try {
-                    AtsdUtil.logWarn("Waiting to close http stream");
+                    AtsdUtil.logInfo("Waiting to close http stream");
                     Thread.sleep(CLOSE_TIMEOUT_MS / CLOSE_TIMEOUT_STEPS);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
