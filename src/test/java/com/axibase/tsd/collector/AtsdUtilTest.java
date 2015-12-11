@@ -14,4 +14,14 @@ public class AtsdUtilTest {
         String entityName = "just test";
         assertEquals("just_test", AtsdUtil.sanitizeEntity(entityName));
     }
+
+    @Test
+    public void testSanitizeMessage() throws Exception {
+        assertEquals("\"\"", AtsdUtil.sanitizeMessage(null));
+        assertEquals("\"\"", AtsdUtil.sanitizeMessage(""));
+        assertEquals("\"\"", AtsdUtil.sanitizeMessage("  "));
+        assertEquals("\"\"", AtsdUtil.sanitizeMessage("\n"));
+        assertEquals("\"\"", AtsdUtil.sanitizeMessage("\r\n"));
+        assertEquals("aaa", AtsdUtil.sanitizeMessage(" aaa "));
+    }
 }

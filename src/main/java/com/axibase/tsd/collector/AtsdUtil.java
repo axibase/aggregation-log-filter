@@ -25,6 +25,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
 public class AtsdUtil {
+    public static final String EMPTY_MESSAGE = "\"\"";
     private static InternalLogger internalLogger = InternalLogger.SYSTEM;
 
     public static final String DEFAULT_ENTITY = "defaultEntity";
@@ -66,8 +67,14 @@ public class AtsdUtil {
     }
 
     public static String sanitizeMessage(String s) {
-        s = (s == null) ? "NULL" : s.trim();
-        s = s.length() == 0 ? "EMPTY" : s;
+        if (s == null) {
+            return EMPTY_MESSAGE;
+        } else {
+            s = s.trim();
+            if (s.length() == 0) {
+                return EMPTY_MESSAGE;
+            }
+        }
         s = D_QUOTE.matcher(s).replaceAll("\\\\\"");
         if (s.contains(" ")) {
             StringBuilder sb = new StringBuilder("\"");
