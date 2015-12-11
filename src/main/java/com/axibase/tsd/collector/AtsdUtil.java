@@ -66,7 +66,8 @@ public class AtsdUtil {
     }
 
     public static String sanitizeMessage(String s) {
-        s = s == null ? "" : s.trim();
+        s = (s == null) ? "NULL" : s.trim();
+        s = s.length() == 0 ? "EMPTY" : s;
         s = D_QUOTE.matcher(s).replaceAll("\\\\\"");
         if (s.contains(" ")) {
             StringBuilder sb = new StringBuilder("\"");
