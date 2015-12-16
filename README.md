@@ -170,7 +170,7 @@ Configures which log events should be sent to the storage system.
 log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
 log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
 
-log4j.appender.APPENDER.filter=com.axibase.tsd.collector.log4j.Log4jCollector
+log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
 log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
 log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
