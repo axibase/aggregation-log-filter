@@ -59,7 +59,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
         }
         try {
             while (message.hasRemaining()) {
-                client.write(message);
+                cnt+=client.write(message);
             }
         } catch (IOException e) {
             AtsdUtil.logError("Could not write messages", e);

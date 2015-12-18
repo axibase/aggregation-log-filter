@@ -45,7 +45,6 @@ public class Aggregator<E, K, L> {
     private SendMessageTrigger[] triggers = null;
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
 
-    private int skippedCount = 0;
     private WorkerFinisher workerFinisher = new WorkerFinisher();
 
     public Aggregator(MessageWriter<E, K, L> messageWriter, EventProcessor<E, K, L> eventProcessor) {

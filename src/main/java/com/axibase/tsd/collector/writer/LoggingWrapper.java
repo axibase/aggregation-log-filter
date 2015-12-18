@@ -24,9 +24,9 @@ public class LoggingWrapper implements WritableByteChannel {
         ByteBuffer bbCopy = src.duplicate();
         final byte[] b = new byte[bbCopy.remaining()];
         bbCopy.get(b);
-        AtsdUtil.logInfo("WRITING: " + new String(b));
+        AtsdUtil.logInfo("WRITING:" + wrapped.getClass().getName() + ";" + new String(b).trim());
         final int written = wrapped.write(src);
-        AtsdUtil.logInfo(("WRITTEN: " + written));
+        AtsdUtil.logInfo(("WRITTEN:" + written + " bytes"));
         return written;
     }
 

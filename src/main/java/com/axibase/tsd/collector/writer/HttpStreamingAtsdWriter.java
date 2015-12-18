@@ -78,11 +78,15 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
     }
 
     public void setTimeout(int timeout) {
-        this.timeout = timeout;
+        if (timeout > 0) {
+            this.timeout = timeout;
+        }
     }
 
     public void setReconnectTimeoutMs(long reconnectTimeoutMs) {
-        this.reconnectTimeoutMs = reconnectTimeoutMs;
+        if (reconnectTimeoutMs > 0) {
+            this.reconnectTimeoutMs = reconnectTimeoutMs;
+        }
     }
 
     protected long getSkippedCount() {
@@ -120,7 +124,9 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         try {
             if (!latch.await(timeout, TimeUnit.MILLISECONDS)) {
                 streamingWorker.stop();
+                AtsdUtil.logError("Connection timeout: " + timeout);
                 streamingWorker = null;
+                return;
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -145,6 +151,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                     Thread.currentThread().interrupt();
                 }
             }
+            AtsdUtil.logInfo("Nothing to send, stop writer");
             streamingWorker.stop();
         }
         if (singleThreadExecutor != null) {
@@ -180,7 +187,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                     byte[] data = new byte[buffer.remaining()];
                     buffer.get(data);
                     outputStream.write(data);
-                    if (System.currentTimeMillis() - lastConnectionTryTime > reconnectTimeoutMs) {
+                    if (reconnectTimeoutMs > 0 && System.currentTimeMillis() - lastConnectionTryTime > reconnectTimeoutMs) {
                         outputStream.flush();
                         return;
                     }
@@ -223,7 +230,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
 
                 outputStream = connection.getOutputStream();
                 writeTo(outputStream);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 AtsdUtil.logError("Could not write messages", e);
             } finally {
                 stop();

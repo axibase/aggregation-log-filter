@@ -25,6 +25,7 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -43,6 +44,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
     private final List<Tag> tags = new ArrayList<Tag>();
     private WritableByteChannel writer;
+    private String debug;
 
     @Override
     public FilterReply decide(E event) {
@@ -71,6 +73,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             logbackMessageBuilder.addTag(tag);
         }
         aggregator = new Aggregator<E, String ,Level>(logbackMessageBuilder, new LogbackEventProcessor<E>());
+        if (debug!=null) {
+            writer = new LoggingWrapper(writer);
+        }
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
@@ -134,5 +139,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     public void setSendSeries(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
+    }
+
+    public void setDebug(String debug) {
+        this.debug = debug;
     }
 }

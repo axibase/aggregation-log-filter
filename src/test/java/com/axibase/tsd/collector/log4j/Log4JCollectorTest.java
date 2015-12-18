@@ -3,6 +3,7 @@ package com.axibase.tsd.collector.log4j;
 import com.axibase.tsd.collector.TcpReceiver;
 import com.axibase.tsd.collector.TestUtils;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.Test;
 
@@ -19,6 +20,8 @@ public class Log4jCollectorTest {
     static {
         final URL url = ClassLoader.getSystemClassLoader().getResource("./log4j-test.xml");
         DOMConfigurator.configure(url);
+//        final URL url = ClassLoader.getSystemClassLoader().getResource("./log4j-test.properties");
+//        PropertyConfigurator.configure(url);
     }
 
     @Test

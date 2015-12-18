@@ -8,6 +8,7 @@ import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.config.TotalCountInit;
 import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
 import com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 import com.axibase.tsd.collector.writer.WriterType;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
@@ -52,6 +53,7 @@ public class Log4jCollector extends Filter {
     private String metricPrefix;
     private Integer rateIntervalSeconds;
     private String totalCountInit;
+    private String debug;
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -98,6 +100,7 @@ public class Log4jCollector extends Filter {
             messageBuilder.addTag(tag);
         }
         aggregator = new Aggregator<LoggingEvent, String, String>(messageBuilder, new Log4jEventProcessor());
+        writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
@@ -295,6 +298,10 @@ public class Log4jCollector extends Filter {
 
     public void setTotalCountInit(String totalCountInit) {
         this.totalCountInit = totalCountInit;
+    }
+
+    public void setDebug(String debug) {
+        this.debug = debug;
     }
 
     @Override
