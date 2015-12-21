@@ -291,6 +291,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         }
 
         public void stop() {
+            AtsdUtil.logInfo("Stop HTTP worker");
             stopped = true;
             if (outputStream != null) {
                 try {

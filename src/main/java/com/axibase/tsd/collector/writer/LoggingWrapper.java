@@ -32,12 +32,12 @@ public class LoggingWrapper implements WritableByteChannel {
 
     @Override
     public boolean isOpen() {
-        return false;
+        return wrapped.isOpen();
     }
 
     @Override
     public void close() throws IOException {
-
+        wrapped.close();
     }
 
     public static WritableByteChannel tryWrap(String debug, WritableByteChannel writer) {

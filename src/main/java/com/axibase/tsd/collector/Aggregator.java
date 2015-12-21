@@ -122,11 +122,14 @@ public class Aggregator<E, K, L> {
 
     private void closeWriter() {
         if (writer != null && writer.isOpen()) {
+            AtsdUtil.logInfo("Close writer");
             try {
                 writer.close();
             } catch (IOException e) {
                 AtsdUtil.logError("Could not close writer", e);
             }
+        } else {
+            AtsdUtil.logInfo("Writer has already been closed");
         }
     }
 
