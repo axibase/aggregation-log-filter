@@ -21,10 +21,12 @@ package com.axibase.tsd.collector;
 public class EventWrapper<E> {
     private final E event;
     private final int lines;
+    private final String message;
 
-    public EventWrapper(E event, int lines) {
+    public EventWrapper(E event, int lines, String message) {
         this.event = event;
         this.lines = lines;
+        this.message = message;
     }
 
     public E getEvent() {
@@ -33,5 +35,9 @@ public class EventWrapper<E> {
 
     public int getLines() {
         return lines;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

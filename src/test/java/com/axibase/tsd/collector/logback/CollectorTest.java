@@ -22,6 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -76,7 +77,9 @@ public class CollectorTest extends TestCase {
             // 15 > <sendEvery>7</sendEvery>
             // <level>WARN</level>
             for (int i = 0; i < 15; i++) {
+                MDC.put("myKey", "key-" + i);
                 tcpSendLog.warn("test {}", i);
+                MDC.remove("myKey");
             }
             for (int i = 0; i < 15; i++) {
                 tcpSendLog.debug("test {}", i);
@@ -88,10 +91,10 @@ public class CollectorTest extends TestCase {
             assertEquals(30, CountAppender.getCount());
             // check message content
             assertTrue(result.contains("t:ttt2=\"k=1;k2=2;k3=3\""));
-            assertTrue(result.contains("m:\"test 0\""));
-            assertFalse(result.contains("m:\"test 4\""));
-            assertTrue(result.contains("m:\"test 5\""));
-            assertTrue(result.contains("m:\"test 7\""));
+            assertTrue(result.contains("test.tcp.write - test 0 [key-0]\""));
+            assertFalse(result.contains("test.tcp.write - test 4 [key-4]\""));
+            assertTrue(result.contains("test.tcp.write - test 5 [key-5]\""));
+            assertTrue(result.contains("test.tcp.write - test 7 [key-7]\""));
             assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("m:log_event_sum_counter=0 t:level=INFO"));
             assertTrue(result.contains("m:log_event_sum_counter=0 t:level=TRACE"));
@@ -179,7 +182,7 @@ public class CollectorTest extends TestCase {
     @Test
     public void loadHttpSend() throws Exception {
         long st = System.currentTimeMillis();
-        Exception exception = new RuntimeException();
+        Exception exception = new RuntimeException("test");
         for (int i = 0; i < 1000000; i++) {
             httpSendLog.warn("test {}", i, exception);
 //                if (i % 1000 == 0) {

@@ -6,10 +6,7 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.config.TotalCountInit;
-import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
-import com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter;
-import com.axibase.tsd.collector.writer.LoggingWrapper;
-import com.axibase.tsd.collector.writer.WriterType;
+import com.axibase.tsd.collector.writer.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.Filter;
@@ -54,6 +51,7 @@ public class Log4jCollector extends Filter {
     private Integer rateIntervalSeconds;
     private String totalCountInit;
     private String debug;
+    private String pattern;
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -80,6 +78,11 @@ public class Log4jCollector extends Filter {
             public void info(String message) {
                 LogLog.debug(message);
             }
+
+            @Override
+            public void info(String message, Throwable t) {
+                LogLog.debug(message, t);
+            }
         });
     }
 
@@ -95,6 +98,9 @@ public class Log4jCollector extends Filter {
         }
         if (seriesSenderConfig != null) {
             messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+        }
+        if (pattern != null) {
+            messageBuilder.setPattern(pattern);
         }
         for (Tag tag : tags) {
             messageBuilder.addTag(tag);
@@ -160,14 +166,22 @@ public class Log4jCollector extends Filter {
             atsdWriter.setHost(writerHost);
             atsdWriter.setPort(writerPort);
         } else if (writer instanceof HttpStreamingAtsdWriter) {
-            final HttpStreamingAtsdWriter httpWriter = (HttpStreamingAtsdWriter) this.writer;
-            checkWriterProperty(writerUrl == null, "writerUrl", writerUrl);
-            checkWriterProperty(writerUsername == null, "writerUsername", writerUsername);
-            checkWriterProperty(writerPassword == null, "writerPassword", writerPassword);
-            httpWriter.setUrl(writerUrl);
-            httpWriter.setUsername(writerUsername);
-            httpWriter.setPassword(writerPassword);
-            httpWriter.setReconnectTimeoutMs(writerReconnectTimeoutMs);
+            if (writerUrl != null && writerUrl.contains(BaseHttpAtsdWriter.STREAM_FALSE_PARAM)) {
+                final SimpleHttpAtsdWriter simpleHttpAtsdWriter = new SimpleHttpAtsdWriter();
+                simpleHttpAtsdWriter.setUrl(writerUrl);
+                simpleHttpAtsdWriter.setUsername(writerUsername);
+                simpleHttpAtsdWriter.setPassword(writerPassword);
+                writer = simpleHttpAtsdWriter;
+            } else {
+                final HttpStreamingAtsdWriter httpWriter = (HttpStreamingAtsdWriter) this.writer;
+                checkWriterProperty(writerUrl == null, "writerUrl", writerUrl);
+                checkWriterProperty(writerUsername == null, "writerUsername", writerUsername);
+                checkWriterProperty(writerPassword == null, "writerPassword", writerPassword);
+                httpWriter.setUrl(writerUrl);
+                httpWriter.setUsername(writerUsername);
+                httpWriter.setPassword(writerPassword);
+                httpWriter.setReconnectTimeoutMs(writerReconnectTimeoutMs);
+            }
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             LogLog.error(msg);
@@ -302,6 +316,10 @@ public class Log4jCollector extends Filter {
 
     public void setDebug(String debug) {
         this.debug = debug;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 
     @Override

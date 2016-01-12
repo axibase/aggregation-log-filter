@@ -15,6 +15,7 @@
             <param name="repeatCount" value="5"/>
             <param name="tags" value="ttt=ttt;ppp=ppp;mmm=mmm"/>
             <param name="totalCountInit" value="INFO=-1;ERROR=0;TRACE=0"/>
+            <param name="pattern" value="%d [%t] %-5p %c - %m [%X{myKey}]%n"/>
             <param name="writer" value="tcp"/>
             <param name="writerHost" value="localhost"/>
             <param name="writerPort" value="35771"/>

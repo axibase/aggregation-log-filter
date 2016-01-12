@@ -33,12 +33,12 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
     public void connect() throws IllegalStateException, IOException {
         if (isConnected()) {
             final String msg = "Already connected";
-            AtsdUtil.logError(msg);
+            AtsdUtil.logInfo(msg);
             throw new IllegalStateException(msg);
         }
         java.net.InetSocketAddress address = getAddress();
         if (address.getAddress() == null) {
-            AtsdUtil.logError("Illegal address: " + address);
+            AtsdUtil.logInfo("Illegal address: " + address);
             throw new java.net.UnknownHostException(address.getHostName());
         }
         AtsdUtil.logInfo("Connecting to: " + getAddress());
@@ -62,7 +62,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
                 cnt+=client.write(message);
             }
         } catch (IOException e) {
-            AtsdUtil.logError("Could not write messages", e);
+            AtsdUtil.logInfo("Could not write messages", e);
             close();
             throw e;
         }

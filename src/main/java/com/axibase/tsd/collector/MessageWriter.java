@@ -31,4 +31,6 @@ public interface MessageWriter<E, K, L> {
     void start();
 
     void stop();
+
+    EventWrapper<E> createWrapper(E event, int lines);
 }

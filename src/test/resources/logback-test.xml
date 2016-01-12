@@ -57,6 +57,7 @@
             <level>INFO</level>
             <!-- default: $HOSTNAME -->
             <entity>localhost</entity>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg [%X{myKey}]%n</pattern>
             <sendSeries>
                 <!-- 0+ default:1 -->
                 <repeatCount>5</repeatCount>
@@ -136,6 +137,13 @@
                 <username>axibase</username>
                 <password>11111</password>
             </writer>
+            <!-- - ->
+            <writer class="com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter">
+                <url>http://localhost:8088/api/v1/command/?stream=false</url>
+                <username>axibase</username>
+                <password>11111</password>
+            </writer>
+            <!- - -->
             <level>WARN</level>
             <entity>localhost</entity>
             <sendSeries>

@@ -17,7 +17,6 @@ package com.axibase.tsd.collector.writer;
 
 import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.CountedQueue;
-import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,7 +24,6 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,52 +33,22 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * @author Nikolay Malevanny.
  */
-public class HttpStreamingAtsdWriter implements WritableByteChannel {
+public class HttpStreamingAtsdWriter extends BaseHttpAtsdWriter {
     public static final int DEFAULT_SKIP_DATA_THRESHOLD = 100000;
     public static final int MIN_RECONNECTION_TIME = 30 * 1000;
     public static final long DEFAULT_RECONNECT_TIMEOUT = 1 * 60 * 1000L;
-    private static final int DEFAULT_TIMEOUT_MS = 5000;
-    public static final String DEFAULT_METHOD = "POST";
-    public static final int DEFAULT_CHUNK_SIZE = 1024;
     public static final int CLOSE_TIMEOUT_MS = 30000;
     public static final int CLOSE_TIMEOUT_STEPS = 30;
-    private String method = DEFAULT_METHOD;
     private int skipDataThreshold = DEFAULT_SKIP_DATA_THRESHOLD;
-    private String url;
-    private String username;
-    private String password;
     private CountedQueue<ByteBuffer> data = new CountedQueue<ByteBuffer>();
     private StreamingWorker streamingWorker;
     private ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(AtsdUtil.DAEMON_THREAD_FACTORY);
     private long lastConnectionTryTime = 0;
-    private int timeout = DEFAULT_TIMEOUT_MS;
     private long skippedCount = 0;
     private long reconnectTimeoutMs = DEFAULT_RECONNECT_TIMEOUT;
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public void setSkipDataThreshold(int skipDataThreshold) {
         this.skipDataThreshold = skipDataThreshold;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    protected void setMethod(String method) {
-        this.method = method;
-    }
-
-    public void setTimeout(int timeout) {
-        if (timeout > 0) {
-            this.timeout = timeout;
-        }
     }
 
     public void setReconnectTimeoutMs(long reconnectTimeoutMs) {
@@ -124,7 +92,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
         try {
             if (!latch.await(timeout, TimeUnit.MILLISECONDS)) {
                 streamingWorker.stop();
-                AtsdUtil.logError("Connection timeout: " + timeout);
+                AtsdUtil.logInfo("Connection timeout: " + timeout);
                 streamingWorker = null;
                 return;
             }
@@ -184,9 +152,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 int cnt = 0;
                 while ((buffer = data.poll()) != null && outputStream != null) {
                     cnt++;
-                    byte[] data = new byte[buffer.remaining()];
-                    buffer.get(data);
-                    outputStream.write(data);
+                    writeBuffer(outputStream, buffer);
                     if (reconnectTimeoutMs > 0 && System.currentTimeMillis() - lastConnectionTryTime > reconnectTimeoutMs) {
                         outputStream.flush();
                         return;
@@ -197,7 +163,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                     outputStream.flush();
                     lastCommandTime = System.currentTimeMillis();
                 } else {
-                    if (System.currentTimeMillis() - lastCommandTime > PING_TIMEOUT_MS) {
+                    if (System.currentTimeMillis() - lastCommandTime > PING_TIMEOUT_MS && outputStream != null) {
                         outputStream.write(AtsdUtil.SAFE_PING_COMMAND.getBytes());
                         outputStream.flush();
                         lastCommandTime = System.currentTimeMillis();
@@ -231,7 +197,7 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 outputStream = connection.getOutputStream();
                 writeTo(outputStream);
             } catch (Throwable e) {
-                AtsdUtil.logError("Could not write messages", e);
+                AtsdUtil.logInfo("Could not write messages", e);
             } finally {
                 stop();
             }
@@ -258,36 +224,21 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 if ((responseCode == HttpURLConnection.HTTP_OK)) {
                     return true;
                 } else {
-                    AtsdUtil.logError("Could not connect to: " + method + " " + url);
-                    AtsdUtil.logError("HTTP response code: " + responseCode);
+                    AtsdUtil.logInfo("Could not connect to: " + method + " " + url);
+                    AtsdUtil.logInfo("HTTP response code: " + responseCode);
                     return false;
                 }
             } catch (SocketTimeoutException e) {
-                AtsdUtil.logError("Timeout", e);
+                AtsdUtil.logInfo("Timeout", e);
                 return false;
             } catch (Exception e) {
-                AtsdUtil.logError("Could not connect to: " + method + " " + url, e);
+                AtsdUtil.logInfo("Could not connect to: " + method + " " + url, e);
                 return false;
             } finally {
                 if (testConnection != null) {
                     testConnection.disconnect();
                 }
             }
-        }
-
-        private void initConnection(HttpURLConnection con) throws IOException {
-            con.setRequestMethod(method);
-            BASE64Encoder enc = new BASE64Encoder();
-            if (username != null && username.trim().length() > 0) {
-                String encodedAuthorization = enc.encode((username + ":" + password).getBytes());
-                con.setRequestProperty("Authorization",
-                        "Basic " + encodedAuthorization);
-            }
-            con.setRequestProperty("Content-Type",
-                    "text/plain; charset=\"UTF-8\"");
-            con.setConnectTimeout(timeout);
-            con.setReadTimeout(timeout);
-            con.setDoOutput(true);
         }
 
         public void stop() {
@@ -297,14 +248,14 @@ public class HttpStreamingAtsdWriter implements WritableByteChannel {
                 try {
                     outputStream.close();
                 } catch (IOException e) {
-                    AtsdUtil.logError("Could not close output stream", e);
+                    AtsdUtil.logInfo("Could not close output stream", e);
                 }
             }
             if (connection != null) {
                 try {
                     connection.disconnect();
                 } catch (Exception e) {
-                    AtsdUtil.logError("Could not disconnect", e);
+                    AtsdUtil.logInfo("Could not disconnect", e);
                 }
                 connection = null;
             }

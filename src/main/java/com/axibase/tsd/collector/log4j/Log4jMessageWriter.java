@@ -19,6 +19,8 @@ import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import org.apache.log4j.Level;
+import org.apache.log4j.MDC;
+import org.apache.log4j.PatternLayout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
@@ -39,6 +41,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
+    private String pattern;
+    private PatternLayout patternLayout;
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -77,7 +81,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             Map.Entry<Key<String>, CounterWithSum> entry = iterator.next();
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
-                iterator.remove();
+                // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount
             } else {
                 Key<String> key = entry.getKey();
                 String level = key.getLevel();
@@ -86,7 +90,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 try {
                     messageHelper.writeCounter(writer, time, key, level, counter.getSum());
                 } catch (Throwable e) {
-                    AtsdUtil.logError("Could not write series", e);
+                    AtsdUtil.logInfo("Could not write series", e);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -114,7 +118,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
             } catch (Throwable e) {
-                AtsdUtil.logError("Could not write series", e);
+                AtsdUtil.logInfo("Could not write series", e);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -128,8 +132,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             try {
                 LoggingEvent event = wrapper.getEvent();
                 StringBuilder sb = new StringBuilder();
-                final Object om = event.getMessage();
-                String message = (om == null?"":om.toString());
+                String message = wrapper.getMessage();
                 int lines = wrapper.getLines();
                 if (lines > 0 && event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() != null) {
                     StringBuilder msb = new StringBuilder(message);
@@ -148,7 +151,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 }
                 writeMessage(writer, event, sb, message);
             } catch (Exception e) {
-                AtsdUtil.logError("Could not write message", e);
+                AtsdUtil.logInfo("Could not write message", e);
             }
         }
         singles.clearCount();
@@ -178,10 +181,27 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                         new CounterWithSum(levelAndValue.getValue(), seriesSenderConfig.getRepeatCount()));
             }
         }
+
+        if (pattern != null) {
+            patternLayout = new PatternLayout(pattern);
+            patternLayout.activateOptions();
+        }
     }
 
     @Override
     public void stop() {
+    }
+
+    @Override
+    public EventWrapper<LoggingEvent> createWrapper(LoggingEvent event, int lines) {
+        String message;
+        Object om = event.getMessage();
+        if (patternLayout == null) {
+            message = (om == null ? "" : om.toString());
+        } else {
+            message = patternLayout.format(event);
+        }
+        return new EventWrapper<LoggingEvent>(event, lines, message);
     }
 
     public void addTag(Tag tag) {
@@ -194,6 +214,10 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 }
 

@@ -130,6 +130,7 @@ public class LogbackMessageWriterTest {
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
+        System.out.println("result = " + result);
         assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
                 "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger "));
     }
@@ -151,7 +152,7 @@ public class LogbackMessageWriterTest {
 
     private CountedQueue<EventWrapper<ILoggingEvent>> createSingles(LoggingEvent event, int lines) {
         CountedQueue<EventWrapper<ILoggingEvent>> singles = new CountedQueue<EventWrapper<ILoggingEvent>>();
-        singles.add(new EventWrapper<ILoggingEvent>(event, lines));
+        singles.add(new EventWrapper<ILoggingEvent>(event, lines, event.getMessage()));
         return singles;
     }
 

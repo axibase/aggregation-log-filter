@@ -16,6 +16,7 @@
 package com.axibase.tsd.collector.logback;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
@@ -43,6 +44,8 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<Level, CounterWithSum> totals = new HashMap<Level, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
+    private PatternLayout patternLayout = null;
+    private String pattern;
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -81,7 +84,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             Map.Entry<Key<Level>, CounterWithSum> entry = iterator.next();
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
-                iterator.remove();
+                // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount
             } else {
                 Key<Level> key = entry.getKey();
                 Level level = key.getLevel();
@@ -134,7 +137,7 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             try {
                 E event = wrapper.getEvent();
                 StringBuilder sb = new StringBuilder();
-                String message = event.getFormattedMessage();
+                String message = wrapper.getMessage();
                 int lines = wrapper.getLines();
                 if (lines > 0 && event.getCallerData() != null) {
                     StringBuilder msb = new StringBuilder(message);
@@ -184,10 +187,28 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
                         new CounterWithSum(levelAndValue.getValue(), seriesSenderConfig.getRepeatCount()));
             }
         }
+
+        if (pattern != null) {
+            patternLayout = new PatternLayout();
+            patternLayout.setContext(context);
+            patternLayout.setPattern(pattern);
+            patternLayout.start();
+        }
     }
 
     @Override
     public void stop() {
+    }
+
+    @Override
+    public EventWrapper<E> createWrapper(E event, int lines) {
+        String message;
+        if (patternLayout == null) {
+            message = event.getFormattedMessage();
+        } else {
+            message = patternLayout.doLayout(event);
+        }
+        return new EventWrapper<E>(event, lines, message);
     }
 
     public void addTag(Tag tag) {
@@ -200,5 +221,9 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 }

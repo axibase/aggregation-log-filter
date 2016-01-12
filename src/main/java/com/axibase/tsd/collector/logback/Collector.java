@@ -45,6 +45,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private final List<Tag> tags = new ArrayList<Tag>();
     private WritableByteChannel writer;
     private String debug;
+    private String pattern;
 
     @Override
     public FilterReply decide(E event) {
@@ -67,6 +68,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         if (seriesSenderConfig != null) {
             logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+        }
+        if (pattern != null) {
+            logbackMessageBuilder.setPattern(pattern);
         }
         logbackMessageBuilder.setContext(getContext());
         for (Tag tag : tags) {
@@ -109,6 +113,11 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             public void info(String message) {
                 addInfo(message);
             }
+
+            @Override
+            public void info(String message, Throwable exception) {
+                addInfo(message, exception);
+            }
         });
         super.stop();
         aggregator.stop();
@@ -143,5 +152,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     public void setDebug(String debug) {
         this.debug = debug;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 }

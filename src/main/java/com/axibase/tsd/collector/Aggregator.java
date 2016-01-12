@@ -17,6 +17,7 @@ package com.axibase.tsd.collector;
 
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
+import com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -91,7 +92,7 @@ public class Aggregator<E, K, L> {
     }
 
     private void sendSingle(final E event, final int lines) throws IOException {
-        singles.add(new EventWrapper<E>(event, lines));
+        singles.add(messageWriter.createWrapper(event, lines));
         if (singles.getCount() > seriesSenderConfig.getMessageSkipThreshold()) {
             singles.poll();
         }
@@ -109,7 +110,7 @@ public class Aggregator<E, K, L> {
             try {
                 worker.finish();
             } catch (Exception e) {
-                AtsdUtil.logError("Could not finish worker", e);
+                AtsdUtil.logInfo("Could not finish worker", e);
             }
             worker.stop();
         }
@@ -126,7 +127,7 @@ public class Aggregator<E, K, L> {
             try {
                 writer.close();
             } catch (IOException e) {
-                AtsdUtil.logError("Could not close writer", e);
+                AtsdUtil.logInfo("Could not close writer", e);
             }
         } else {
             AtsdUtil.logInfo("Writer has already been closed");
@@ -166,10 +167,10 @@ public class Aggregator<E, K, L> {
                     Thread.sleep(seriesSenderConfig.getCheckIntervalMs());
                     checkThresholdsAndWrite();
                 } catch (IOException e) {
-                    AtsdUtil.logError("Could not write messages", e);
+                    AtsdUtil.logInfo("Could not write messages", e);
                     // ignore
                 } catch (InterruptedException e) {
-                    AtsdUtil.logError("Interrupted", e);
+                    AtsdUtil.logInfo("Interrupted", e);
                     // ignore
                     Thread.currentThread().interrupt();
                 }
@@ -196,6 +197,10 @@ public class Aggregator<E, K, L> {
 
             if (!singles.isEmpty()) {
                 messageWriter.writeSingles(writer, singles);
+            }
+
+            if (writer instanceof SimpleHttpAtsdWriter) {
+                writer.close();
             }
         }
 
@@ -237,7 +242,7 @@ public class Aggregator<E, K, L> {
             try {
                 worker.finish();
             } catch (Exception e) {
-                AtsdUtil.logError("Could not finish worker", e);
+                AtsdUtil.logInfo("Could not finish worker", e);
             }
         }
     }
