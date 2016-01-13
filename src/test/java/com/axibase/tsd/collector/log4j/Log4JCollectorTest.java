@@ -3,7 +3,7 @@ package com.axibase.tsd.collector.log4j;
 import com.axibase.tsd.collector.TcpReceiver;
 import com.axibase.tsd.collector.TestUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.MDC;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.Test;
 
@@ -35,7 +35,10 @@ public class Log4jCollectorTest {
             // 15 > <sendEvery>7</sendEvery>
             // <level>WARN</level>
             for (int i = 0; i < 15; i++) {
+                MDC.put("myKey","TEST_KEY_" + i);
                 log.warn("test " +  i);
+                System.out.println(Thread.currentThread().getName() + " - MDC.get(\"myKey\") = " + MDC.get("myKey"));
+                MDC.remove("myKey");
             }
             for (int i = 0; i < 15; i++) {
                 log.debug("test " + i);
@@ -48,10 +51,10 @@ public class Log4jCollectorTest {
             assertEquals(30, Log4jCountAppender.getCount());
             // check message content
             assertTrue(result.contains("t:ttt=ttt t:ppp=ppp t:mmm=mmm"));
-            assertTrue(result.contains("m:\"test 0\""));
-            assertFalse(result.contains("m:\"test 4\""));
-            assertTrue(result.contains("m:\"test 5\""));
-            assertTrue(result.contains("m:\"test 7\""));
+            assertTrue(result.contains("Log4jCollectorTest - test 0 [TEST_KEY_0]\""));
+            assertFalse(result.contains("Log4jCollectorTest - test 4"));
+            assertTrue(result.contains("Log4jCollectorTest - test 5"));
+            assertTrue(result.contains("Log4jCollectorTest - test 7"));
             assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("m:log_event_total_counter=0 t:level=INFO"));
             assertTrue(result.contains("m:log_event_total_counter=0 t:level=TRACE"));

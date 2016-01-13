@@ -42,6 +42,7 @@ java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4
                 <password>PASSWORD</password>
             </writer>
             <level>INFO</level>
+            <pattern>[%thread] %-5level %logger{36} - %msg [%X{user}]%n</pattern>
             <sendMessage>
                 <level>WARN</level>
             </sendMessage>            
@@ -62,6 +63,7 @@ java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4
 | tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
 | sendSeries | yes | - | see `sendSeries` config |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
+| pattern | no | - | pattern to format logging event |
 
 
 ## writer
@@ -175,7 +177,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
 log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
 log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
-#log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/command/
+#log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/commands/batch
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
 #log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
 #log4j.appender.APPENDER.filter.COLLECTOR.writerReconnectTimeoutMs=60000
