@@ -84,7 +84,8 @@ public class SimpleHttpAtsdWriter extends BaseHttpAtsdWriter {
 
     @Override
     public void setUrl(String url) {
-        if (!url.trim().endsWith(STREAM_FALSE_PARAM)) {
+        url = url.trim();
+        if (!url.endsWith(STREAM_FALSE_PARAM) && !url.endsWith(COMMANDS_BATCH_SUFFIX)) {
             super.setUrl(url + "?" + STREAM_FALSE_PARAM);
         } else {
             super.setUrl(url);

@@ -181,7 +181,9 @@ public class Log4jCollector extends Filter {
             atsdWriter.setHost(writerHost);
             atsdWriter.setPort(writerPort);
         } else if (writer instanceof HttpStreamingAtsdWriter) {
-            if (writerUrl != null && writerUrl.contains(BaseHttpAtsdWriter.STREAM_FALSE_PARAM)) {
+            if (writerUrl != null &&
+                    (writerUrl.contains(BaseHttpAtsdWriter.STREAM_FALSE_PARAM) ||
+                            writerUrl.contains(BaseHttpAtsdWriter.COMMANDS_BATCH_SUFFIX))) {
                 final SimpleHttpAtsdWriter simpleHttpAtsdWriter = new SimpleHttpAtsdWriter();
                 simpleHttpAtsdWriter.setUrl(writerUrl);
                 simpleHttpAtsdWriter.setUsername(writerUsername);

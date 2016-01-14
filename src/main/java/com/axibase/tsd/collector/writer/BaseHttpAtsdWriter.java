@@ -29,6 +29,7 @@ import java.nio.channels.WritableByteChannel;
 public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     public static final String DEFAULT_METHOD = "POST";
     public static final String STREAM_FALSE_PARAM = "stream=false";
+    public static final String COMMANDS_BATCH_SUFFIX = "/commands/batch";
     public static final int DEFAULT_CHUNK_SIZE = 1024;
     private static final int DEFAULT_TIMEOUT_MS = 5000;
     protected String method = DEFAULT_METHOD;

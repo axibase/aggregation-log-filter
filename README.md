@@ -102,7 +102,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a backen
 
 ```xml
 <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-    <url>http://atsd_server:8088/api/v1/command/</url>
+    <url>http://atsd_server:8088/api/v1/commands/stream</url>
     <username>axibase</username>
     <password>*****</password>
     <reconnectTimeoutMs>60000</reconnectTimeoutMs>
@@ -205,7 +205,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
             <param name="writerPort" value="8081"/>
             <!--
             <param name="writer" value="http"/>
-            <param name="writerUrl" value="http://atsd_server:8088/api/v1/command/"/>
+            <param name="writerUrl" value="http://atsd_server:8088/api/v1/commands/stream"/>
             <param name="writerUsername" value="USERNAME"/>
             <param name="writerPassword" value="PASSWORD"/>
             <param name="writerReconnectTimeoutMs" value="60000"/>

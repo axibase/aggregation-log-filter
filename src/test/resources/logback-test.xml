@@ -132,14 +132,16 @@
 
     <appender name="HTTP_SENDER" class="com.axibase.tsd.collector.logback.CountAppender">
         <filter class="com.axibase.tsd.collector.logback.Collector">
+            <!-- -->
             <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-                <url>http://localhost:8088/api/v1/command/</url>
+                <url>http://localhost:8088/api/v1/commands/stream</url>
                 <username>axibase</username>
                 <password>11111</password>
             </writer>
+            <!-- -->
             <!-- - ->
             <writer class="com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter">
-                <url>http://localhost:8088/api/v1/command/?stream=false</url>
+                <url>http://localhost:8088/api/v1/commands/batch</url>
                 <username>axibase</username>
                 <password>11111</password>
             </writer>
