@@ -37,7 +37,7 @@ java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
             <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-                <url>http://atsd_server:8088/api/v1/command/</url>
+                <url>http://atsd_server:8088/api/v1/commands/stream</url>
                 <username>USERNAME</username>
                 <password>PASSWORD</password>
             </writer>
@@ -111,7 +111,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a backen
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | ATSD API command URL like 'http://atsd_server:8088/api/v1/command/', string |
+| url | yes | - | ATSD API command URL like 'http://atsd_server:8088/api/v1/commands/stream', string |
 | username | yes | - | user name, string |
 | password | yes | - | password, string |
 
@@ -181,6 +181,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
 #log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
 #log4j.appender.APPENDER.filter.COLLECTOR.writerReconnectTimeoutMs=60000
+#log4j.appender.APPENDER.filter.COLLECTOR.pattern=[%thread] %-5level %logger{36} - %msg [%X{user}]%n
 log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
 log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
 log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
