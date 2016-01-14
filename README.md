@@ -226,6 +226,5 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ## Log Counter Portal Example
 
 ![Log Counter Portal](https://axibase.com/wp-content/uploads/2015/11/log_filter.png)
-Format: ![Alt Text](url)
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
