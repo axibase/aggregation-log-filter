@@ -19,25 +19,25 @@ The filter plugs into a logging framework and measures the number of raised log 
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter</artifactId>
-            <version>0.4.6</version>
+            <version>0.4.13</version>
 </dependency>
 ```
 
 ### Option 2: Add aggregation-log-filter to classpath
 
-- Download aggregation-log-filter-0.4.6.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Copy aggregation-log-filter-0.4.6.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
+- Download aggregation-log-filter-0.4.13.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Copy aggregation-log-filter-0.4.13.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
 
 ```
-java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4.6.jar com.axibase.tsd.Server
+java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4.13.jar com.axibase.tsd.Server
 ```
 
 ## Logback Configuration 
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
-            <writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-                <url>http://atsd_server:8088/api/v1/commands/stream</url>
+            <writer class="com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter">
+                <url>http://atsd_server:8088/api/v1/commands/batch</url>
                 <username>USERNAME</username>
                 <password>PASSWORD</password>
             </writer>
@@ -68,7 +68,7 @@ java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4
 
 ## writer
 
-Configures a TCP, UDP or HTTP writer to send statistics and messages to a backend storage system such as Axibase Time-Series Database.
+Configures a TCP, UDP or HTTP writer to send statistics and messages to a backend storage system such as Axibase Time Series Database.
 
 ### TCP writer
 
@@ -101,18 +101,17 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a backen
 ### HTTP writer
 
 ```xml
-<writer class="com.axibase.tsd.collector.writer.HttpStreamingAtsdWriter">
-    <url>http://atsd_server:8088/api/v1/commands/stream</url>
+<writer class="com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter">
+    <url>http://atsd_server:8088/api/v1/commands/batch</url>
     <username>axibase</username>
     <password>*****</password>
-    <reconnectTimeoutMs>60000</reconnectTimeoutMs>
 </writer>
 ```
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | ATSD API command URL like 'http://atsd_server:8088/api/v1/commands/stream', string |
-| username | yes | - | user name, string |
+| url | yes | - | ATSD API command URL 'http://atsd_server:8088/api/v1/commands/batch', string |
+| username | yes | - | username, string |
 | password | yes | - | password, string |
 
 ## sendSeries
@@ -180,7 +179,6 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/commands/batch
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
 #log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
-#log4j.appender.APPENDER.filter.COLLECTOR.writerReconnectTimeoutMs=60000
 #log4j.appender.APPENDER.filter.COLLECTOR.pattern=[%thread] %-5level %logger{36} - %msg [%X{user}]%n
 log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
 log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
@@ -205,10 +203,9 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
             <param name="writerPort" value="8081"/>
             <!--
             <param name="writer" value="http"/>
-            <param name="writerUrl" value="http://atsd_server:8088/api/v1/commands/stream"/>
+            <param name="writerUrl" value="http://atsd_server:8088/api/v1/commands/batch"/>
             <param name="writerUsername" value="USERNAME"/>
             <param name="writerPassword" value="PASSWORD"/>
-            <param name="writerReconnectTimeoutMs" value="60000"/>
             -->
             <param name="level" value="INFO"/>
             <param name="repeatCount" value="3"/>
