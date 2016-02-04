@@ -30,11 +30,12 @@ The filter plugs into a logging framework and measures logging volume using incr
 
 ### Option 2: Add aggregation-log-filter-logback to classpath
 
+- Download aggregation-log-filter-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 - Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-- Copy aggregation-log-filter-logback-1.0.3.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
+- Copy aggregation-log-filter-1.0.3.jar and aggregation-log-filter-logback-1.0.3.jar files to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
 
 ```
-java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-logback-1.0.3.jar com.axibase.tsd.Server
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation-log-filter-logback-1.0.3.jar Main
 ```
 
 ## Logback Configuration 
@@ -175,7 +176,6 @@ Configures which log events should be sent to the storage system.
 ```properties
 log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
 log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
-
 log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
 log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
@@ -194,6 +194,14 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ```
 
   - [View complete log4j.properties example.](src/test/resources/log4j-test.properties)
+  
+```java
+        MDC.put("user", session.getAttribute("username"));
+        log.info("delete document: " + documentId);
+        MDC.remove("user");
+```
+
+  - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
  
 ### XML example
 
