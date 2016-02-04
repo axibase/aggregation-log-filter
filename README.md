@@ -9,8 +9,8 @@ The filter plugs into a logging framework and measures logging volume using incr
 
 ## Supported Logging Frameworks
 
-- [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+).
-- [Log4j](http://logging.apache.org/log4j) 1.2.13-1.2.17. Note: Log4j 2.x is currently not supported.
+- [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregatoin-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
+- [Log4j](http://logging.apache.org/log4j) 1.2.13-1.2.17 - [aggregatoin-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j). Note: Log4j 2.x is currently not supported.
 
 ## Supported Storage Backends
 
@@ -23,25 +23,25 @@ The filter plugs into a logging framework and measures logging volume using incr
 ```xml
 <dependency>
             <groupId>com.axibase</groupId>
-            <artifactId>aggregation-log-filter</artifactId>
-            <version>0.4.13</version>
+            <artifactId>aggregation-log-filter-logback</artifactId>
+            <version>1.0.3</version>
 </dependency>
 ```
 
-### Option 2: Add aggregation-log-filter to classpath
+### Option 2: Add aggregation-log-filter-logback to classpath
 
-- Download aggregation-log-filter-0.4.13.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Copy aggregation-log-filter-0.4.13.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
+- Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+- Copy aggregation-log-filter-logback-1.0.3.jar file to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
 
 ```
-java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-0.4.13.jar com.axibase.tsd.Server
+java -server -classpath /opt/atsd-executable.jar:/opt/aggregation-log-filter-logback-1.0.3.jar com.axibase.tsd.Server
 ```
 
 ## Logback Configuration 
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
-            <writer class="com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter">
+            <writer class="com.axibase.tsd.collector.writer.HttpAtsdWriter">
                 <url>http://atsd_server:8088/api/v1/commands/batch</url>
                 <username>USERNAME</username>
                 <password>PASSWORD</password>
@@ -106,7 +106,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a backen
 ### HTTP writer
 
 ```xml
-<writer class="com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter">
+<writer class="com.axibase.tsd.collector.writer.HttpAtsdWriter">
     <url>http://atsd_server:8088/api/v1/commands/batch</url>
     <username>axibase</username>
     <password>*****</password>
