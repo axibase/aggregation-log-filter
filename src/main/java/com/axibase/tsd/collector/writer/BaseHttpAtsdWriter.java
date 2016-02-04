@@ -87,7 +87,6 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     protected static int writeBuffer(OutputStream outputStream, ByteBuffer buffer) throws IOException {
         byte[] data = new byte[buffer.remaining()];
         buffer.get(data);
-        System.out.write(data);
         outputStream.write(data);
         return data.length;
     }

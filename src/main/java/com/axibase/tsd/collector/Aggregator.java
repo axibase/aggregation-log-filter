@@ -17,7 +17,7 @@ package com.axibase.tsd.collector;
 
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
-import com.axibase.tsd.collector.writer.SimpleHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.HttpAtsdWriter;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -199,7 +199,7 @@ public class Aggregator<E, K, L> {
                 messageWriter.writeSingles(writer, singles);
             }
 
-            if (writer instanceof SimpleHttpAtsdWriter) {
+            if (writer instanceof HttpAtsdWriter) {
                 writer.close();
             }
         }

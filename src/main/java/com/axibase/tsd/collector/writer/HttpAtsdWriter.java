@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 /**
  * @author Nikolay Malevanny.
  */
-public class SimpleHttpAtsdWriter extends BaseHttpAtsdWriter {
+public class HttpAtsdWriter extends BaseHttpAtsdWriter {
     private HttpURLConnection connection;
     private OutputStream outputStream;
 
@@ -34,6 +34,9 @@ public class SimpleHttpAtsdWriter extends BaseHttpAtsdWriter {
     public int write(ByteBuffer src) throws IOException {
         if (!isOpen()) {
             init();
+        }
+        if (outputStream == null) {
+            throw new IOException("outputStream has not been initialized properly");
         }
         return writeBuffer(outputStream, src);
     }
@@ -49,6 +52,7 @@ public class SimpleHttpAtsdWriter extends BaseHttpAtsdWriter {
             connection.setUseCaches(false);
 
             outputStream = connection.getOutputStream();
+
             AtsdUtil.logInfo("Connected to " + url);
         } catch (Throwable e) {
             AtsdUtil.logInfo("Could not write messages", e);
@@ -73,6 +77,11 @@ public class SimpleHttpAtsdWriter extends BaseHttpAtsdWriter {
             outputStream = null;
         }
         if (connection != null) {
+            int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Illegal response code: " + code);
+            }
+
             try {
                 connection.disconnect();
             } catch (Exception e) {
