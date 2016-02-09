@@ -56,7 +56,7 @@ public class LoggingWrapper implements WritableByteChannel {
     }
 
     public static WritableByteChannel tryWrap(String debug, WritableByteChannel writer) {
-        if (debug != null && ("1".equals(debug) || "true".equals(debug) || "TRUE".equals(debug))) {
+        if (debug != null && ("1".equals(debug) || "true".equalsIgnoreCase(debug))) {
             return new LoggingWrapper(writer);
         } else {
             return writer;
