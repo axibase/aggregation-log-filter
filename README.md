@@ -232,6 +232,29 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 
   - [View complete log4j.xml example.](src/test/resources/log4j-test.xml)
 
+## Log4j2 Configuration Example
+
+```xml
+    <Appenders>
+        <Console name="APPENDER">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
+            <Filters>
+                <Collector
+                        writer="tcp"
+                        writerHost="localhost"
+                        writerPort="8081"/>
+                        level="INFO"
+                        intervalSeconds="60"
+                        minIntervalSeconds="5"
+                        minIntervalThreshold="100"
+                        repeatCount="5"
+                        messages="WARN;ERROR=-1"
+                        />
+            </Filters>
+        </Console>
+        <Counter name="COUNTER"/>
+    </Appenders>
+```
 
 ## Log Counter Portal Example
 
