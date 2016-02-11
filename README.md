@@ -2,6 +2,8 @@
 
 The filter plugs into a logging framework and measures logging volume using incrementing counters. These counters are periodically sent to a storage backend, typically a time series database, to monitor and alert on error levels, both for the entire application as well as for individual loggers. The filter can also send a subset of log events to the database to facilitate root-cause analysis.
 
+The filter consists of the core library and adapters implemented for supported logging frameworks.
+
 ## Supported Logging Frameworks
 
 - [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
@@ -15,9 +17,9 @@ The filter plugs into a logging framework and measures logging volume using incr
 ## Configuration Examples
 
 - [Logback XML](#logback-xml-configuration-example)
-- [log4j v1 Properties](#log4j-v1-properties-example)
-- [log4j v1 XML](#log4j-v1-xml-example)
-- [log4j v2 XML](#log4j-v2-xml-example)
+- [log4j Properties](#log4j-properties-example)
+- [log4j XML](#log4j-xml-example)
+- [log4j2 XML](#log4j2-xml-example)
 
 ## Portal Examples
 
@@ -26,7 +28,7 @@ The filter plugs into a logging framework and measures logging volume using incr
 
 ## Installation
 
-### Option 1: Add Maven Dependency to your Application
+### Option 1: Add Maven Dependency to one of supported adapters (logback, log4j, log4j2) to your Application.
 
 ```xml
 <dependency>
@@ -36,7 +38,7 @@ The filter plugs into a logging framework and measures logging volume using incr
 </dependency>
 ```
 
-### Option 2: Add aggregation-log-filter core and bridge (logback, log4j v1/v2) to classpath
+### Option 2: Add aggregation-log-filter core and an adapter (logback, log4j, log4j2) libraries to classpath
 
 - Download aggregation-log-filter-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 - Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
@@ -55,7 +57,7 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation
                 <port>8081</port>
             </writer>
             <level>INFO</level>
-            <pattern>[%thread] %-5level %logger{36} - %msg [%X{user}]%n</pattern>
+            <pattern>%m %n</pattern>
             <sendMessage>
                 <level>WARN</level>
             </sendMessage>            
@@ -68,7 +70,7 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation
 
   - [View logback.xml example with RollingFileAppender.](src/test/resources/logback-atsd-example.xml)
 
-## Log4j v1 Properties Example 
+## Log4j Properties Example 
 
 ```properties
 log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
@@ -81,7 +83,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://database_hostname:8088/api/v1/commands/batch
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
 #log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
-#log4j.appender.APPENDER.filter.COLLECTOR.pattern=[%thread] %-5level %logger{36} - %msg [%X{user}]%n
+#log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m
 log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
 log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
 log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
@@ -91,16 +93,8 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ```
 
   - [View log4j.properties example.](src/test/resources/log4j-test.properties)
-  
-```java
-        MDC.put("user", session.getAttribute("username"));
-        log.info("delete document: " + documentId);
-        MDC.remove("user");
-```
-
-  - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
  
-## Log4j v1 XML Example
+## Log4j XML Example
 
 ```xml
     <appender name="APPENDER" class="org.apache.log4j.ConsoleAppender">
@@ -129,7 +123,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 
   - [View complete log4j.xml example.](src/test/resources/log4j-test.xml)
 
-## Log4j v2 XML Example
+## Log4j2 XML Example
 
 ```xml
     <Appenders>
@@ -149,6 +143,32 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
     </Appenders>
 ```
 
+## Adding MDC (mapped diagnostic contexts) Context Fields to Messages
+
+```java
+   MDC.put("job_name", job.getName());
+```
+
+```
+#include MDC context fields in message text with %X{key} placeholder
+#MDC.put("job_name", "snmp-prd-router");
+#%m [%X{job_name}] -> Job failed [snmp-prd-router]
+```
+
+### Log4j
+
+```
+   log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m [%X{job_name}]%n
+```
+
+### logback
+
+```xml
+ <pattern>%m [%X{job_name}]%n</pattern>
+```
+
+  - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
+
 ## Configuration Settings
 
 | Name | Required | Default | Description |
@@ -159,7 +179,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 | tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
 | sendSeries | yes | - | see `sendSeries` config |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
-| pattern | no | - | pattern to format logging events |
+| pattern | no | %m | pattern to format logging events sent to the database |
 
 ## writer
 
