@@ -143,16 +143,18 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
     </Appenders>
 ```
 
-## Adding MDC (mapped diagnostic contexts) Context Fields to Messages
+## Adding MDC Context Parameters to Messages
+
+### Java Example
 
 ```java
-   MDC.put("job_name", job.getName());
+   #MDC.put("job_name", job.getName());
+   MDC.put("job_name", "snmp-prd-router");
 ```
 
 ```
-#include MDC context fields in message text with %X{key} placeholder
-#MDC.put("job_name", "snmp-prd-router");
-#%m [%X{job_name}] -> Job failed [snmp-prd-router]
+%X{key} placeholder is replaced in message pattern based on MDC context parameters
+%m [%X{job_name}] is replaced to Job failed [snmp-prd-router]
 ```
 
 ### Log4j
@@ -161,7 +163,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
    log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m [%X{job_name}]%n
 ```
 
-### logback
+### Logback
 
 ```xml
  <pattern>%m [%X{job_name}]%n</pattern>
