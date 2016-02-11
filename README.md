@@ -2,11 +2,6 @@
 
 The filter plugs into a logging framework and measures logging volume using incrementing counters. These counters are periodically sent to a storage backend to monitor error levels, both for the entire application as well as for individual loggers. The filter can also persist a subset of log events in the database to facilitate root-cause analysis.
 
-## Examples
-
-- Standalone Java Application: https://apps.axibase.com/chartlab/2f607d1b/7
-- Distributed Application: https://apps.axibase.com/chartlab/007721aa
-
 ## Supported Logging Frameworks
 
 - [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
@@ -16,6 +11,18 @@ The filter plugs into a logging framework and measures logging volume using incr
 ## Supported Storage Backends
 
 - [Axibase Time-Series Database][atsd]
+
+## Configuration Examples
+
+- [Logback XML](#logback-xml-configuration-example)
+- [log4j v1 Properties](#log4j-v1-properties-example)
+- [log4j v1 XML](#log4j-v1-xml-example)
+- [log4j v2 XML](#log4j-v2-xml-example)
+
+## Portal Examples
+
+- Standalone Java Application: https://apps.axibase.com/chartlab/2f607d1b/7
+- Distributed Application: https://apps.axibase.com/chartlab/007721aa
 
 ## Installation
 
@@ -29,7 +36,7 @@ The filter plugs into a logging framework and measures logging volume using incr
 </dependency>
 ```
 
-### Option 2: Add aggregation-log-filter-logback to classpath
+### Option 2: Add aggregation-log-filter core and bridge (logback, log4j v1/v2) to classpath
 
 - Download aggregation-log-filter-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 - Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
@@ -39,7 +46,7 @@ The filter plugs into a logging framework and measures logging volume using incr
 java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation-log-filter-logback-1.0.3.jar Main
 ```
 
-## Logback Configuration 
+## Logback XML Configuration Example
 
 ```xml 
        <filter class="com.axibase.tsd.collector.logback.Collector">
@@ -60,7 +67,7 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation
         </filter>
 ```
 
-  - [View complete logback.xml example with RollingFileAppender.](src/test/resources/logback-atsd-example.xml)
+  - [View logback.xml example with RollingFileAppender.](src/test/resources/logback-atsd-example.xml)
 
 | Name | Required | Default | Description |
 |---|---|---|---|
@@ -110,8 +117,8 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a backen
 ```xml
 <writer class="com.axibase.tsd.collector.writer.HttpAtsdWriter">
     <url>http://atsd_server:8088/api/v1/commands/batch</url>
-    <username>axibase</username>
-    <password>*****</password>
+    <username>USERNAME</username>
+    <password>PASSWORD</password>
 </writer>
 ```
 
@@ -170,16 +177,16 @@ Configures which log events should be sent to the storage system.
 | sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | Determines how many events are sent within each interval, determined with resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
 | resetIntervalSeconds | no | 600 | Interval after which the event count is reset. |
 
-## Log4j Configuration
+## Log4j v1 Configuration
 
-### Properties example 
+### Log4j v1 Properties Example 
 
 ```properties
 log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
 log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
 log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
-log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
+log4j.appender.APPENDER.filter.COLLECTOR.writerHost=atsd_server
 log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 #log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
 #log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://atsd_server:8088/api/v1/commands/batch
@@ -194,7 +201,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=100
 log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ```
 
-  - [View complete log4j.properties example.](src/test/resources/log4j-test.properties)
+  - [View log4j.properties example.](src/test/resources/log4j-test.properties)
   
 ```java
         MDC.put("user", session.getAttribute("username"));
@@ -204,7 +211,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 
   - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
  
-### XML example
+### Log4j v1 XML Example
 
 ```xml
     <appender name="APPENDER" class="org.apache.log4j.ConsoleAppender">
@@ -213,7 +220,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
             <param name="writer" value="tcp"/>
-            <param name="writerHost" value="localhost"/>
+            <param name="writerHost" value="atsd_server"/>
             <param name="writerPort" value="8081"/>
             <!--
             <param name="writer" value="http"/>
@@ -233,7 +240,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 
   - [View complete log4j.xml example.](src/test/resources/log4j-test.xml)
 
-## Log4j2 Configuration Example
+## Log4j v2 XML Example
 
 ```xml
     <Appenders>
@@ -242,7 +249,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
             <Filters>
                 <Collector
                         writer="tcp"
-                        writerHost="localhost"
+                        writerHost="atsd_server"
                         writerPort="8081"
                         level="INFO"
                         intervalSeconds="60"
