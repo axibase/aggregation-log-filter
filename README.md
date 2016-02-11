@@ -38,7 +38,7 @@ The filter consists of the core library and adapters implemented for supported l
 </dependency>
 ```
 
-### Option 2: Add aggregation-log-filter core and an adapter (logback, log4j, log4j2) libraries to classpath
+### Option 2: Add both core and an adapter (logback, log4j, log4j2) libraries to classpath
 
 - Download aggregation-log-filter-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 - Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
