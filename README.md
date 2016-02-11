@@ -10,7 +10,8 @@ The filter plugs into a logging framework and measures logging volume using incr
 ## Supported Logging Frameworks
 
 - [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregatoin-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
-- [Log4j](http://logging.apache.org/log4j) 1.2.13-1.2.17 - [aggregatoin-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j). Note: Log4j 2.x is currently not supported.
+- [Log4j](http://logging.apache.org/log4j) 1.2.13-1.2.17 - [aggregatoin-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j). 
+- [Log4j2](http://logging.apache.org/log4j/2.0/) 2.5+ - [aggregatoin-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2). 
 
 ## Supported Storage Backends
 
@@ -242,7 +243,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
                 <Collector
                         writer="tcp"
                         writerHost="localhost"
-                        writerPort="8081"/>
+                        writerPort="8081"
                         level="INFO"
                         intervalSeconds="60"
                         minIntervalSeconds="5"
