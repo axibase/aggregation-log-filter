@@ -12,7 +12,7 @@ The filter consists of the core library and adapters implemented for supported l
 
 ## Supported Time Series Databases
 
-- [Axibase Time-Series Database][atsd]
+- [Axibase Time Series Database][atsd]
 
 ## Configuration Examples
 
@@ -68,7 +68,7 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation
         </filter>
 ```
 
-  - [View logback.xml example with RollingFileAppender.](src/test/resources/logback-atsd-example.xml)
+  - [View logback.xml example with RollingFileAppender.](/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml)
 
 ## Log4j Properties Example 
 
@@ -92,7 +92,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=100
 log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ```
 
-  - [View log4j.properties example.](src/test/resources/log4j-test.properties)
+  - [View log4j.properties example.](/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
  
 ## Log4j XML Example
 
@@ -121,7 +121,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
     </appender>
 ```
 
-  - [View complete log4j.xml example.](src/test/resources/log4j-test.xml)
+  - [View complete log4j.xml example.](/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml)
 
 ## Log4j2 XML Example
 
