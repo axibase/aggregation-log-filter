@@ -136,6 +136,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
                         writerPort="8081"
                         level="INFO"
                         messages="WARN;ERROR=-1"
+                        intervalSeconds="60"
                         />
             </Filters>
         </Console>
