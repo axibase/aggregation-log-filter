@@ -132,7 +132,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             try {
                 LogEvent event = wrapper.getEvent();
                 StringBuilder sb = new StringBuilder();
-                String message = wrapper.getMessage();
+                String message = event.getMessage().getFormattedMessage();
                 int lines = wrapper.getLines();
                 final ThrowableProxy tp = event.getThrownProxy();
                 if (lines > 0 && tp != null) {
