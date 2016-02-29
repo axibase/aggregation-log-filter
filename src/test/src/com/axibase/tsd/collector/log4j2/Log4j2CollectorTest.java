@@ -20,14 +20,7 @@ import com.axibase.tsd.collector.TestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.xml.XmlConfiguration;
 import org.junit.Test;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
 
 import static org.junit.Assert.*;
 
@@ -69,7 +62,10 @@ public class Log4j2CollectorTest {
             assertEquals(30, Log4j2CountAppender.getCount());
             // check message content
             assertTrue(result.contains("t:ttt=ttt t:ppp=ppp t:mmm=mmm"));
-            assertTrue(result.contains("test 0"));
+            assertTrue(result.contains("Log4j2CollectorTest - test 0 [TEST_KEY_0]\""));
+            assertFalse(result.contains("Log4j2CollectorTest - test 4"));
+            assertTrue(result.contains("Log4j2CollectorTest - test 5"));
+            assertTrue(result.contains("Log4j2CollectorTest - test 7"));
             assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("m:log_event_total_counter=0 t:level=INFO"));
             assertTrue(result.contains("m:log_event_total_counter=0 t:level=TRACE"));

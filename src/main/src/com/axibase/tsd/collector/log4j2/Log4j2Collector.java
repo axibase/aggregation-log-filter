@@ -74,6 +74,7 @@ public class Log4j2Collector extends AbstractFilter {
     private String debug;
     private String pattern;
     private final int DEFAULT_INTERVAL = 60;
+    private final String DEFAULT_PATTERN = "%m";
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -124,6 +125,8 @@ public class Log4j2Collector extends AbstractFilter {
         }
         if (pattern != null) {
             messageBuilder.setPattern(pattern);
+        } else {
+            messageBuilder.setPattern(DEFAULT_PATTERN);
         }
         for (Tag tag : tags) {
             messageBuilder.addTag(tag);
