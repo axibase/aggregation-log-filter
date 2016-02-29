@@ -73,6 +73,7 @@ public class Log4j2Collector extends AbstractFilter {
     private String totalCountInit;
     private String debug;
     private String pattern;
+    private final int DEFAULT_INTERVAL = 60;
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -178,7 +179,11 @@ public class Log4j2Collector extends AbstractFilter {
         collector.setWriterUrl(writerUrl);
         collector.setWriterUsername(writerUsername);
         collector.setWriterPassword(writerPassword);
-        collector.setIntervalSeconds(intervalSeconds);
+        if (intervalSeconds <=0){
+            collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
+        } else {
+            collector.setIntervalSeconds(intervalSeconds);
+        }
         if (minIntervalSeconds > 0) {
             collector.setMinIntervalSeconds(minIntervalSeconds);
         }
