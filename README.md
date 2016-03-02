@@ -251,7 +251,7 @@ Configures how often counter and rate statistics are sent to the storage system.
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
-| intervalSeconds | yes | 60 | Interval in seconds for sending collected log statistics |
+| intervalSeconds | no | 60 | Interval in seconds for sending collected log statistics |
 | minIntervalSeconds | no | 5 | Minimum interval between sending of statistics (seconds), in case `minIntervalThreshold` is triggered|
 | minIntervalThreshold | no | 0 | Initiates sending of statistics ahead of schedule if number of messages exceeds minIntervalThreshold |
 | repeatCount | no | 1 | Maximum number of repeat values for each counter to send |
