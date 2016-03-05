@@ -52,6 +52,22 @@ Add both core and an adapter libraries to classpath:
 java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation-log-filter-logback-1.0.3.jar Main
 ```
 
+## Troubleshooting
+
+Add `debug = true` parameter to display logger errors and commands.
+
+Logback: add to `<filter>`
+
+```xml 
+<debug>true</debug>
+```
+
+Log4j2: add to `<Collector>`
+
+```xml 
+debug="true"
+```
+
 ## Logback XML Configuration Example
 
 ```xml 
