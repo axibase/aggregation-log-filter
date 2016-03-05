@@ -56,15 +56,6 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation
                 <host>database_hostname</host>
                 <port>8081</port>
             </writer>
-            <level>INFO</level>
-            <pattern>%m %n</pattern>
-            <sendMessage>
-                <level>WARN</level>
-            </sendMessage>            
-            <sendMessage>
-                <level>ERROR</level>
-                <stackTraceLines>-1</stackTraceLines>
-            </sendMessage>
         </filter>
 ```
 
@@ -79,17 +70,6 @@ log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCo
 log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
 log4j.appender.APPENDER.filter.COLLECTOR.writerHost=database_hostname
 log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
-#log4j.appender.APPENDER.filter.COLLECTOR.writer=HTTP
-#log4j.appender.APPENDER.filter.COLLECTOR.writerUrl=http://database_hostname:8088/api/v1/commands/batch
-#log4j.appender.APPENDER.filter.COLLECTOR.writerUsername=USERNAME
-#log4j.appender.APPENDER.filter.COLLECTOR.writerPassword=PASSWORD
-#log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m%n
-log4j.appender.APPENDER.filter.COLLECTOR.level=INFO
-log4j.appender.APPENDER.filter.COLLECTOR.repeatCount=3
-log4j.appender.APPENDER.filter.COLLECTOR.intervalSeconds=60
-log4j.appender.APPENDER.filter.COLLECTOR.minIntervalSeconds=5
-log4j.appender.APPENDER.filter.COLLECTOR.minIntervalThreshold=100
-log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 ```
 
   - [View log4j.properties example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
@@ -105,18 +85,6 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
             <param name="writer" value="tcp"/>
             <param name="writerHost" value="database_hostname"/>
             <param name="writerPort" value="8081"/>
-            <!--
-            <param name="writer" value="http"/>
-            <param name="writerUrl" value="http://database_hostname:8088/api/v1/commands/batch"/>
-            <param name="writerUsername" value="USERNAME"/>
-            <param name="writerPassword" value="PASSWORD"/>
-            -->
-            <param name="level" value="INFO"/>
-            <param name="repeatCount" value="3"/>
-            <param name="intervalSeconds" value="60"/>
-            <param name="minIntervalSeconds" value="5"/>
-            <param name="minIntervalThreshold" value="100"/>
-            <param name="messages" value="WARN;ERROR=-1"/>
         </filter>
     </appender>
 ```
@@ -134,9 +102,6 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
                         writer="tcp"
                         writerHost="database_hostname"
                         writerPort="8081"
-                        level="INFO"
-                        messages="WARN;ERROR=-1"
-                        intervalSeconds="60"
                         />
             </Filters>
         </Console>
@@ -177,10 +142,10 @@ log4j.appender.APPENDER.filter.COLLECTOR.messages=WARN;ERROR=-1
 | Name | Required | Default | Description |
 |---|---|---|---|
 | writer | yes | - | see `writer` config |
-| level | no | TRACE | minimum level to process event |
+| level | no | INFO | minimum level to process events |
 | entity | no | current hostname | entity name for series and messages, for example application name or hostname |
 | tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
-| sendSeries | yes | - | see `sendSeries` config |
+| sendSeries | no | - | see `sendSeries` config |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
 | pattern | no | %m | pattern to format logging events sent to the database |
 
@@ -238,13 +203,9 @@ Configures how often counter and rate statistics are sent to the storage system.
 
 ```xml
 <sendSeries>
-    <!-- default: 60 -->
     <intervalSeconds>60</intervalSeconds>
-    <!-- 0+ default:1 -->
-    <repeatCount>5</repeatCount>    
-    <!-- default: 0 -->
+    <repeatCount>1</repeatCount>    
     <minIntervalThreshold>0</minIntervalThreshold>
-    <!-- default: 5 -->
     <minIntervalSeconds>5</minIntervalSeconds>
 </sendSeries>
 ```
