@@ -68,10 +68,30 @@ Log4j: add setting
 log4j.logger.com.axibase=DEBUG
 ```
 
-Log4j2: add under `<Collector>`
+Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuration`
 
 ```xml 
-debug="true"
+<Configuration status="DEBUG">
+    <Appenders>
+        <Console name="APPENDER">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
+            <Filters>
+                <Collector
+                        writer="tcp"
+                        writerHost="database_host"
+                        writerPort="8081"
+                        debug="true"
+                        />
+            </Filters>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.axibase"/>
+        <Root level="INFO">
+            <AppenderRef ref="APPENDER"/>
+        </Root>
+    </Loggers>
+</Configuration>
 ```
 
 ## Logback XML Configuration Example
@@ -120,19 +140,25 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 ## Log4j2 XML Example
 
 ```xml
+<Configuration>
     <Appenders>
         <Console name="APPENDER">
-            <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
             <Filters>
                 <Collector
                         writer="tcp"
-                        writerHost="database_hostname"
+                        writerHost="database_host"
                         writerPort="8081"
                         />
             </Filters>
         </Console>
-        <Counter name="COUNTER"/>
     </Appenders>
+    <Loggers>
+        <Logger name="com.axibase"/>
+        <Root level="INFO">
+            <AppenderRef ref="APPENDER"/>
+        </Root>
+    </Loggers>
+</Configuration>
 ```
 
 ## Adding MDC Context Parameters to Messages
