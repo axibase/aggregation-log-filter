@@ -7,7 +7,7 @@ The filter consists of the core library and adapters implemented for supported l
 ## Supported Logging Frameworks
 
 - [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
-- [Log4j](http://logging.apache.org/log4j) 1.2.13-1.2.17 - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j). 
+- [Log4j](http://logging.apache.org/log4j) 1.2.13+ - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j). 
 - [Log4j2](http://logging.apache.org/log4j/2.0/) 2.5+ - [aggregation-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2). 
 
 ## Supported Time Series Databases
@@ -24,11 +24,13 @@ The filter consists of the core library and adapters implemented for supported l
 ## Portal Examples
 
 - Standalone Java Application: https://apps.axibase.com/chartlab/2f607d1b/7
-- Distributed Application: https://apps.axibase.com/chartlab/007721aa
+- Distributed Java Application (multiple applications on different hosts): https://apps.axibase.com/chartlab/007721aa
 
 ## Installation
 
-### Option 1: Add Maven Dependency to one of supported adapters (logback, log4j, log4j2) to your Application.
+### Option 1: Maven
+
+Add Maven dependency to one of logging adapters used by your application (logback, log4j, log4j2). Dependency to aggregator core will be imported automatically:
 
 ```xml
 <dependency>
@@ -38,7 +40,9 @@ The filter consists of the core library and adapters implemented for supported l
 </dependency>
 ```
 
-### Option 2: Add both core and an adapter (logback, log4j, log4j2) libraries to classpath
+### Option 2: Classpath
+
+Add both core and an adapter libraries to classpath:
 
 - Download aggregation-log-filter-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 - Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
