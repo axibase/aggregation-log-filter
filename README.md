@@ -313,10 +313,10 @@ Configures which log events should be sent to the storage system.
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
-| level | no | WARN | Minimum trace level to which this configuration applies. For example, WARN applies to WARN, ERROR, and FATAL events. |
-| stackTraceLines | no | 0 | number of stacktrace lines that will be included in the message, -1 -- all lines |
-| sendMultiplier | no | ERROR: 2.0; WARN: 3.0; INFO: 5.0 | Determines how many events are sent within each interval, determined with resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
-| resetIntervalSeconds | no | 600 | Interval after which the event count is reset. |
+| level | no | WARN | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
+| stackTraceLines | no | 0; ERROR+: -1 | number of stacktrace lines that will be included in the message, -1 -- all lines |
+| sendMultiplier | no | INFO-: 5.0; WARN: 3.0; ERROR+: 2.0;   | Determines how many events are sent within each interval, determined by resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
+| resetIntervalSeconds | no | 600 | Interval after which event count is reset. |
 
 ## Log Counter Portal Example
 
