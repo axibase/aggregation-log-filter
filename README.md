@@ -280,20 +280,12 @@ Configures how often counter and rate statistics are sent to the storage system.
 ```xml
 <sendSeries>
     <intervalSeconds>60</intervalSeconds>
-    <repeatCount>1</repeatCount>    
-    <minIntervalThreshold>0</minIntervalThreshold>
-    <minIntervalSeconds>5</minIntervalSeconds>
 </sendSeries>
 ```
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
 | intervalSeconds | no | 60 | Interval in seconds for sending collected log statistics |
-| minIntervalSeconds | no | 5 | Minimum interval between sending of statistics (seconds), in case `minIntervalThreshold` is triggered|
-| minIntervalThreshold | no | 0 | Initiates sending of statistics ahead of schedule if number of messages exceeds minIntervalThreshold |
-| repeatCount | no | 1 | Maximum number of repeat values for each counter to send |
-| metricPrefix | no | log_event  | Metric name prefix  |
-| rateIntervalSeconds | no | 60 | Interval for rate calculation |
 
 ## sendMessage
 
@@ -307,7 +299,6 @@ Configures which log events should be sent to the storage system.
     <level>ERROR</level>
     <stackTraceLines>15</stackTraceLines>
     <sendMultiplier>3</sendMultiplier>
-    <resetIntervalSeconds>600</resetIntervalSeconds>
 </sendMessage>
 ```
 
@@ -316,7 +307,6 @@ Configures which log events should be sent to the storage system.
 | level | no | WARN | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
 | stackTraceLines | no | 0; ERROR+: -1 | number of stacktrace lines that will be included in the message, -1 -- all lines |
 | sendMultiplier | no | INFO-: 5.0; WARN: 3.0; ERROR+: 2.0;   | Determines how many events are sent within each interval, determined by resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
-| resetIntervalSeconds | no | 600 | Interval after which event count is reset. |
 
 ## Log Counter Portal Example
 
