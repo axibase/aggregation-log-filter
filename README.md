@@ -56,13 +56,19 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation
 
 Add `debug = true` parameter to display logger errors and commands.
 
-Logback: add to `<filter>`
+Logback: add under `<filter>`
 
 ```xml 
 <debug>true</debug>
 ```
 
-Log4j2: add to `<Collector>`
+Log4j: add setting
+
+```
+log4j.logger.com.axibase=DEBUG
+```
+
+Log4j2: add under `<Collector>`
 
 ```xml 
 debug="true"
