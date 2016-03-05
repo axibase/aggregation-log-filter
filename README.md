@@ -97,12 +97,36 @@ Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuratio
 ## Logback XML Configuration Example
 
 ```xml 
-       <filter class="com.axibase.tsd.collector.logback.Collector">
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>../logs/app.log</file>
+        <append>true</append>
+
+        <encoder>
+            <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
+        </encoder>
+
+        <filter class="com.axibase.tsd.collector.logback.Collector">
             <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
-                <host>database_hostname</host>
+                <host>database_host</host>
                 <port>8081</port>
             </writer>
         </filter>
+    </appender>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
 ```
 
   - [View logback.xml example with RollingFileAppender.](https://github.com/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml)
