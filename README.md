@@ -62,7 +62,7 @@ Logback: add under `<filter>`
 <debug>true</debug>
 ```
 
-Log4j: add setting
+Log4j: add JVM setting -Dlog4j.debug and add DEBUG setting to log4j.properties file
 
 ```
 log4j.logger.com.axibase=DEBUG
