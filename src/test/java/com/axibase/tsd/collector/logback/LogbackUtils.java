@@ -21,9 +21,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class LogbackUtils {
     public static LoggingEvent createLoggingEvent(Level level, String loggerName, String message, String threadName) {
         LoggingEvent le = new LoggingEvent();

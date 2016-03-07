@@ -22,9 +22,6 @@ import com.axibase.tsd.collector.EventProcessor;
 import com.axibase.tsd.collector.SimpleCounter;
 import com.axibase.tsd.collector.SyncEventCounter;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class LogbackEventProcessor<E extends ILoggingEvent>
         implements EventProcessor <E, String, Level> {
     @Override

@@ -33,9 +33,6 @@ import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class CollectorTest extends TestCase {
     private static final Logger log = LoggerFactory.getLogger(CollectorTest.class);
     private static final Logger tcpSendLog = LoggerFactory.getLogger("test.tcp.write");

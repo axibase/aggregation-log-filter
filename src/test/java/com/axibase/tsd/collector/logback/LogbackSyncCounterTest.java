@@ -23,9 +23,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class LogbackSyncCounterTest {
     @Test
     public void testUpdateAndCreateDiff() throws Exception {

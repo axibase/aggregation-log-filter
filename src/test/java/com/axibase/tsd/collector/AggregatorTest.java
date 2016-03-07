@@ -18,29 +18,22 @@ package com.axibase.tsd.collector;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import com.axibase.tsd.collector.Aggregator;import com.axibase.tsd.collector.CountedQueue;import com.axibase.tsd.collector.config.SeriesSenderConfig;
+import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.TotalCountInit;
 import com.axibase.tsd.collector.logback.*;
 import com.axibase.tsd.collector.writer.UdpAtsdWriter;
 import junit.framework.TestCase;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.Exception;import java.lang.InterruptedException;import java.lang.Override;import java.lang.Runnable;import java.lang.String;import java.lang.System;import java.lang.Thread;import java.lang.Throwable;import java.nio.ByteBuffer;
+import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;import java.util.concurrent.ConcurrentMap;import java.util.concurrent.CountDownLatch;import java.util.concurrent.ExecutorService;import java.util.concurrent.Executors;import java.util.concurrent.TimeUnit;import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
-
-/**
- * @author Nikolay Malevanny.
- */
 public class AggregatorTest extends TestCase {
     private MockWritableByteChannel mockWriter;
 

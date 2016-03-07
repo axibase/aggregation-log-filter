@@ -19,9 +19,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.axibase.tsd.collector.SendMessageTrigger;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E>{
     public static final Level DEFAULT_LEVEL = Level.WARN;
     private Level level = DEFAULT_LEVEL;

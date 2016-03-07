@@ -32,9 +32,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
     private LogbackMessageWriter<E> logbackMessageBuilder;
     private Aggregator<E, String,Level> aggregator;

@@ -32,9 +32,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class LogbackMessageWriter<E extends ILoggingEvent>
         extends ContextAwareBase
         implements MessageWriter<E, String, Level> {

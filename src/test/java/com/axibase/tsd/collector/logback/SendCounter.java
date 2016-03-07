@@ -19,9 +19,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class SendCounter implements WritableByteChannel {
     private volatile static long count;
 
