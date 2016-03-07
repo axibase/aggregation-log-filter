@@ -67,7 +67,7 @@ public class SeriesSenderConfig {
     }
 
     public void setMetricPrefix(String metricPrefix) {
-        this.metricPrefix = metricPrefix;
+//        this.metricPrefix = metricPrefix;
     }
 
     public void setRepeatCount(int repeatCount) {
