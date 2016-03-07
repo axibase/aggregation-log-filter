@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector.config;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Tag {
     private String name;
     private String value;

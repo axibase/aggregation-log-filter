@@ -18,9 +18,6 @@ package com.axibase.tsd.collector;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author Nikolay Malevanny.
- */
 public abstract class SendMessageTrigger<E> {
     public static final double ERROR_SKIP_MULTIPLIER = 2.0;
     public static final double WARN_SKIP_MULTIPLIER = 3.0;

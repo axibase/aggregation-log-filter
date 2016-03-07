@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector.config;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class TotalCountInit {
     private String level;
     private int value = -1;

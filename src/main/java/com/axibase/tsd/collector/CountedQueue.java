@@ -17,9 +17,6 @@ package com.axibase.tsd.collector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class CountedQueue<E> extends ConcurrentLinkedQueue<E> {
     private volatile int count;
 

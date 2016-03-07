@@ -22,9 +22,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 
-/**
- * @author Nikolay Malevanny.
- */
 public abstract class AbstractAtsdWriter implements WritableByteChannel {
     protected final SocketFactory socketFactory = SocketFactory.getDefault();
     protected final Charset charset= AtsdUtil.UTF_8;

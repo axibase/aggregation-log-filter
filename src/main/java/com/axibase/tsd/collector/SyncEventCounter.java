@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-/**
- * @author Nikolay Malevanny.
- */
 public interface SyncEventCounter<E, L> {
     EventCounter<L> updateAndCreateDiff(EventCounter<L> lastCount);
 

@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-/**
- * @author Nikolay Malevanny.
- */
 public interface EventProcessor<E, K, L> {
     SyncEventCounter<E, L> createSyncCounter();
 

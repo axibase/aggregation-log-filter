@@ -21,9 +21,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class LoggingWrapper implements WritableByteChannel {
     private final WritableByteChannel wrapped;
 

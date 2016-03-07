@@ -22,9 +22,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
     private SeriesSenderConfig seriesSenderConfig;

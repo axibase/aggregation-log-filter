@@ -18,9 +18,6 @@ package com.axibase.tsd.collector;
 import java.lang.Long;import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Nikolay Malevanny.
- */
 public interface EventCounter<L> {
     long updateAndGetDiff(L key, long cnt);
 

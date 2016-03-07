@@ -30,9 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Aggregator<E, K, L> {
     private final Worker worker = new Worker();
     private final ConcurrentMap<K, SyncEventCounter<E, L>> total =

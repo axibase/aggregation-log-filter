@@ -23,9 +23,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class HttpAtsdWriter extends BaseHttpAtsdWriter {
     private HttpURLConnection connection;
     private OutputStream outputStream;

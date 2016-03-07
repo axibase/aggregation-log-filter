@@ -18,9 +18,6 @@ package com.axibase.tsd.collector.config;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class SeriesSenderConfig {
     public static final int DEFAULT_CHECK_INTERVAL_MS = 333;
     public static final String DEFAULT_METRIC_PREFIX = "log_event";

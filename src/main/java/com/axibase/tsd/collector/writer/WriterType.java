@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector.writer;
 
-/**
- * @author Nikolay Malevanny.
- */
 public enum WriterType {
     UDP(UdpAtsdWriter.class),
     TCP(TcpAtsdWriter.class),

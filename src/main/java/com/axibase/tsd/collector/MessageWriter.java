@@ -20,9 +20,6 @@ import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
 public interface MessageWriter<E, K, L> {
     void writeStatMessages(WritableByteChannel writer, Map<K, EventCounter<L>> diff, long deltaTime) throws IOException;
 

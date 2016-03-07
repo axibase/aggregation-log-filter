@@ -19,9 +19,6 @@ import java.lang.Long;import java.lang.Override;import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class SimpleCounter<L> implements EventCounter<L> {
     private Map<L, Long> map = new HashMap<L, Long>();
 

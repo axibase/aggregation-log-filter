@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Counter {
     protected long value;
     protected int zeroRepeats;

@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-/**
- * @author Nikolay Malevanny.
- */
 public interface InternalLogger {
     void error(String message, Throwable exception);
     void error(String message);

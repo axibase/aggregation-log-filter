@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Key<L> {
     private final L level;
     private final String logger;

@@ -23,9 +23,6 @@ import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
-/**
- * @author Nikolay Malevanny.
- */
 public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     public static final String DEFAULT_METHOD = "POST";
     public static final String STREAM_FALSE_PARAM = "stream=false";

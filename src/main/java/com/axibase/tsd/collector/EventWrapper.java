@@ -15,9 +15,6 @@
 
 package com.axibase.tsd.collector;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class EventWrapper<E> {
     private final E event;
     private final int lines;
