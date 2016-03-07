@@ -21,9 +21,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4jUtils {
     public static LoggingEvent createLoggingEvent(Level level,
                                                   String loggerName,

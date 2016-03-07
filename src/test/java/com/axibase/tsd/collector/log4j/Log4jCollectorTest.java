@@ -25,9 +25,6 @@ import java.net.URL;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4jCollectorTest {
     private static final Logger log = Logger.getLogger(Log4jCollectorTest.class);
 

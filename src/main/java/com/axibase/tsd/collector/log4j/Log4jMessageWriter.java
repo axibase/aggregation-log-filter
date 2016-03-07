@@ -29,9 +29,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();

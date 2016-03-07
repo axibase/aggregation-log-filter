@@ -26,9 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * @author Nikolay Malevanny.
- */
 class Log4jSyncCounter implements SyncEventCounter<LoggingEvent, String> {
     private ConcurrentMap<String, AtomicLong> values = new ConcurrentHashMap<String, AtomicLong>();
 

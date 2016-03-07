@@ -35,9 +35,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4jCollector extends Filter {
     private Aggregator<LoggingEvent, String, String> aggregator;
     private final List<Log4jEventTrigger> triggers = new ArrayList<Log4jEventTrigger>();

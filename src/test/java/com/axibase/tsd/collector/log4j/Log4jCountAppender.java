@@ -20,9 +20,6 @@ import org.apache.log4j.spi.LoggingEvent;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4jCountAppender extends AppenderSkeleton {
     private static final AtomicInteger counter = new AtomicInteger();
 
