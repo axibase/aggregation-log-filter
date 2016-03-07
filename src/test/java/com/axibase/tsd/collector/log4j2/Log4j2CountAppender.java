@@ -28,9 +28,6 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * @author Nikolay Malevanny.
- */
 @Plugin(name = "Counter", category = "Core", elementType = "appender", printObject = false)
 public class Log4j2CountAppender extends AbstractAppender {
 

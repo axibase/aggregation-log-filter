@@ -19,9 +19,6 @@ import com.axibase.tsd.collector.SendMessageTrigger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4j2EventTrigger extends SendMessageTrigger<LogEvent> {
     public static final Level DEFAULT_LEVEL = Level.WARN;
     private Level level = DEFAULT_LEVEL;

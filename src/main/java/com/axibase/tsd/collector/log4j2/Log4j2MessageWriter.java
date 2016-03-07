@@ -30,9 +30,6 @@ import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();

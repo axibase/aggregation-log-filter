@@ -21,9 +21,6 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
 import org.apache.logging.log4j.message.SimpleMessage;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4j2Utils {
     public static LogEvent createLogEvent(Level level,
                                                   String loggerName,

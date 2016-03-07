@@ -38,9 +38,6 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Nikolay Malevanny.
- */
 @Plugin(name = "Collector", category = "Core", elementType = "filter", printObject = true)
 public class Log4j2Collector extends AbstractFilter {
     private Aggregator<LogEvent, String, String> aggregator;

@@ -21,9 +21,6 @@ import com.axibase.tsd.collector.SimpleCounter;
 import com.axibase.tsd.collector.SyncEventCounter;
 import org.apache.logging.log4j.core.LogEvent;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4j2EventProcessor
         implements EventProcessor <LogEvent, String, String> {
     @Override

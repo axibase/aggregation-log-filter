@@ -24,9 +24,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Nikolay Malevanny.
- */
 public class Log4j2CollectorTest {
     private static final Logger log = LogManager.getLogger(Log4j2CollectorTest.class);
 
