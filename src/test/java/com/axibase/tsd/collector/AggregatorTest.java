@@ -73,10 +73,10 @@ public class AggregatorTest extends TestCase {
         Thread.sleep(1001);
         System.out.println(timePrefix() + "+1000MS");
 
-        // 3 -- series fired by cnt
+        // 2 -- series fired by cnt
         // 1 -- warn message
-        // 3 -- series fired by time
-        assertEquals(7, mockWriter.cnt);
+        // 2 -- series fired by time
+        assertEquals(5, mockWriter.cnt);
     }
 
     @Ignore

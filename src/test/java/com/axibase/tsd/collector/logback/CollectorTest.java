@@ -57,9 +57,9 @@ public class CollectorTest extends TestCase {
         }
         Thread.sleep(700);
         assertEquals(30, CountAppender.getCount());
-        // 3 -- series
+        // 2 -- series
         // 1 -- message
-        assertEquals(4, SendCounter.getCount());
+        assertEquals(3, SendCounter.getCount());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class CollectorTest extends TestCase {
             assertFalse(result.contains("t:level=DEBUG"));
             // check series content
             assertTrue(result.contains("m:log_event_counter="));
-            assertTrue(result.contains("m:log_event_sum_rate="));
+//            assertTrue(result.contains("m:log_event_sum_rate="));
             assertTrue(result.contains("m:log_event_sum_counter="));
         } finally {
             tcpReceiver.stop();
@@ -141,7 +141,7 @@ public class CollectorTest extends TestCase {
             assertTrue(result.contains("t:level=WARN"));
             assertFalse(result.contains("t:level=DEBUG"));
             assertTrue(result.contains("m:log_event_counter"));
-            assertTrue(result.contains("m:log_event_total_rate"));
+//            assertTrue(result.contains("m:log_event_total_rate"));
             assertTrue(result.contains("m:log_event_total_counter"));
         } finally {
             udpReceiver.stop();
