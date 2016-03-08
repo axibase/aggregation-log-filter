@@ -151,7 +151,7 @@ public class MessageHelper {
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
                 .put(seriesTotalRatePrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
-        writer.write(byteBuffer);
+//        writer.write(byteBuffer);
     }
 
     public void writeMessage(WritableByteChannel writer,
