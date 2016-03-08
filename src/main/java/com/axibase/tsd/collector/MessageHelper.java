@@ -108,14 +108,15 @@ public class MessageHelper {
     }
 
     public void writeCounter(WritableByteChannel writer,
-                              long time,
-                              Key key,
-                              String levelString,
-                              long value) throws IOException {
+                             long time,
+                             Key key,
+                             String levelString,
+                             long value) throws IOException {
         StringBuilder sb = new StringBuilder().append(value);
         sb.append(" t:level=").append(levelString);
         sb.append(" t:logger=").append(AtsdUtil.sanitizeTagValue(key.getLogger()));
-        sb.append(" ms:").append(time).append("\n");
+//        sb.append(" ms:").append(time).append("\n");
+        sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesCounterPrefix.remaining() + bytes.length)
                 .put(seriesCounterPrefix.duplicate()).put(bytes);
@@ -124,12 +125,13 @@ public class MessageHelper {
     }
 
     public void writeTotalCounter(WritableByteChannel writer,
-                                   long time,
-                                   CounterWithSum counterWithSum,
-                                   String levelString) throws IOException {
+                                  long time,
+                                  CounterWithSum counterWithSum,
+                                  String levelString) throws IOException {
         StringBuilder sb = new StringBuilder().append(counterWithSum.getSum());
         sb.append(" t:level=").append(levelString);
-        sb.append(" ms:").append(time).append("\n");
+//        sb.append(" ms:").append(time).append("\n");
+        sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalCounterPrefix.remaining() + bytes.length)
                 .put(seriesTotalCounterPrefix.duplicate()).put(bytes);
@@ -138,12 +140,13 @@ public class MessageHelper {
     }
 
     public void writeTotalRate(WritableByteChannel writer,
-                                long time,
-                                double rate,
-                                String levelString) throws IOException {
+                               long time,
+                               double rate,
+                               String levelString) throws IOException {
         StringBuilder sb = new StringBuilder().append(rate);
         sb.append(" t:level=").append(levelString);
-        sb.append(" ms:").append(time).append("\n");
+//        sb.append(" ms:").append(time).append("\n");
+        sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
                 .put(seriesTotalRatePrefix.duplicate()).put(bytes);
@@ -152,15 +155,16 @@ public class MessageHelper {
     }
 
     public void writeMessage(WritableByteChannel writer,
-                              StringBuilder sb,
-                              String message,
-                              String levelValue,
-                              String loggerName) throws IOException {
+                             StringBuilder sb,
+                             String message,
+                             String levelValue,
+                             String loggerName) throws IOException {
         sb.append(AtsdUtil.sanitizeMessage(message));
         sb.append(" t:severity=").append(levelValue);
         sb.append(" t:level=").append(levelValue);
         sb.append(" t:source=").append(AtsdUtil.sanitizeTagValue(loggerName));
-        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
+//        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
+        sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(messagePrefix.remaining() + bytes.length)
                 .put(messagePrefix.duplicate()).put(bytes);
