@@ -62,7 +62,6 @@ public class Log4jCollector extends Filter {
     private Integer minIntervalSeconds;
     private Integer minIntervalThreshold;
     private Integer repeatCount;
-    private String metricPrefix;
     private Integer rateIntervalSeconds;
     private String totalCountInit;
     private String debug;
@@ -146,9 +145,6 @@ public class Log4jCollector extends Filter {
         }
         if (repeatCount != null) {
             seriesSenderConfig.setRepeatCount(repeatCount);
-        }
-        if (metricPrefix != null) {
-            seriesSenderConfig.setMetricPrefix(metricPrefix);
         }
         if (rateIntervalSeconds != null) {
             seriesSenderConfig.setRateIntervalSeconds(rateIntervalSeconds);
@@ -272,10 +268,6 @@ public class Log4jCollector extends Filter {
 
     public void setRepeatCount(int repeatCount) {
         this.repeatCount = repeatCount;
-    }
-
-    public void setMetricPrefix(String metricPrefix) {
-        this.metricPrefix = metricPrefix;
     }
 
     public void setMessages(String messages) {

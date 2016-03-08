@@ -24,7 +24,6 @@
             <param name="intervalSeconds" value="1"/>
             <param name="level" value="INFO"/>
             <param name="messages" value="ERROR;WARN=5,1.5,60"/>
-            <param name="metricPrefix" value="log_event"/>
             <param name="minIntervalSeconds" value="0"/>
             <param name="minIntervalThreshold" value="10"/>
             <param name="repeatCount" value="5"/>

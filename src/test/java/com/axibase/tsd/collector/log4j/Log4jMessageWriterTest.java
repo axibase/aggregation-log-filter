@@ -44,7 +44,7 @@ public class Log4jMessageWriterTest {
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
         assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
-                "t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level=ERROR t:logger=test-logger"));
+                "t:ttt1=vvv1 t:ttt2=vvv2 m:log_event_counter=100 t:level=ERROR t:logger=test-logger"));
     }
 
     @Test
@@ -64,13 +64,13 @@ public class Log4jMessageWriterTest {
             assertTrue(
                     result.contains("series e:test-entity"));
             assertTrue(
-                    result.contains("t:ttt1=vvv1 t:ttt2=vvv2 m:test-metric_counter=100 t:level="));
+                    result.contains("t:ttt1=vvv1 t:ttt2=vvv2 m:log_event_counter=100 t:level="));
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric_counter=100 "));
-            assertTrue(result.contains("m:test-metric_total_rate=100.0 "));
-            assertTrue(result.contains("m:test-metric_total_counter=100 "));
+            assertTrue(result.contains("m:log_event_counter=100 "));
+            assertTrue(result.contains("m:log_event_total_rate=100.0 "));
+            assertTrue(result.contains("m:log_event_total_counter=100 "));
         }
 
         {
@@ -83,12 +83,12 @@ public class Log4jMessageWriterTest {
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric_counter=100"));
-            assertTrue(result.contains("m:test-metric_counter=101"));
-            assertTrue(result.contains("m:test-metric_total_rate=0.0"));
-            assertTrue(result.contains("m:test-metric_total_rate=1.0"));
-            assertTrue(result.contains("m:test-metric_total_counter=100"));
-            assertTrue(result.contains("m:test-metric_total_counter=101"));
+            assertTrue(result.contains("m:log_event_counter=100"));
+            assertTrue(result.contains("m:log_event_counter=101"));
+            assertTrue(result.contains("m:log_event_total_rate=0.0"));
+            assertTrue(result.contains("m:log_event_total_rate=1.0"));
+            assertTrue(result.contains("m:log_event_total_counter=100"));
+            assertTrue(result.contains("m:log_event_total_counter=101"));
         }
         {
             catcher.clear();
@@ -99,10 +99,10 @@ public class Log4jMessageWriterTest {
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertTrue(result.contains("m:test-metric_counter=101"));
-            assertTrue(result.contains("m:test-metric_total_rate=0"));
-            assertTrue(result.contains("m:test-metric_total_counter=100"));
-            assertTrue(result.contains("m:test-metric_total_counter=101"));
+            assertTrue(result.contains("m:log_event_counter=101"));
+            assertTrue(result.contains("m:log_event_total_rate=0"));
+            assertTrue(result.contains("m:log_event_total_counter=100"));
+            assertTrue(result.contains("m:log_event_total_counter=101"));
         }
         {
             catcher.clear();
@@ -113,10 +113,10 @@ public class Log4jMessageWriterTest {
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-            assertFalse(result.contains("m:test-metric_rate=0"));
-            assertTrue(result.contains("m:test-metric_total_rate=0"));
-            assertTrue(result.contains("m:test-metric_total_counter=100"));
-            assertTrue(result.contains("m:test-metric_total_counter=101"));
+            assertFalse(result.contains("m:log_event_rate=0"));
+            assertTrue(result.contains("m:log_event_total_rate=0"));
+            assertTrue(result.contains("m:log_event_total_counter=100"));
+            assertTrue(result.contains("m:log_event_total_counter=101"));
         }
     }
 
@@ -157,7 +157,6 @@ public class Log4jMessageWriterTest {
         Log4jMessageWriter messageBuilder = new Log4jMessageWriter();
         messageBuilder.setEntity("test-entity");
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
-        seriesSenderConfig.setMetricPrefix("test-metric");
         messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         messageBuilder.addTag(new Tag("ttt1", "vvv1"));
         messageBuilder.addTag(new Tag("ttt2", "vvv2"));
