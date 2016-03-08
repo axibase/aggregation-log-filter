@@ -119,6 +119,9 @@ public class Aggregator<E, K, L> {
     }
 
     private void closeWriter() {
+
+        writeSingles();
+
         if (writer != null && writer.isOpen()) {
             AtsdUtil.logInfo("Close writer");
             try {
@@ -128,6 +131,16 @@ public class Aggregator<E, K, L> {
             }
         } else {
             AtsdUtil.logInfo("Writer has already been closed");
+        }
+    }
+
+    private void writeSingles() {
+        if (!singles.isEmpty()) {
+            try {
+                messageWriter.writeSingles(writer, singles);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -192,9 +205,7 @@ public class Aggregator<E, K, L> {
                 lastTotalCounter = total;
             }
 
-            if (!singles.isEmpty()) {
-                messageWriter.writeSingles(writer, singles);
-            }
+            writeSingles();
 
             if (writer instanceof HttpAtsdWriter) {
                 writer.close();
