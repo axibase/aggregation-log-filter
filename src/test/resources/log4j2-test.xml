@@ -24,7 +24,6 @@
                         intervalSeconds="1"
                         level="INFO"
                         messages="ERROR;WARN=5,1.5,60"
-                        metricPrefix="log_event"
                         minIntervalSeconds="5"
                         minIntervalThreshold="0"
                         repeatCount="5"

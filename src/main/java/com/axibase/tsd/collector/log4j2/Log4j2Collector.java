@@ -65,7 +65,6 @@ public class Log4j2Collector extends AbstractFilter {
     private Integer minIntervalSeconds;
     private Integer minIntervalThreshold;
     private Integer repeatCount;
-    private String metricPrefix;
     private Integer rateIntervalSeconds;
     private String totalCountInit;
     private String debug;
@@ -162,7 +161,6 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("minIntervalSeconds") final Integer minIntervalSeconds,
             @PluginAttribute("minIntervalThreshold") final Integer minIntervalThreshold,
             @PluginAttribute("repeatCount") final Integer repeatCount,
-            @PluginAttribute("metricPrefix") final String metricPrefix,
             @PluginAttribute("rateIntervalSeconds") final Integer rateIntervalSeconds,
             @PluginAttribute("totalCountInit") final String totalCountInit,
             @PluginAttribute("pattern") final String pattern,
@@ -189,7 +187,6 @@ public class Log4j2Collector extends AbstractFilter {
         }
         collector.setMinIntervalThreshold(minIntervalThreshold);
         collector.setRepeatCount(repeatCount);
-        collector.setMetricPrefix(metricPrefix);
         if (rateIntervalSeconds > 0) {
             collector.setRateIntervalSeconds(rateIntervalSeconds);
         }
@@ -217,9 +214,6 @@ public class Log4j2Collector extends AbstractFilter {
         }
         if (repeatCount != null) {
             seriesSenderConfig.setRepeatCount(repeatCount);
-        }
-        if (metricPrefix != null) {
-            seriesSenderConfig.setMetricPrefix(metricPrefix);
         }
         if (rateIntervalSeconds != null) {
             seriesSenderConfig.setRateIntervalSeconds(rateIntervalSeconds);
@@ -341,10 +335,6 @@ public class Log4j2Collector extends AbstractFilter {
         this.repeatCount = repeatCount;
     }
 
-    public void setMetricPrefix(String metricPrefix) {
-        this.metricPrefix = metricPrefix;
-    }
-
     public void setMessages(String messages) {
         if (messages == null) {
             return;
@@ -425,7 +415,6 @@ public class Log4j2Collector extends AbstractFilter {
                 ", minIntervalSeconds=" + minIntervalSeconds +
                 ", minIntervalThreshold=" + minIntervalThreshold +
                 ", repeatCount=" + repeatCount +
-                ", metricPrefix='" + metricPrefix + '\'' +
                 ", rateIntervalSeconds=" + rateIntervalSeconds +
                 ", totalCountInit='" + totalCountInit + '\'' +
                 ", debug='" + debug + '\'' +
