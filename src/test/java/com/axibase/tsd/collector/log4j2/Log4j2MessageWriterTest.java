@@ -43,7 +43,7 @@ public class Log4j2MessageWriterTest {
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
-        assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
+        assertTrue(result.substring(0, result.length()).contains(
                 "t:ttt1=vvv1 t:ttt2=vvv2 m:log_event_counter=100 t:level=ERROR t:logger=test-logger"));
     }
 
@@ -77,7 +77,7 @@ public class Log4j2MessageWriterTest {
             catcher.clear();
             events.clear();
             events.put("test-logger", createCounter(1, Level.ERROR.toString()));
-            messageBuilder.writeStatMessages(catcher, events, 60000 );
+            messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result1 = " + result);
             assertTrue(result.contains("ERROR"));
@@ -127,7 +127,7 @@ public class Log4j2MessageWriterTest {
         StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
-        assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
+        assertTrue(result.substring(0, result.length()).contains(
                 "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger "));
     }
 
