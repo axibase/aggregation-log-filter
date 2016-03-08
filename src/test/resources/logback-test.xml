@@ -61,8 +61,6 @@
             <sendSeries>
                 <!-- 0+ default:1 -->
                 <repeatCount>5</repeatCount>
-                <!-- default: log_event -->
-                <metricPrefix>log_event</metricPrefix>
                 <!-- default: _total -->
                 <totalSuffix>_sum</totalSuffix>
                 <!-- default: 60 -->
@@ -116,7 +114,6 @@
             <entity>localhost</entity>
             <sendSeries>
                 <repeatCount>5</repeatCount>
-                <metricPrefix>log_event</metricPrefix>
                 <intervalSeconds>30</intervalSeconds>
                 <minIntervalThreshold>10</minIntervalThreshold>
                 <minIntervalSeconds>0</minIntervalSeconds>
@@ -142,7 +139,6 @@
             <entity>localhost</entity>
             <sendSeries>
                 <repeatCount>5</repeatCount>
-                <metricPrefix>log_event</metricPrefix>
                 <intervalSeconds>30</intervalSeconds>
                 <minIntervalThreshold>1000</minIntervalThreshold>
                 <minIntervalSeconds>0</minIntervalSeconds>
