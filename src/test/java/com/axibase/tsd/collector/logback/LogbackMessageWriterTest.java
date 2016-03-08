@@ -44,7 +44,7 @@ public class LogbackMessageWriterTest {
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
-        assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
+        assertTrue(result.substring(0, result.length()).contains(
                 "t:ttt1=vvv1 t:ttt2=vvv2 m:log_event_counter=100 t:level=ERROR t:logger=test-logger"));
     }
 
@@ -129,8 +129,8 @@ public class LogbackMessageWriterTest {
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
-        assertTrue(result.substring(0, result.indexOf("ms:1")).contains(
-                "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger "));
+        assertTrue(result.substring(0, result.length()).contains(
+                "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger"));
     }
 
     @Test
