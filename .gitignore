@@ -4,3 +4,4 @@ deploy.config
 deploy.sh
 settings.xml
 local.*
+aggregation-log-filter-log4j2.iml
