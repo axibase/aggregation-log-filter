@@ -34,7 +34,7 @@ import java.util.List;
 
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
     private LogbackMessageWriter<E> logbackMessageBuilder;
-    private Aggregator<E, String,Level> aggregator;
+    private Aggregator<E, String, Level> aggregator;
     private Level level = Level.TRACE;
     private SeriesSenderConfig seriesSenderConfig;
     private String entity;
@@ -73,14 +73,19 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         for (Tag tag : tags) {
             logbackMessageBuilder.addTag(tag);
         }
-        aggregator = new Aggregator<E, String,Level>(logbackMessageBuilder, new LogbackEventProcessor<E>());
-        if (debug!=null) {
+        aggregator = new Aggregator<E, String, Level>(logbackMessageBuilder, new LogbackEventProcessor<E>());
+        if (debug != null) {
             writer = new LoggingWrapper(writer);
         }
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
         }
+
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.INFO));
+
         for (LogbackEventTrigger<E> trigger : triggers) {
             aggregator.addSendMessageTrigger(trigger);
         }
@@ -132,15 +137,15 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public void setWriter(WritableByteChannel writer) {
         this.writer = writer;
     }
-    
+
     public void setEntity(String entity) {
         this.entity = entity;
     }
 
     public void setSendMessage(LogbackEventTrigger<E> messageTrigger) {
-        if (messageTrigger.getEvery() > 0) {
+//        if (messageTrigger.getEvery() > 0) {
             triggers.add(messageTrigger);
-        }
+//        }
     }
 
     public void setSendSeries(SeriesSenderConfig seriesSenderConfig) {

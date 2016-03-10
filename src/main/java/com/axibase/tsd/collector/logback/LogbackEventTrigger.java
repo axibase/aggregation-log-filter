@@ -29,14 +29,24 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
         super();
     }
 
-    public LogbackEventTrigger(int every) {
+//    public LogbackEventTrigger(int every) {
+//        super();
+//        setEvery(every);
+//    }
+
+    public LogbackEventTrigger(Level level) {
         super();
-        setEvery(every);
+        this.level = level;
+    }
+
+    @Override
+    public int getIntLevel() {
+        return level.levelInt;
     }
 
     @Override
     public boolean onEvent(E event) {
-        return event != null && event.getLevel().isGreaterOrEqual(level) && super.onEvent(event);
+        return event != null && event.getLevel().levelInt == level.levelInt && super.onEvent(event);
     }
 
     @Override
@@ -59,6 +69,7 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
         if (!definedSendMultiplier) {
             if (level.levelInt >= Level.ERROR_INT) {
                 setSendMultiplier(ERROR_SKIP_MULTIPLIER);
+                setStackTraceLines(ERROR_STACK_TRACE_LINES);
             } else if (level.levelInt >= Level.WARN_INT) {
                 setSendMultiplier(WARN_SKIP_MULTIPLIER);
             } else {
