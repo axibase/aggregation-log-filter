@@ -21,7 +21,6 @@ import com.axibase.tsd.collector.writer.HttpAtsdWriter;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -153,9 +152,13 @@ public class Aggregator<E, K, L> {
         if (triggers == null) {
             triggers = new SendMessageTrigger[]{messageTrigger};
         } else {
-            int l = triggers.length;
-            triggers = Arrays.copyOf(triggers, l + 1);
-            triggers[l] = messageTrigger;
+            Map<Integer, SendMessageTrigger> triggerMap = new HashMap<Integer, SendMessageTrigger>();
+            for (SendMessageTrigger trigger : triggers) {
+                int intLevel = trigger.getIntLevel();
+                triggerMap.put(intLevel, trigger);
+            }
+            triggerMap.put(messageTrigger.getIntLevel(), messageTrigger);
+            triggers = triggerMap.values().toArray(new SendMessageTrigger[0]);
         }
     }
 
