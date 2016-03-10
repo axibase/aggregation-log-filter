@@ -125,6 +125,10 @@ public class Log4jCollector extends Filter {
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
         }
+
+        aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.ERROR));
+        aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.WARN));
+        aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.INFO));
         for (Log4jEventTrigger trigger : triggers) {
             aggregator.addSendMessageTrigger(trigger);
         }
@@ -288,12 +292,12 @@ public class Log4jCollector extends Filter {
                     if (vParts.length >= 2) {
                         trigger.setSendMultiplier(Double.parseDouble(vParts[1]));
                     }
-                    if (vParts.length >= 3) {
-                        trigger.setResetIntervalSeconds(Long.parseLong(vParts[2]));
-                    }
-                    if (vParts.length >= 4) {
-                        trigger.setEvery(Integer.parseInt(vParts[3]));
-                    }
+//                    if (vParts.length >= 3) {
+//                        trigger.setResetIntervalSeconds(Long.parseLong(vParts[2]));
+//                    }
+//                    if (vParts.length >= 4) {
+//                        trigger.setEvery(Integer.parseInt(vParts[3]));
+//                    }
                 }
                 trigger.init();
                 triggers.add(trigger);

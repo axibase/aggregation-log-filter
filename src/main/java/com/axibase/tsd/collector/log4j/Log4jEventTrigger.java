@@ -29,14 +29,20 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
         super();
     }
 
-    public Log4jEventTrigger(int every) {
+//    public Log4jEventTrigger(int every) {
+//        super();
+//        setEvery(every);
+//    }
+
+
+    public Log4jEventTrigger(Level level) {
         super();
-        setEvery(every);
+        this.level = level;
     }
 
     @Override
     public boolean onEvent(LoggingEvent event) {
-        return event != null && event.getLevel().isGreaterOrEqual(level) && super.onEvent(event);
+        return event != null && event.getLevel().toInt() == level.toInt() && super.onEvent(event);
     }
 
     @Override
@@ -59,11 +65,17 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
         if (!definedSendMultiplier) {
             if (level.isGreaterOrEqual(Level.ERROR)) {
                 setSendMultiplier(ERROR_SKIP_MULTIPLIER);
+                setStackTraceLines(ERROR_STACK_TRACE_LINES);
             } else if (level.isGreaterOrEqual(Level.WARN)) {
                 setSendMultiplier(WARN_SKIP_MULTIPLIER);
             } else {
                 setSendMultiplier(INFO_SKIP_MULTIPLIER);
             }
         }
+    }
+
+    @Override
+    public int getIntLevel() {
+        return level.toInt();
     }
 }
