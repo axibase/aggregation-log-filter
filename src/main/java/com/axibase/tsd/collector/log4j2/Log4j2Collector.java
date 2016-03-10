@@ -133,6 +133,9 @@ public class Log4j2Collector extends AbstractFilter {
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
         }
+        aggregator.addSendMessageTrigger(new Log4j2EventTrigger(Level.ERROR));
+        aggregator.addSendMessageTrigger(new Log4j2EventTrigger(Level.WARN));
+        aggregator.addSendMessageTrigger(new Log4j2EventTrigger(Level.INFO));
         for (Log4j2EventTrigger trigger : triggers) {
             aggregator.addSendMessageTrigger(trigger);
         }
@@ -353,12 +356,12 @@ public class Log4j2Collector extends AbstractFilter {
                     if (vParts.length >= 2) {
                         trigger.setSendMultiplier(Double.parseDouble(vParts[1]));
                     }
-                    if (vParts.length >= 3) {
-                        trigger.setResetIntervalSeconds(Long.parseLong(vParts[2]));
-                    }
-                    if (vParts.length >= 4) {
-                        trigger.setEvery(Integer.parseInt(vParts[3]));
-                    }
+//                    if (vParts.length >= 3) {
+//                        trigger.setResetIntervalSeconds(Long.parseLong(vParts[2]));
+//                    }
+//                    if (vParts.length >= 4) {
+//                        trigger.setEvery(Integer.parseInt(vParts[3]));
+//                    }
                 }
                 trigger.init();
                 triggers.add(trigger);
