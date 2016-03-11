@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.axibase</groupId>
     <artifactId>aggregation-log-filter-log4j</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <prerequisites>
@@ -89,12 +89,6 @@
             <version>${log4j.version}</version>
         </dependency>
         <!--Testing-->
-        <dependency>
-            <groupId>com.axibase</groupId>
-            <artifactId>aggregation-log-filter-test</artifactId>
-            <version>${aggregation.log.filter.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
