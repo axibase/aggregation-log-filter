@@ -21,27 +21,13 @@
             <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
-            <param name="intervalSeconds" value="1"/>
-            <param name="level" value="INFO"/>
-            <param name="messages" value="ERROR;WARN=5,1.5,60"/>
-            <param name="minIntervalSeconds" value="0"/>
-            <param name="minIntervalThreshold" value="10"/>
-            <param name="repeatCount" value="5"/>
-            <param name="tags" value="ttt=ttt;ppp=ppp;mmm=mmm"/>
-            <param name="totalCountInit" value="INFO=-1;ERROR=0;TRACE=0"/>
             <param name="pattern" value="%d [%t] %-5p %c - %m [%X{myKey}]%n"/>
             <param name="writer" value="tcp"/>
-            <param name="writerHost" value="localhost"/>
-            <param name="writerPort" value="35771"/>
+            <param name="writerHost" value="atsd_database"/>
+            <param name="writerPort" value="8081"/>
         </filter>
     </appender>
-    <appender name="COUNTER" class="com.axibase.tsd.collector.log4j.Log4jCountAppender"/>
-    <logger name="com.axibase">
-        <level value="DEBUG"/>
-    </logger>
     <root>
-        <level value="DEBUG"/>
         <appender-ref ref="APPENDER"/>
-        <appender-ref ref="COUNTER"/>
     </root>
 </log4j:configuration>
