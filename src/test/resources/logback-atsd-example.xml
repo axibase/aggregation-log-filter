@@ -36,18 +36,10 @@
         </encoder>    
 
         <filter class="com.axibase.tsd.collector.logback.Collector">
-            <writer class="com.axibase.tsd.collector.writer.HttpAtsdWriter">
-                <url>http://atsd_server:8088/api/v1/commands/batch</url>
-                <username>USERNAME</username>
-                <password>PASSWORD</password>
+            <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
+              <host>database_hostname</host>
+              <port>8081</port>
             </writer>
-            <sendMessage>
-                <level>WARN</level>
-            </sendMessage>            
-            <sendMessage>
-                <level>ERROR</level>
-                <stackTraceLines>-1</stackTraceLines>
-            </sendMessage>
         </filter>
 
     </appender>
