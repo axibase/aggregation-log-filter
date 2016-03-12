@@ -72,48 +72,6 @@ wget -O /opt/apache-activemq-5.9.1/lib/aggregation-log-filter-1.0.3.jar http://s
 wget -O /opt/apache-activemq-5.9.1/lib/aggregation-log-filter-log4j-1.0.3.jar http://search.maven.org/remotecontent?filepath=com/axibase/aggregation-log-filter-log4j/1.0.3/aggregation-log-filter-log4j-1.0.3.jar
 ```
 
-## Troubleshooting
-
-Add `debug = true` parameter to display logger errors and commands.
-
-Logback: add under `<filter>`
-
-```xml 
-<debug>true</debug>
-```
-
-Log4j: add JVM setting -Dlog4j.debug and add DEBUG setting to log4j.properties file
-
-```
-log4j.logger.com.axibase=DEBUG
-```
-
-Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuration`
-
-```xml 
-<Configuration status="DEBUG">
-    <Appenders>
-        <Console name="APPENDER">
-            <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
-            <Filters>
-                <Collector
-                        writer="tcp"
-                        writerHost="database_host"
-                        writerPort="8081"
-                        debug="true"
-                        />
-            </Filters>
-        </Console>
-    </Appenders>
-    <Loggers>
-        <Logger name="com.axibase"/>
-        <Root level="INFO">
-            <AppenderRef ref="APPENDER"/>
-        </Root>
-    </Loggers>
-</Configuration>
-```
-
 ## Logback XML Configuration Example
 
 ```xml 
@@ -327,3 +285,45 @@ Configures which log events should be sent to the storage system.
 ![Log Counter Portal](https://axibase.com/wp-content/uploads/2015/11/log_filter.png)
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
+
+## Troubleshooting
+
+Add `debug = true` parameter to display logger errors and commands.
+
+Logback: add under `<filter>`
+
+```xml 
+<debug>true</debug>
+```
+
+Log4j: add JVM setting -Dlog4j.debug and add DEBUG setting to log4j.properties file
+
+```
+log4j.logger.com.axibase=DEBUG
+```
+
+Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuration`
+
+```xml 
+<Configuration status="DEBUG">
+    <Appenders>
+        <Console name="APPENDER">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
+            <Filters>
+                <Collector
+                        writer="tcp"
+                        writerHost="database_host"
+                        writerPort="8081"
+                        debug="true"
+                        />
+            </Filters>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.axibase"/>
+        <Root level="INFO">
+            <AppenderRef ref="APPENDER"/>
+        </Root>
+    </Loggers>
+</Configuration>
+```
