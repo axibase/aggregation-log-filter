@@ -1,8 +1,21 @@
-# Aggregation Log Filter
+# Aggregation Logger
 
-The filter plugs into a logging framework and measures logging volume using incrementing counters. These counters are periodically sent to a storage backend, typically a time series database, to monitor and alert on error levels, both for the entire application as well as for individual loggers. The filter can also send a subset of log events to the database to facilitate root-cause analysis.
+Implemented as a filter, the aggregation logger counts log events raised by the application as well as by individual loggers with break-down by level: TRACE, DEBUG, INFO, WARN, and ERROR. The counters are periodically persisted to a time series database for monitoring and alerting on abnormal error levels.
 
-The filter consists of the core library and adapters implemented for supported logging frameworks.
+The following metrics are collected:
+
+- log_event_total_counter
+- log_event_counter
+
+The logger also sends a small subset of log events to the database for root-cause analysis. The index of events sent within each 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
+
+```
+- INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
+- WARN.  Multiplier 3. Events sent: 1, 3, 9, 27 ...   3^(n-1)
+- ERROR. Multiplier 2. Events sent: 1, 2, 4, 8 ...    2^(n-1)
+```
+
+The logger consists of the core library and adapters for supported logging frameworks.
 
 ## Supported Logging Frameworks
 
@@ -24,7 +37,7 @@ The filter consists of the core library and adapters implemented for supported l
 ## Portal Examples
 
 - Standalone Java Application: https://apps.axibase.com/chartlab/2f607d1b/7
-- Distributed Java Application (multiple applications on different hosts): https://apps.axibase.com/chartlab/007721aa
+- Distributed Java Application: https://apps.axibase.com/chartlab/007721aa. Multiple Java applications on the same or different hosts.
 
 ## Installation
 
@@ -50,6 +63,13 @@ Add both core and an adapter libraries to classpath:
 
 ```
 java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation-log-filter-logback-1.0.3.jar Main
+```
+
+Apache MQ example:
+
+```
+wget -O /opt/apache-activemq-5.9.1/lib/aggregation-log-filter-1.0.3.jar http://search.maven.org/remotecontent?filepath=com/axibase/aggregation-log-filter/1.0.3/aggregation-log-filter-1.0.3.jar
+wget -O /opt/apache-activemq-5.9.1/lib/aggregation-log-filter-log4j-1.0.3.jar http://search.maven.org/remotecontent?filepath=com/axibase/aggregation-log-filter-log4j/1.0.3/aggregation-log-filter-log4j-1.0.3.jar
 ```
 
 ## Troubleshooting
@@ -134,8 +154,6 @@ Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuratio
 ## Log4j Properties Example 
 
 ```properties
-log4j.appender.APPENDER.layout=org.apache.log4j.PatternLayout
-log4j.appender.APPENDER.layout.ConversionPattern=%d [%t] %-5p %c - %m%n
 log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
 log4j.appender.APPENDER.filter.COLLECTOR.writerHost=database_hostname
@@ -168,11 +186,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
     <Appenders>
         <Console name="APPENDER">
             <Filters>
-                <Collector
-                        writer="tcp"
-                        writerHost="database_host"
-                        writerPort="8081"
-                        />
+                <Collector writer="tcp" writerHost="database_host" writerPort="8081" />
             </Filters>
         </Console>
     </Appenders>
@@ -241,7 +255,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 | Name | Required | Default | Description |
 |---|---|---|---| 
 | host | yes | - | database hostname or IP address, string |
-| port | yes | - | database TCP port, integer |
+| port | no | 8081 | database TCP port, integer |
 
 ### UDP writer
 
@@ -255,7 +269,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 | Name | Required | Default | Description |
 |---|---|---|---|
 | host | yes | - | database hostname or IP address, string |
-| port | yes | - | database UDP port, integer |
+| port | no | 8082 | database UDP port, integer |
 
 ### HTTP writer
 
@@ -275,7 +289,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 
 ## sendSeries
 
-Configures how often counter and rate statistics are sent to the storage system.
+Configures how often counter statistics are sent to the database.
 
 ```xml
 <sendSeries>
@@ -305,8 +319,8 @@ Configures which log events should be sent to the storage system.
 | Name | Required | Default Value | Description |
 |---|---|---|---|
 | level | no | WARN | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
-| stackTraceLines | no | 0; ERROR+: -1 | number of stacktrace lines that will be included in the message, -1 -- all lines |
-| sendMultiplier | no | INFO-: 5.0; WARN: 3.0; ERROR+: 2.0;   | Determines how many events are sent within each interval, determined by resetIntervalSeconds; sendMultiplier = 2 : send events 1, 2, 4, 8, 16, … ; sendMultiplier = 3 : send events 1, 3, 9, 27, 81, …; sendMultiplier = M : send events 1, M, M*M,…,M^n,… |
+| stackTraceLines | no | 0; ERROR: -1 | number of stacktrace lines included in the message, -1 -- all lines |
+| sendMultiplier | no | INFO-: 5; WARN: 3; ERROR: 2   | Determines index of events sent each period (10 minutes) determined as sendMultiplier^(n-1). |
 
 ## Log Counter Portal Example
 
