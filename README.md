@@ -17,6 +17,10 @@ The logger also sends a small subset of log events to the database for root-caus
 
 The logger consists of the core library and adapters for supported logging frameworks.
 
+## Requirements
+
+- Java 1.7 and later
+
 ## Supported Logging Frameworks
 
 - [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
