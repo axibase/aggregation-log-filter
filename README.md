@@ -47,13 +47,13 @@ The logger consists of the core library and adapters for supported logging frame
 
 ### Option 1: Maven
 
-Add Maven dependency to one of logging adapters used by your application (logback, log4j, log4j2). Dependency to aggregator core will be imported automatically:
+Add Maven dependency to one of supported logging adapters (logback, log4j, log4j2). Dependency to aggregator core will be imported automatically:
 
 ```xml
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-logback</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
 </dependency>
 ```
 
@@ -61,19 +61,19 @@ Add Maven dependency to one of logging adapters used by your application (logbac
 
 Add both core and an adapter libraries to classpath:
 
-- Download aggregation-log-filter-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Download aggregation-log-filter-logback-1.0.3.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-- Copy aggregation-log-filter-1.0.3.jar and aggregation-log-filter-logback-1.0.3.jar files to lib directory. Make sure your launch script adds all jar files in lib directory, alternatively add its absolute path to classpath manually, for example:
+- Download aggregation-log-filter-1.0.4.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Download aggregation-log-filter-logback-1.0.4.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+- Copy aggregation-log-filter-1.0.4.jar and aggregation-log-filter-logback-1.0.4.jar files to lib directory. Make sure your launch script adds all jar files in the lib directory, alternatively add these jars to classpath manually, for example:
 
 ```
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.3.jar:lib/aggregation-log-filter-logback-1.0.3.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.4.jar:lib/aggregation-log-filter-logback-1.0.4.jar Main
 ```
 
 Apache MQ example:
 
 ```
-wget -O /opt/apache-activemq-5.9.1/lib/aggregation-log-filter-1.0.3.jar http://search.maven.org/remotecontent?filepath=com/axibase/aggregation-log-filter/1.0.3/aggregation-log-filter-1.0.3.jar
-wget -O /opt/apache-activemq-5.9.1/lib/aggregation-log-filter-log4j-1.0.3.jar http://search.maven.org/remotecontent?filepath=com/axibase/aggregation-log-filter-log4j/1.0.3/aggregation-log-filter-log4j-1.0.3.jar
+wget --content-disposition "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
+wget --content-disposition "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
 ```
 
 ## Logback XML Configuration Example
