@@ -72,8 +72,8 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.4.jar:lib/aggregation
 Apache MQ example:
 
 ```
-wget --content-disposition "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
-wget --content-disposition "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
+wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
+wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
 ```
 
 ## Logback XML Configuration Example
