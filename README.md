@@ -57,19 +57,19 @@ Add Maven dependency to one of supported logging adapters (logback, log4j, log4j
 </dependency>
 ```
 
-### Option 2: Classpath
+### Option 2: Classpath/Lib
 
-Add both core and an adapter libraries to classpath:
+Add core and adapter libraries to classpath:
 
-- Download aggregation-log-filter-1.0.4.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Download aggregation-log-filter-logback-1.0.4.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-- Copy aggregation-log-filter-1.0.4.jar and aggregation-log-filter-logback-1.0.4.jar files to lib directory. Make sure your launch script adds all jar files in the lib directory, alternatively add these jars to classpath manually, for example:
+- Download aggregation-log-filter-1.0.x.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Download aggregation-log-filter-logback-1.0.x.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+- Copy aggregation-log-filter-1.0.x.jar and aggregation-log-filter-logback-1.0.x.jar files to lib directory. Make sure your launch script adds all jar files in the lib directory, alternatively add these jars to classpath manually, for example:
 
 ```
 java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.4.jar:lib/aggregation-log-filter-logback-1.0.4.jar Main
 ```
 
-Apache MQ example:
+Apache ActiveMQ example:
 
 ```
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
