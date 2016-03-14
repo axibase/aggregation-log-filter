@@ -29,7 +29,8 @@ public class Log4jCollectorTest {
     private static final Logger log = Logger.getLogger(Log4jCollectorTest.class);
 
     static {
-        final URL url = ClassLoader.getSystemClassLoader().getResource("./log4j-test.xml");
+        final URL url = ClassLoader.getSystemClassLoader().getResource("./test.xml");
+//        final URL url = ClassLoader.getSystemClassLoader().getResource("./log4j-test.xml");
         DOMConfigurator.configure(url);
 //        final URL url = ClassLoader.getSystemClassLoader().getResource("./log4j-test.properties");
 //        PropertyConfigurator.configure(url);

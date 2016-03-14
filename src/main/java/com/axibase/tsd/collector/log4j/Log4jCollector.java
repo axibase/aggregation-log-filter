@@ -21,10 +21,7 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.config.TotalCountInit;
-import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
-import com.axibase.tsd.collector.writer.HttpAtsdWriter;
-import com.axibase.tsd.collector.writer.LoggingWrapper;
-import com.axibase.tsd.collector.writer.WriterType;
+import com.axibase.tsd.collector.writer.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.Filter;
@@ -174,6 +171,12 @@ public class Log4jCollector extends Filter {
     }
 
     private void initWriter() {
+        if (writer == null) {
+            writer = new TcpAtsdWriter();
+        }
+        if (writerPort == 0) {
+            writerPort = 8081;
+        }
         if (writer instanceof AbstractAtsdWriter) {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
             checkWriterProperty(writerHost == null, "writerHost", writerHost);
@@ -206,6 +209,12 @@ public class Log4jCollector extends Filter {
         try {
             final WriterType writerType = WriterType.valueOf(writerTypeName.toUpperCase());
             this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+            if (writerPort == 0) {
+                writerTypeName = writerTypeName.toLowerCase();
+                if (writerTypeName.equals("tcp")) writerPort = 8081;
+                if (writerTypeName.equals("udp")) writerPort = 8082;
+                if (writerTypeName.equals("http")) writerPort = 8088;
+            }
         } catch (Exception e) {
             final String msg = "Could not create writer instance by type: " + writerTypeName + ", "
                     + e.getMessage();
