@@ -21,10 +21,7 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.config.TotalCountInit;
-import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
-import com.axibase.tsd.collector.writer.HttpAtsdWriter;
-import com.axibase.tsd.collector.writer.LoggingWrapper;
-import com.axibase.tsd.collector.writer.WriterType;
+import com.axibase.tsd.collector.writer.*;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
@@ -174,13 +171,21 @@ public class Log4j2Collector extends AbstractFilter {
         collector.setTags(tags);
         collector.setMessages(messages);
         collector.setLevel(minLevel);
-        collector.setWriter(writer);
+        if (writer == null) {
+            collector.setWriter("tcp");
+        } else {
+            collector.setWriter(writer);
+        }
         collector.setWriterHost(writerHost);
-        collector.setWriterPort(writerPort);
+        if (writerPort == 0) {
+            collector.setWriterPort(8081);
+        } else {
+            collector.setWriterPort(writerPort);
+        }
         collector.setWriterUrl(writerUrl);
         collector.setWriterUsername(writerUsername);
         collector.setWriterPassword(writerPassword);
-        if (intervalSeconds <=0){
+        if (intervalSeconds <= 0) {
             collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
         } else {
             collector.setIntervalSeconds(intervalSeconds);
@@ -274,6 +279,12 @@ public class Log4j2Collector extends AbstractFilter {
         try {
             final WriterType writerType = WriterType.valueOf(writerTypeName.toUpperCase());
             this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+            if (writerPort == 0) {
+                writerTypeName = writerTypeName.toLowerCase();
+                if (writerTypeName.equals("tcp")) writerPort = 8081;
+                if (writerTypeName.equals("udp")) writerPort = 8082;
+                if (writerTypeName.equals("http")) writerPort = 8088;
+            }
         } catch (Exception e) {
             final String msg = "Could not create writer instance by type: " + writerTypeName + ", "
                     + e.getMessage();
