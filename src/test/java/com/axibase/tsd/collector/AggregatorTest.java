@@ -58,7 +58,7 @@ public class AggregatorTest extends TestCase {
         Aggregator aggregator = new Aggregator(messageWriter, new LogbackEventProcessor());
         aggregator.setWriter(mockWriter);
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger(7));
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger());
         aggregator.start();
         LoggingEvent event = LogbackUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
         System.out.println(timePrefix() + "START");
@@ -73,10 +73,10 @@ public class AggregatorTest extends TestCase {
         Thread.sleep(1001);
         System.out.println(timePrefix() + "+1000MS");
 
-        // 2 -- series fired by cnt
-        // 1 -- warn message
-        // 2 -- series fired by time
-        assertEquals(5, mockWriter.cnt);
+        // 2 -- series fired by cnt (counter and total counter)
+        // 3 -- warn message because of default warning multiplier is 3, i.e we got 1,3,9 messages
+        // 2 -- series fired by time (counter and total counter)
+        assertEquals(7, mockWriter.cnt);
     }
 
     @Ignore
@@ -99,7 +99,7 @@ public class AggregatorTest extends TestCase {
         writer.setPort(55555);
         aggregator.setWriter(writer);
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger(1));
+        aggregator.addSendMessageTrigger(new LogbackEventTrigger());
         aggregator.start();
 
         final LoggingEvent event = LogbackUtils.createLoggingEvent(Level.WARN, "logger", "test-msg", "test-thread");
@@ -228,7 +228,7 @@ public class AggregatorTest extends TestCase {
             if (count == null) {
                 count = new AtomicLong(0);
                 AtomicLong old = data.putIfAbsent(loggerName, count);
-                count = old == null?count:old;
+                count = old == null ? count : old;
             }
             count.incrementAndGet();
         }

@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.axibase</groupId>
     <artifactId>aggregation-log-filter-logback</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <prerequisites>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-test</artifactId>
-            <version>${aggregation.log.filter.version}</version>
+            <version>1.0.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>

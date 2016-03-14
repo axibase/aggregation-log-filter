@@ -25,7 +25,7 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.writer.LoggingWrapper;
+import com.axibase.tsd.collector.writer.*;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -41,6 +41,12 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
     private final List<Tag> tags = new ArrayList<Tag>();
     private WritableByteChannel writer;
+    private String writerType;
+    private String host;
+    private int port;
+    private String url;
+    private String username;
+    private String password;
     private String debug;
     private String pattern;
 
@@ -77,6 +83,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         if (debug != null) {
             writer = new LoggingWrapper(writer);
         }
+        initWriter();
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
@@ -91,6 +98,41 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         aggregator.start();
         logbackMessageBuilder.start();
+    }
+
+    private void initWriter() {
+        if (writer == null) {
+            if (writerType == null) {
+                writerType = "tcp";
+            }
+            final WriterType w = WriterType.valueOf(writerType.toUpperCase());
+            try {
+                this.writer = (WritableByteChannel) w.getWriterClass().newInstance();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            if (port == 0) {
+                if (writerType.equals("tcp")) port = 8081;
+                if (writerType.equals("udp")) port = 8082;
+                if (writerType.equals("http")) port = 8088;
+            }
+            if (writer instanceof AbstractAtsdWriter) {
+                final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
+                atsdWriter.setHost(host);
+                atsdWriter.setPort(port);
+            } else if (writer instanceof HttpAtsdWriter) {
+                final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
+                simpleHttpAtsdWriter.setUrl(url);
+                simpleHttpAtsdWriter.setUsername(username);
+                simpleHttpAtsdWriter.setPassword(password);
+                writer = simpleHttpAtsdWriter;
+            } else {
+                final String msg = "Undefined writer for Collector: " + writer;
+                throw new IllegalStateException(msg);
+            }
+        }
     }
 
     @Override
@@ -138,13 +180,37 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.writer = writer;
     }
 
+    public void setWriterType(String writerTypeName) {
+        writerType = writerTypeName;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public void setEntity(String entity) {
         this.entity = entity;
     }
 
     public void setSendMessage(LogbackEventTrigger<E> messageTrigger) {
 //        if (messageTrigger.getEvery() > 0) {
-            triggers.add(messageTrigger);
+        triggers.add(messageTrigger);
 //        }
     }
 
@@ -159,4 +225,5 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }
+
 }
