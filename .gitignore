@@ -1,6 +1,7 @@
 .idea
 target
 deploy.config
+deploy.sh
 settings.xml
 local.*
 aggregation-log-filter-logback.iml
