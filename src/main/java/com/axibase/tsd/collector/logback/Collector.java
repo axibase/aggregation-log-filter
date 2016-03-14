@@ -80,10 +80,10 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             logbackMessageBuilder.addTag(tag);
         }
         aggregator = new Aggregator<E, String, Level>(logbackMessageBuilder, new LogbackEventProcessor<E>());
+        initWriter();
         if (debug != null) {
             writer = new LoggingWrapper(writer);
         }
-        initWriter();
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
