@@ -110,6 +110,9 @@
                 <host>localhost</host>
                 <port>35793</port>
             </writer>
+            <writerType>udp</writerType>
+            <host>localhost</host>
+            <port>35793</port>
             <level>WARN</level>
             <entity>localhost</entity>
             <sendSeries>
@@ -135,6 +138,10 @@
                 <username>axibase</username>
                 <password>11111</password>
             </writer>
+            <writerType>http</writerType>
+            <url>http://localhost:8088/api/v1/commands/batch</url>
+            <username>axibase</username>
+            <password>11111</password>
             <level>WARN</level>
             <entity>localhost</entity>
             <sendSeries>
