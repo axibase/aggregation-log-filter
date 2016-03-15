@@ -57,17 +57,21 @@ Add Maven dependency to one of supported logging adapters (logback, log4j, log4j
 </dependency>
 ```
 
-### Option 2: Classpath/Lib
+### Option 2: Classpath
 
 Add core and adapter libraries to classpath:
 
 - Download aggregation-log-filter-1.0.x.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 - Download aggregation-log-filter-logback-1.0.x.jar from [Maven Central](http://search.maven.org/#search|gav|1|g%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-- Copy aggregation-log-filter-1.0.x.jar and aggregation-log-filter-logback-1.0.x.jar files to lib directory. Make sure your launch script adds all jar files in the lib directory, alternatively add these jars to classpath manually, for example:
+- Adds jar files to classpath
 
 ```
 java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.4.jar:lib/aggregation-log-filter-logback-1.0.4.jar Main
 ```
+
+### Option 3: lib directory 
+
+Cope core and adapter libraries to application lib directory.
 
 Apache ActiveMQ example:
 
