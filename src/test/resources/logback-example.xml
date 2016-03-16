@@ -22,20 +22,11 @@
                 <password>*****</password>
             </writer>
 
-            <!--
-            <level>TRACE</level>
-            -->
-
             <sendSeries>
                 <repeatCount>1</repeatCount>
                 <intervalSeconds>60</intervalSeconds>
                 <minIntervalThreshold>1000</minIntervalThreshold>
                 <minIntervalSeconds>5</minIntervalSeconds>
-                <!--
-                <totalCountInit>
-                    <level>INFO</level>
-                </totalCountInit>
-                -->
                 <totalCountInit>
                     <level>ERROR</level>
                     <value>0</value>
@@ -46,25 +37,13 @@
                 <level>ERROR</level>
                 <stackTraceLines>-1</stackTraceLines>
                 <sendMultiplier>2</sendMultiplier>
-                <resetIntervalSeconds>600</resetIntervalSeconds>
             </sendMessage>
 
             <sendMessage>
                 <level>WARN</level>
                 <stackTraceLines>0</stackTraceLines>
                 <sendMultiplier>3</sendMultiplier>
-                <resetIntervalSeconds>600</resetIntervalSeconds>
             </sendMessage>
-
-            <!--
-            <sendMessage>
-                <level>TRACE</level>
-                <stackTraceLines>0</stackTraceLines>
-                <sendMultiplier>5</sendMultiplier>
-                <resetIntervalSeconds>3600</resetIntervalSeconds>
-            </sendMessage>
-            -->
-
         </filter>
         <encoder>
             <pattern>%date{ISO8601} %level %thread %logger{35} - %msg %n</pattern>
