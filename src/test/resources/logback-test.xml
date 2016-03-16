@@ -40,9 +40,6 @@
                     <level>ERROR</level>
                 </totalCountInit>
             </sendSeries>
-            <sendMessage>
-                <every>7</every>
-            </sendMessage>
         </filter>
     </appender>
 
@@ -90,8 +87,6 @@
                 <stackTraceLines>5</stackTraceLines>
                 <!-- default, ERROR:2 WARN:3 INFO:5 -->
                 <sendMultiplier>1.5</sendMultiplier>
-                <!-- default: 600 -->
-                <resetIntervalSeconds>60</resetIntervalSeconds>
             </sendMessage>
             <tag>
                 <name>ttt1</name>
@@ -123,7 +118,6 @@
             </sendSeries>
             <sendMessage>
                 <level>WARN</level>
-                <every>7</every>
                 <stackTraceLines>55</stackTraceLines>
                 <sendMultiplier>1.0</sendMultiplier>
             </sendMessage>
@@ -152,7 +146,6 @@
             </sendSeries>
             <sendMessage>
                 <level>WARN</level>
-                <every>10</every>
                 <stackTraceLines>5</stackTraceLines>
                 <sendMultiplier>1.0</sendMultiplier>
             </sendMessage>
