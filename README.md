@@ -1,6 +1,6 @@
 # Aggregation Logger
 
-Implemented as a filter, the aggregation logger counts log events raised by the application as well as by individual loggers with break-down by level: TRACE, DEBUG, INFO, WARN, and ERROR. The counters are periodically persisted to a time series database for monitoring and alerting on abnormal error levels.
+Implemented as a filter, the aggregation logger plugs into a log appender and counts log events raised by the application as well as by individual loggers with break-down by level: TRACE, DEBUG, INFO, WARN, and ERROR. The counters are periodically persisted to a time series database for monitoring and alerting on abnormal error levels.
 
 The following metrics are collected:
 
@@ -94,6 +94,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repositor
             <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
         </encoder>
 
+        <!-- attach log aggregator to 'FILE' appender --> 
         <filter class="com.axibase.tsd.collector.logback.Collector">
             <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
                 <host>database_host</host>
@@ -102,15 +103,8 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repositor
         </filter>
     </appender>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
-        </encoder>
-    </appender>
-
     <root level="INFO">
         <appender-ref ref="FILE"/>
-        <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
 ```
@@ -120,10 +114,11 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repositor
 ## Log4j Properties Example 
 
 ```properties
-log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
-log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
-log4j.appender.APPENDER.filter.COLLECTOR.writerHost=database_hostname
-log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
+#attach log aggregator to 'logfile' appender --> 
+log4j.appender.logfile.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
+log4j.appender.logfile.filter.COLLECTOR.writer=tcp
+log4j.appender.logfile.filter.COLLECTOR.writerHost=database_hostname
+log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
 ```
 
   - [View log4j.properties example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
@@ -198,8 +193,8 @@ log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
 | Name | Required | Default | Description |
 |---|---|---|---|
 | writer | yes | - | see `writer` config |
-| level | no | INFO | minimum level to process events |
-| entity | no | current hostname | entity name for series and messages, for example application name or hostname |
+| level | no | TRACE | minimum level to process events |
+| entity | no | machine hostname | entity name for series and messages, usually hostname of the machine where the application is running |
 | tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
 | sendSeries | no | - | see `sendSeries` config |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
