@@ -31,13 +31,11 @@
             <param name="writerPort" value="35771"/>
         </filter>
     </appender>
-    <appender name="COUNTER" class="com.axibase.tsd.collector.log4j.Log4jCountAppender"/>
     <logger name="com.axibase">
         <level value="DEBUG"/>
     </logger>
     <root>
         <level value="DEBUG"/>
         <appender-ref ref="APPENDER"/>
-        <appender-ref ref="COUNTER"/>
     </root>
 </log4j:configuration>
