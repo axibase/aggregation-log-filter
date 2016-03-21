@@ -196,7 +196,7 @@ log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
 | level | no | TRACE | minimum level to process events |
 | entity | no | machine hostname | entity name for series and messages, usually hostname of the machine where the application is running |
 | tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
-| sendSeries | no | - | see `sendSeries` config |
+| intervalSeconds | no | 60 | interval in seconds for sending collected counters |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
 | pattern | no | %m | pattern to format logging events sent to the database |
 
@@ -247,20 +247,6 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 | url | yes | - | API command URL 'http://database_hostname:8088/api/v1/commands/batch', string |
 | username | yes | - | username, string |
 | password | yes | - | password, string |
-
-## sendSeries
-
-Configures how often counter statistics are sent to the database.
-
-```xml
-<sendSeries>
-    <intervalSeconds>60</intervalSeconds>
-</sendSeries>
-```
-
-| Name | Required | Default Value | Description |
-|---|---|---|---|
-| intervalSeconds | no | 60 | Interval in seconds for sending collected log statistics |
 
 ## sendMessage
 
