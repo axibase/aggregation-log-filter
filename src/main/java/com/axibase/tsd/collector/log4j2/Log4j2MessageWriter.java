@@ -206,6 +206,18 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         return new EventWrapper<LogEvent>(event, lines, message);
     }
 
+    @Override
+    public void sendInitTotalCounter(WritableByteChannel writer) throws IOException {
+        Set<String> keySet = totals.keySet();
+        for (String level : keySet) {
+            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), totals.get(level), level);
+        }
+        String errorLevel = "ERROR";
+        if (!keySet.contains(errorLevel))
+            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), errorLevel);
+    }
+
+
     public void addTag(Tag tag) {
         tags.put(tag.getName(), tag.getValue());
     }

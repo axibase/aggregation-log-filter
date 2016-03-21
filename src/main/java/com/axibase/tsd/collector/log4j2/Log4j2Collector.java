@@ -138,6 +138,8 @@ public class Log4j2Collector extends AbstractFilter {
         }
         aggregator.start();
         messageBuilder.start();
+        aggregator.sendInitialTotalCounter();
+
     }
 
     /**
