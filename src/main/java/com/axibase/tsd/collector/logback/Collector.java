@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
-    private LogbackMessageWriter<E> logbackMessageBuilder;
+    private LogbackWriter<E> logbackWriter;
     private Aggregator<E, String, Level> aggregator;
     private Level level = Level.TRACE;
     private SeriesSenderConfig seriesSenderConfig;
@@ -70,20 +70,20 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public void start() {
         super.start();
         initSeriesSenderConfig();
-        logbackMessageBuilder = new LogbackMessageWriter<E>();
+        logbackWriter = new LogbackWriter<E>();
         if (entity != null) {
-            logbackMessageBuilder.setEntity(entity);
+            logbackWriter.setEntity(entity);
         }
 
-        logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+        logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
         if (pattern != null) {
-            logbackMessageBuilder.setPattern(pattern);
+            logbackWriter.setPattern(pattern);
         }
-        logbackMessageBuilder.setContext(getContext());
+        logbackWriter.setContext(getContext());
         for (Tag tag : tags) {
-            logbackMessageBuilder.addTag(tag);
+            logbackWriter.addTag(tag);
         }
-        aggregator = new Aggregator<E, String, Level>(logbackMessageBuilder, new LogbackEventProcessor<E>());
+        aggregator = new Aggregator<E, String, Level>(logbackWriter, new LogbackEventProcessor<E>());
         initWriter();
         if (debug != null) {
             writer = new LoggingWrapper(writer);
@@ -99,7 +99,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        logbackMessageBuilder.start(writer, level.levelInt);
+        logbackWriter.start(writer, level.levelInt);
     }
 
     private void initSeriesSenderConfig() {
@@ -174,7 +174,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         });
         super.stop();
         aggregator.stop();
-        logbackMessageBuilder.stop();
+        logbackWriter.stop();
     }
 
     public void setTag(Tag tag) {

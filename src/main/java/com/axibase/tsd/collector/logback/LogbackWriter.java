@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
 
-public class LogbackMessageWriter<E extends ILoggingEvent>
+public class LogbackWriter<E extends ILoggingEvent>
         extends ContextAwareBase
         implements MessageWriter<E, String, Level> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
@@ -180,16 +180,19 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
             patternLayout.start();
         }
         if (writer != null) {
-            level = level < 5000 ? 5000 : level;
-            while (level <= Level.ERROR.levelInt) {
-                try {
-                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), Level.toLevel(level).toString());
-                    if (level == 5000)
-                        level = 10000;
-                    else level += 10000;
-                } catch (IOException e) {
-                    AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+            int[] levels = new int[]{
+                    Level.TRACE_INT, Level.DEBUG_INT,
+                    Level.INFO_INT, Level.WARN_INT, Level.ERROR_INT};
+            try {
+                for (int l : levels) {
+                    if (l < level) {
+                        continue;
+                    }
+                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
+                            Level.toLevel(l).toString());
                 }
+            } catch (IOException e) {
+                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
     }
