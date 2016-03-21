@@ -178,18 +178,22 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         }
 
         if (writer != null) {
-            level = level > Level.TRACE.intLevel() ? Level.TRACE.intLevel() : level;
-            Level[] values = Level.values();
-            for (Level l : values) {
-                if ((Level.OFF.intLevel() < l.intLevel()) && ((l.intLevel() <= level))) {
-                    try {
-                        messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            Level[] levels = new Level[]{
+                    Level.FATAL, Level.ERROR,
+                    Level.WARN, Level.INFO,
+                    Level.DEBUG, Level.TRACE};
+            try {
+                for (Level l : levels) {
+                    if (l.intLevel() > level)
+                        continue;
+                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
+
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
+
     }
 
     @Override

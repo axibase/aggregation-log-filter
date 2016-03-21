@@ -20,8 +20,10 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.config.TotalCountInit;
-import com.axibase.tsd.collector.writer.*;
+import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
+import com.axibase.tsd.collector.writer.HttpAtsdWriter;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
+import com.axibase.tsd.collector.writer.WriterType;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
@@ -59,11 +61,6 @@ public class Log4j2Collector extends AbstractFilter {
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
     private Integer intervalSeconds;
-    private Integer minIntervalSeconds;
-    private Integer minIntervalThreshold;
-    private Integer repeatCount;
-    private Integer rateIntervalSeconds;
-    private String totalCountInit;
     private String debug;
     private String pattern;
     private final int DEFAULT_INTERVAL = 60;
@@ -159,11 +156,6 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("writerUsername") final String writerUsername,
             @PluginAttribute("writerPassword") final String writerPassword,
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
-            @PluginAttribute("minIntervalSeconds") final Integer minIntervalSeconds,
-            @PluginAttribute("minIntervalThreshold") final Integer minIntervalThreshold,
-            @PluginAttribute("repeatCount") final Integer repeatCount,
-            @PluginAttribute("rateIntervalSeconds") final Integer rateIntervalSeconds,
-            @PluginAttribute("totalCountInit") final String totalCountInit,
             @PluginAttribute("pattern") final String pattern,
             @PluginAttribute("debug") final String debug) {
         final Level minLevel = level == null ? Level.TRACE : level;
@@ -191,15 +183,6 @@ public class Log4j2Collector extends AbstractFilter {
         } else {
             collector.setIntervalSeconds(intervalSeconds);
         }
-        if (minIntervalSeconds > 0) {
-            collector.setMinIntervalSeconds(minIntervalSeconds);
-        }
-        collector.setMinIntervalThreshold(minIntervalThreshold);
-        collector.setRepeatCount(repeatCount);
-        if (rateIntervalSeconds > 0) {
-            collector.setRateIntervalSeconds(rateIntervalSeconds);
-        }
-        collector.setTotalCountInit(totalCountInit);
         collector.setPattern(pattern);
         collector.setDebug(debug);
         try {
@@ -214,36 +197,6 @@ public class Log4j2Collector extends AbstractFilter {
         seriesSenderConfig = new SeriesSenderConfig();
         if (intervalSeconds != null) {
             seriesSenderConfig.setIntervalSeconds(intervalSeconds);
-        }
-        if (minIntervalSeconds != null) {
-            seriesSenderConfig.setMinIntervalSeconds(minIntervalSeconds);
-        }
-        if (minIntervalThreshold != null) {
-            seriesSenderConfig.setMinIntervalThreshold(minIntervalThreshold);
-        }
-        if (repeatCount != null) {
-            seriesSenderConfig.setRepeatCount(repeatCount);
-        }
-        if (rateIntervalSeconds != null) {
-            seriesSenderConfig.setRateIntervalSeconds(rateIntervalSeconds);
-        }
-        if (totalCountInit != null) {
-            final String[] parts = totalCountInit.split(";");
-            for (String part : parts) {
-                final String[] levelAndCount = part.split("=");
-                if (levelAndCount.length > 0) {
-                    int value = -1;
-                    if (levelAndCount.length >= 2) {
-                        try {
-                            value = Integer.parseInt(levelAndCount[1]);
-                        } catch (NumberFormatException e) {
-                            // ignore
-                        }
-                    }
-                    final TotalCountInit totalCountInit = new TotalCountInit(levelAndCount[0], value);
-                    seriesSenderConfig.setTotalCountInit(totalCountInit);
-                }
-            }
         }
     }
 
@@ -338,18 +291,6 @@ public class Log4j2Collector extends AbstractFilter {
         this.intervalSeconds = intervalSeconds;
     }
 
-    public void setMinIntervalSeconds(int minIntervalSeconds) {
-        this.minIntervalSeconds = minIntervalSeconds;
-    }
-
-    public void setMinIntervalThreshold(int minIntervalThreshold) {
-        this.minIntervalThreshold = minIntervalThreshold;
-    }
-
-    public void setRepeatCount(int repeatCount) {
-        this.repeatCount = repeatCount;
-    }
-
     public void setMessages(String messages) {
         if (messages == null) {
             return;
@@ -368,26 +309,11 @@ public class Log4j2Collector extends AbstractFilter {
                     if (vParts.length >= 2) {
                         trigger.setSendMultiplier(Double.parseDouble(vParts[1]));
                     }
-//                    if (vParts.length >= 3) {
-//                        trigger.setResetIntervalSeconds(Long.parseLong(vParts[2]));
-//                    }
-//                    if (vParts.length >= 4) {
-//                        trigger.setEvery(Integer.parseInt(vParts[3]));
-//                    }
                 }
                 trigger.init();
                 triggers.add(trigger);
             }
         }
-    }
-
-    public void setRateIntervalSeconds(int rateIntervalSeconds) {
-        this.rateIntervalSeconds = rateIntervalSeconds;
-    }
-
-
-    public void setTotalCountInit(String totalCountInit) {
-        this.totalCountInit = totalCountInit;
     }
 
     public void setDebug(String debug) {
@@ -427,11 +353,6 @@ public class Log4j2Collector extends AbstractFilter {
                 ", writerPassword='" + writerPassword + '\'' +
                 ", seriesSenderConfig=" + seriesSenderConfig +
                 ", intervalSeconds=" + intervalSeconds +
-                ", minIntervalSeconds=" + minIntervalSeconds +
-                ", minIntervalThreshold=" + minIntervalThreshold +
-                ", repeatCount=" + repeatCount +
-                ", rateIntervalSeconds=" + rateIntervalSeconds +
-                ", totalCountInit='" + totalCountInit + '\'' +
                 ", debug='" + debug + '\'' +
                 ", pattern='" + pattern + '\'' +
                 '}';
