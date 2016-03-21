@@ -166,6 +166,14 @@ public class Aggregator<E, K, L> {
         this.seriesSenderConfig = seriesSenderConfig;
     }
 
+    public void sendInitialTotalCounter() {
+        try {
+            messageWriter.sendInitTotalCounter(writer);
+        } catch (IOException e) {
+            AtsdUtil.logInfo("Writer failed to send initial total counter values");
+        }
+    }
+
     private class Worker implements Runnable {
         private final Map<K, EventCounter<L>> lastTotal = new HashMap<K, EventCounter<L>>();
         private long lastTotalCounter = 0;

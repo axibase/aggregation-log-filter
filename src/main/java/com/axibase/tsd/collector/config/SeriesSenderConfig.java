@@ -52,9 +52,6 @@ public class SeriesSenderConfig {
     private Map<String, Integer> totalCountInitMap = new HashMap<String, Integer>();
 
     public SeriesSenderConfig() {
-        totalCountInitMap.put("INFO",0);
-        totalCountInitMap.put("WARN",0);
-        totalCountInitMap.put("ERROR",0);
     }
 
     public SeriesSenderConfig(int repeatCount,

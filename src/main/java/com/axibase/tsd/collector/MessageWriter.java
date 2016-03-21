@@ -25,6 +25,8 @@ public interface MessageWriter<E, K, L> {
 
     void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException;
 
+    void sendInitTotalCounter(WritableByteChannel writer) throws IOException;
+
     void start();
 
     void stop();
