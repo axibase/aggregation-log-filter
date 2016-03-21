@@ -137,8 +137,7 @@ public class Log4j2Collector extends AbstractFilter {
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        messageBuilder.start();
-        aggregator.sendInitialTotalCounter();
+        messageBuilder.start(writer,level.intLevel());
 
     }
 

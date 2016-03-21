@@ -25,6 +25,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.core.pattern.LogEventPatternConverter;
 import org.apache.logging.log4j.core.pattern.PatternFormatter;
 import org.apache.logging.log4j.core.pattern.PatternParser;
+import org.apache.logging.log4j.*;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -164,25 +165,30 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     }
 
     @Override
-    public void start() {
+    public void start(WritableByteChannel writer, int level) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
         messageHelper.init();
 
-        Map<String, Integer> initMap = seriesSenderConfig.getTotalCountInitMap();
-        for (Map.Entry<String, Integer> levelAndValue : initMap.entrySet()) {
-            String level = levelAndValue.getKey().toUpperCase();
-            if (levelAndValue.getValue() != null && levelAndValue.getValue() >= 0) {
-                totals.put(level,
-                        new CounterWithSum(levelAndValue.getValue(), seriesSenderConfig.getRepeatCount()));
-            }
-        }
-
         if (pattern != null) {
             final PatternParser patternParser = new PatternParser(null, PatternLayout.KEY,
                     LogEventPatternConverter.class);
             formatters = patternParser.parse(pattern);
+        }
+
+        if (writer != null) {
+            level = level > Level.TRACE.intLevel() ? Level.TRACE.intLevel() : level;
+            Level[] values = Level.values();
+            for (Level l : values) {
+                if ((Level.OFF.intLevel() < l.intLevel()) && ((l.intLevel() <= level))) {
+                    try {
+                        messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
@@ -205,18 +211,6 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         }
         return new EventWrapper<LogEvent>(event, lines, message);
     }
-
-    @Override
-    public void sendInitTotalCounter(WritableByteChannel writer) throws IOException {
-        Set<String> keySet = totals.keySet();
-        for (String level : keySet) {
-            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), totals.get(level), level);
-        }
-        String errorLevel = "ERROR";
-        if (!keySet.contains(errorLevel))
-            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), errorLevel);
-    }
-
 
     public void addTag(Tag tag) {
         tags.put(tag.getName(), tag.getValue());
