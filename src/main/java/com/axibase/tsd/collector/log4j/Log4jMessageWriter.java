@@ -24,10 +24,7 @@ import org.apache.log4j.spi.ThrowableInformation;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
@@ -197,6 +194,17 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             message = patternLayout.format(event);
         }
         return new EventWrapper<LoggingEvent>(event, lines, message);
+    }
+
+    @Override
+    public void sendInitTotalCounter(WritableByteChannel writer) throws IOException {
+        Set<String> keySet = totals.keySet();
+        for (String level : keySet) {
+            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), totals.get(level), level);
+        }
+        String errorLevel = "ERROR";
+        if (!keySet.contains(errorLevel))
+            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0,0), errorLevel);
     }
 
     public void addTag(Tag tag) {

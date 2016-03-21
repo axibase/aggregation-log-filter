@@ -131,6 +131,7 @@ public class Log4jCollector extends Filter {
         }
         aggregator.start();
         messageBuilder.start();
+        aggregator.sendInitialTotalCounter();
     }
 
     private void initSeriesSenderConfig() {
