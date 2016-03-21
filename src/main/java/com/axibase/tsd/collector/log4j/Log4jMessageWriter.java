@@ -15,9 +15,10 @@
 
 package com.axibase.tsd.collector.log4j;
 
+import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.*;
+import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
@@ -159,24 +160,28 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     }
 
     @Override
-    public void start() {
+    public void start(WritableByteChannel writer, int level) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
         messageHelper.init();
 
-        Map<String, Integer> initMap = seriesSenderConfig.getTotalCountInitMap();
-        for (Map.Entry<String, Integer> levelAndValue : initMap.entrySet()) {
-            String level = levelAndValue.getKey().toUpperCase();
-            if (levelAndValue.getValue() != null && levelAndValue.getValue() >= 0) {
-                totals.put(level,
-                        new CounterWithSum(levelAndValue.getValue(), seriesSenderConfig.getRepeatCount()));
-            }
-        }
-
         if (pattern != null) {
             patternLayout = new PatternLayout(pattern);
             patternLayout.activateOptions();
+        }
+        if (writer != null) {
+            int intLevel = level < 5000 ? 5000 : level;
+            while (intLevel <= Level.FATAL.toInt()) {
+                try {
+                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), Level.toLevel(intLevel).toString());
+                    if (intLevel == 5000)
+                        intLevel = 10000;
+                    else intLevel += 10000;
+                } catch (IOException e) {
+                    AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                }
+            }
         }
     }
 
@@ -194,17 +199,6 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             message = patternLayout.format(event);
         }
         return new EventWrapper<LoggingEvent>(event, lines, message);
-    }
-
-    @Override
-    public void sendInitTotalCounter(WritableByteChannel writer) throws IOException {
-        Set<String> keySet = totals.keySet();
-        for (String level : keySet) {
-            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), totals.get(level), level);
-        }
-        String errorLevel = "ERROR";
-        if (!keySet.contains(errorLevel))
-            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0,0), errorLevel);
     }
 
     public void addTag(Tag tag) {

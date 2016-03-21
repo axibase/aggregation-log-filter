@@ -130,8 +130,7 @@ public class Log4jCollector extends Filter {
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        messageBuilder.start();
-        aggregator.sendInitialTotalCounter();
+        messageBuilder.start(writer,level.toInt());
     }
 
     private void initSeriesSenderConfig() {
