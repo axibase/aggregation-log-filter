@@ -167,26 +167,30 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
     }
 
     @Override
-    public void start() {
+    public void start(WritableByteChannel writer, int level) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
         messageHelper.init();
-
-        Map<String, Integer> initMap = seriesSenderConfig.getTotalCountInitMap();
-        for (Map.Entry<String, Integer> levelAndValue : initMap.entrySet()) {
-            Level level = Level.toLevel(levelAndValue.getKey(), null);
-            if (level != null && levelAndValue.getValue() != null && levelAndValue.getValue() >= 0) {
-                totals.put(level,
-                        new CounterWithSum(levelAndValue.getValue(), seriesSenderConfig.getRepeatCount()));
-            }
-        }
 
         if (pattern != null) {
             patternLayout = new PatternLayout();
             patternLayout.setContext(context);
             patternLayout.setPattern(pattern);
             patternLayout.start();
+        }
+        if (writer != null) {
+            level = level < 5000 ? 5000 : level;
+            while (level <= Level.ERROR.levelInt) {
+                try {
+                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), Level.toLevel(level).toString());
+                    if (level == 5000)
+                        level = 10000;
+                    else level += 10000;
+                } catch (IOException e) {
+                    AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                }
+            }
         }
     }
 
@@ -204,17 +208,6 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         }
         return new EventWrapper<E>(event, lines, message);
     }
-
-    @Override
-    public void sendInitTotalCounter(WritableByteChannel writer) throws IOException {
-        Set<Level> levelSet = totals.keySet();
-        for (Level level : levelSet) {
-            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), totals.get(level), level.levelStr);
-        }
-        if (!levelSet.contains(Level.ERROR))
-            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), "ERROR");
-    }
-
 
     public void addTag(Tag tag) {
         tags.put(tag.getName(), tag.getValue());

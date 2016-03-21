@@ -40,6 +40,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private Aggregator<E, String, Level> aggregator;
     private Level level = Level.TRACE;
     private SeriesSenderConfig seriesSenderConfig;
+    private Integer intervalSeconds;
     private String entity;
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
     private final List<Tag> tags = new ArrayList<Tag>();
@@ -68,13 +69,13 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     @Override
     public void start() {
         super.start();
+        initSeriesSenderConfig();
         logbackMessageBuilder = new LogbackMessageWriter<E>();
         if (entity != null) {
             logbackMessageBuilder.setEntity(entity);
         }
-        if (seriesSenderConfig != null) {
-            logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
-        }
+
+        logbackMessageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         if (pattern != null) {
             logbackMessageBuilder.setPattern(pattern);
         }
@@ -88,9 +89,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             writer = new LoggingWrapper(writer);
         }
         aggregator.setWriter(writer);
-        if (seriesSenderConfig != null) {
-            aggregator.setSeriesSenderConfig(seriesSenderConfig);
-        }
+        aggregator.setSeriesSenderConfig(seriesSenderConfig);
 
         aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
         aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
@@ -100,9 +99,14 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        logbackMessageBuilder.start();
-        aggregator.sendInitialTotalCounter();
+        logbackMessageBuilder.start(writer, level.levelInt);
+    }
 
+    private void initSeriesSenderConfig() {
+        seriesSenderConfig = new SeriesSenderConfig();
+        if (intervalSeconds != null) {
+            seriesSenderConfig.setIntervalSeconds(intervalSeconds);
+        }
     }
 
     private void initWriter() {
@@ -219,8 +223,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 //        }
     }
 
-    public void setSendSeries(SeriesSenderConfig seriesSenderConfig) {
-        this.seriesSenderConfig = seriesSenderConfig;
+    public void setIntervalSeconds(int intervalSeconds) {
+        this.intervalSeconds = intervalSeconds;
     }
 
     public void setDebug(String debug) {
