@@ -171,18 +171,23 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             patternLayout.activateOptions();
         }
         if (writer != null) {
-            int intLevel = level < 5000 ? 5000 : level;
-            while (intLevel <= Level.FATAL.toInt()) {
-                try {
-                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), Level.toLevel(intLevel).toString());
-                    if (intLevel == 5000)
-                        intLevel = 10000;
-                    else intLevel += 10000;
-                } catch (IOException e) {
-                    AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+            int[] levels = new int[]{
+                    Level.TRACE_INT, Level.DEBUG_INT,
+                    Level.FATAL_INT, Level.INFO_INT,
+                    Level.WARN_INT, Level.ERROR_INT};
+            try {
+                for (int l : levels) {
+                    if (l < level) {
+                        continue;
+                    }
+                    messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
+                            Level.toLevel(l).toString());
                 }
+            } catch (IOException e) {
+                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
+
     }
 
     @Override

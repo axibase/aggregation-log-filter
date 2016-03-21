@@ -20,7 +20,6 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.config.TotalCountInit;
 import com.axibase.tsd.collector.writer.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
@@ -56,11 +55,6 @@ public class Log4jCollector extends Filter {
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
     private Integer intervalSeconds;
-    private Integer minIntervalSeconds;
-    private Integer minIntervalThreshold;
-    private Integer repeatCount;
-    private Integer rateIntervalSeconds;
-    private String totalCountInit;
     private String debug;
     private String pattern;
 
@@ -137,36 +131,6 @@ public class Log4jCollector extends Filter {
         seriesSenderConfig = new SeriesSenderConfig();
         if (intervalSeconds != null) {
             seriesSenderConfig.setIntervalSeconds(intervalSeconds);
-        }
-        if (minIntervalSeconds != null) {
-            seriesSenderConfig.setMinIntervalSeconds(minIntervalSeconds);
-        }
-        if (minIntervalThreshold != null) {
-            seriesSenderConfig.setMinIntervalThreshold(minIntervalThreshold);
-        }
-        if (repeatCount != null) {
-            seriesSenderConfig.setRepeatCount(repeatCount);
-        }
-        if (rateIntervalSeconds != null) {
-            seriesSenderConfig.setRateIntervalSeconds(rateIntervalSeconds);
-        }
-        if (totalCountInit != null) {
-            final String[] parts = totalCountInit.split(";");
-            for (String part : parts) {
-                final String[] levelAndCount = part.split("=");
-                if (levelAndCount.length > 0) {
-                    int value = -1;
-                    if (levelAndCount.length >= 2) {
-                        try {
-                            value = Integer.parseInt(levelAndCount[1]);
-                        } catch (NumberFormatException e) {
-                            // ignore
-                        }
-                    }
-                    final TotalCountInit totalCountInit = new TotalCountInit(levelAndCount[0], value);
-                    seriesSenderConfig.setTotalCountInit(totalCountInit);
-                }
-            }
         }
     }
 
@@ -271,18 +235,6 @@ public class Log4jCollector extends Filter {
         this.intervalSeconds = intervalSeconds;
     }
 
-    public void setMinIntervalSeconds(int minIntervalSeconds) {
-        this.minIntervalSeconds = minIntervalSeconds;
-    }
-
-    public void setMinIntervalThreshold(int minIntervalThreshold) {
-        this.minIntervalThreshold = minIntervalThreshold;
-    }
-
-    public void setRepeatCount(int repeatCount) {
-        this.repeatCount = repeatCount;
-    }
-
     public void setMessages(String messages) {
         if (messages == null) {
             return;
@@ -312,15 +264,6 @@ public class Log4jCollector extends Filter {
                 triggers.add(trigger);
             }
         }
-    }
-
-    public void setRateIntervalSeconds(int rateIntervalSeconds) {
-        this.rateIntervalSeconds = rateIntervalSeconds;
-    }
-
-
-    public void setTotalCountInit(String totalCountInit) {
-        this.totalCountInit = totalCountInit;
     }
 
     public void setDebug(String debug) {
