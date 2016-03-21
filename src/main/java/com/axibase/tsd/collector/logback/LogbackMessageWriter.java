@@ -27,10 +27,7 @@ import com.axibase.tsd.collector.config.Tag;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class LogbackMessageWriter<E extends ILoggingEvent>
         extends ContextAwareBase
@@ -207,6 +204,17 @@ public class LogbackMessageWriter<E extends ILoggingEvent>
         }
         return new EventWrapper<E>(event, lines, message);
     }
+
+    @Override
+    public void sendInitTotalCounter(WritableByteChannel writer) throws IOException {
+        Set<Level> levelSet = totals.keySet();
+        for (Level level : levelSet) {
+            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), totals.get(level), level.levelStr);
+        }
+        if (!levelSet.contains(Level.ERROR))
+            messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), "ERROR");
+    }
+
 
     public void addTag(Tag tag) {
         tags.put(tag.getName(), tag.getValue());

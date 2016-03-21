@@ -25,7 +25,10 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.writer.*;
+import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
+import com.axibase.tsd.collector.writer.HttpAtsdWriter;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
+import com.axibase.tsd.collector.writer.WriterType;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -98,6 +101,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         aggregator.start();
         logbackMessageBuilder.start();
+        aggregator.sendInitialTotalCounter();
+
     }
 
     private void initWriter() {
