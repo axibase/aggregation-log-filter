@@ -25,6 +25,7 @@ import java.net.URL;
 
 import static org.junit.Assert.*;
 
+@Ignore("needed  configuration with CountAppender")
 public class Log4jCollectorTest {
     private static final Logger log = Logger.getLogger(Log4jCollectorTest.class);
 
