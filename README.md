@@ -43,6 +43,38 @@ The logger consists of the core library and adapters for supported logging frame
 - Standalone Java Application: https://apps.axibase.com/chartlab/2f607d1b/7
 - Distributed Java Application: https://apps.axibase.com/chartlab/007721aa. Multiple Java applications on the same or different hosts.
 
+## Performance
+
+```java
+        long start = System.currentTimeMillis();
+        for (int i = 1; i <= 1000000; i++) {
+            logger.error("msg " + new Date() + " : index=" + i);
+        }
+        long end = System.currentTimeMillis();
+```
+
+#### Filter Disabled
+
+```
+#log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
+#log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
+#log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
+#log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
+```
+
+**DONE in 5589**
+
+#### Filter Enabled
+
+```
+log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
+log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
+log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
+log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
+```
+
+**DONE in 6002**
+
 ## Installation
 
 ### Option 1: Maven
