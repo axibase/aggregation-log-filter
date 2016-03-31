@@ -8,4 +8,6 @@ docs_dir: .
 include_search: true
 
 pages:
-- Aggregation Logger: README.md
+- Aggregation Logger: index.md
+- User Guide:
+  - Configuration: README.md
