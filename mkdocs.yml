@@ -5,7 +5,6 @@ repo_name: GitHub
 site_description: Documentation for Aggregation Logger
 
 docs_dir: .
-include_search: false
 
 pages:
 - Aggregation Logger: README.md
