@@ -1,1 +1,0 @@
-Aggregation Log Filter
