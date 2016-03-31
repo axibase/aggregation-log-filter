@@ -8,9 +8,8 @@ docs_dir: .
 include_search: true
 
 pages:
-- Aggregation Logger: index.md
 - Integration:
   - Activemq: index.md
-  - Next level:
-    - Another tool: index.md   
-
+- Installation:
+- Support:
+  - Aggregation Logger: index.md
