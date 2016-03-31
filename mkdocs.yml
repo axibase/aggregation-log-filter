@@ -11,5 +11,6 @@ pages:
 - Integration:
   - Activemq: index.md
 - Installation:
+  - Details: index.md
 - Support:
   - Aggregation Logger: index.md
