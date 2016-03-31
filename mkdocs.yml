@@ -9,5 +9,3 @@ include_search: true
 
 pages:
 - Aggregation Logger: index.md
-- User Guide:
-  - Configuration: README.md
