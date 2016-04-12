@@ -7,8 +7,8 @@ Collecting aggregate error counts is particularly relevant for monitoring large-
 The following counters are collected:
 
 ```
-log_event_total_counter #Total number of log events raised by the application. Tags: level
-log_event_counter       #Number of log events for active loggers. Tags: level, logger (full class name)
+log_event_total_counter     #Total number of log events raised by the application. Tags: level
+log_event_counter           #Number of log events for active loggers. Tags: level, logger (full class name)
 ```
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
@@ -25,7 +25,17 @@ In addition to counters, the logger can send a small subset of raw events to the
 
 Since counters are flushed to the database every 10 seconds, the incoming data can be also used for heartbeat monitoring as an early warning for network outages, application crashes, and garbage collection freezes.
 
-The logger consists of the core library and adapters for Logback and Log4j logging frameworks . 
+The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
+
+
+## Sample Portal
+
+![Log Counter Portal](log_errors_sm.png)
+
+## Live Examples
+
+- [Standalone](https://apps.axibase.com/chartlab/2f607d1b/7)
+- [Distributed](https://apps.axibase.com/chartlab/007721aa)
 
 ## Requirements
 
@@ -47,11 +57,6 @@ The logger consists of the core library and adapters for Logback and Log4j loggi
 - [log4j Properties](#log4j-properties-example)
 - [log4j XML](#log4j-xml-example)
 - [log4j2 XML](#log4j2-xml-example)
-
-## Portal Examples
-
-- Standalone Java Application: https://apps.axibase.com/chartlab/2f607d1b/7
-- Distributed Java Application: https://apps.axibase.com/chartlab/007721aa. Multiple Java applications on the same or different hosts.
 
 ## Performance
 
@@ -118,8 +123,10 @@ Cope core and adapter libraries to application lib directory.
 Apache ActiveMQ example:
 
 ```
-wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
-wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
+wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
+"https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
+wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
+"https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
 ```
 
 ## Logback XML Configuration Example
@@ -311,9 +318,6 @@ Configures which log events should be sent to the storage system.
 | stackTraceLines | no | 0; ERROR: -1 | number of stacktrace lines included in the message, -1 -- all lines |
 | sendMultiplier | no | INFO-: 5; WARN: 3; ERROR: 2   | Determines index of events sent each period (10 minutes) determined as sendMultiplier^(n-1). |
 
-## Log Counter Portal Example
-
-![Log Counter Portal](https://axibase.com/wp-content/uploads/2015/11/log_filter.png)
 
 [atsd]:https://axibase.com/products/axibase-time-series-database/
 
