@@ -2,7 +2,7 @@
 
 The aggregation logger tracks the total number of log events raised by a Java application as well as by active loggers with  breakdown by level (severity). An asynchronous sender thread transmits the counters to a time series database every 10 seconds via TCP/UDP/HTTP(s) protocols for alerting and long-term retention.
 
-Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too many to analyze. See LogInfo/./LogFatal metrics in Hadoop as an example  https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html.
+Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See LogInfo/./LogFatal metrics in Hadoop as an example  https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html.
 
 The following counters are collected:
 
@@ -26,6 +26,8 @@ In addition to counters, the logger can send a small subset of raw events to the
 Since counters are flushed to the database every 10 seconds, the incoming data can be also used for heartbeat monitoring as an early warning for network outages, application crashes, and garbage collection freezes.
 
 The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
+
+The aggregation logger is not a replacement for full-text search and indexing tools and seeks to strike a balance between volume of data collected and response time.
 
 
 ## Sample Portal
