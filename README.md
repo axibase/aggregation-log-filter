@@ -1,13 +1,19 @@
 # Aggregation Logger
 
-Implemented as a filter, the aggregation logger plugs into a log appender and counts log events raised by the application as well as by individual loggers with break-down by level: TRACE, DEBUG, INFO, WARN, and ERROR. The counters are periodically persisted to a time series database for monitoring and alerting on abnormal error levels.
+The aggregation logger tracks the total number of log events raised by a Java application as well as by active loggers with  breakdown by level (severity). The counters are continuously incremented to protect against accidental network loss and are periodically persisted to a time series database for alerting and long-term retention.
+
+Collecting aggregate error counts is particularly useful for monitoring large-scale distributed applications where individual errors are too many to analyze. See LogInfo...LogFatal metrics in Hadoop as an example  https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html.
 
 The following metrics are collected:
 
-- log_event_total_counter
-- log_event_counter
+```
+log_event_total_counter #total number of log events raised by the application, by level
+log_event_counter       #number of log events for active loggers, with break down by level
+```
 
-The logger also sends a small subset of log events to the database for root-cause analysis. The index of events sent within each 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
+Supported Levels: TRACE, DEBUG, INFO, WARN, and ERROR
+ 
+In addition to counters, the logger can send a small subset of raw events to the database for L2/L3 triage. The index of events sent within each 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
 ```
 - INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
@@ -15,7 +21,9 @@ The logger also sends a small subset of log events to the database for root-caus
 - ERROR. Multiplier 2. Events sent: 1, 2, 4, 8 ...    2^(n-1)
 ```
 
-The logger consists of the core library and adapters for supported logging frameworks.
+Since counters are flushed to the database every 10 seconds, the incoming data can be also used for heartbeat monitoring as an early warning for network outages, application crashes, and garbage collection freezes.
+
+The logger consists of the core library and adapters for supported logging frameworks including Logback and Log4j. 
 
 ## Requirements
 
