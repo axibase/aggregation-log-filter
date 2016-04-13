@@ -17,9 +17,10 @@ package com.axibase.tsd.collector.logback;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxy;
 import com.axibase.tsd.collector.SendMessageTrigger;
 
-public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E>{
+public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E> {
     public static final Level DEFAULT_LEVEL = Level.WARN;
     private Level level = DEFAULT_LEVEL;
 
@@ -46,7 +47,7 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
 
     @Override
     public boolean onEvent(E event) {
-        return event != null && event.getLevel().levelInt == level.levelInt && super.onEvent(event);
+        return event != null && event.getLevel().levelInt == level.levelInt && super.onEvent(event) || (event.getLevel().toInt() == Level.ERROR.toInt() && Error.class.isInstance(((ThrowableProxy) event.getThrowableProxy()).getThrowable()));
     }
 
     @Override
