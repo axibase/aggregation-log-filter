@@ -128,33 +128,47 @@ public class LogbackWriter<E extends ILoggingEvent>
     public void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException {
         EventWrapper<E> wrapper;
         while ((wrapper = singles.poll()) != null) {
-            try {
-                E event = wrapper.getEvent();
-                StringBuilder sb = new StringBuilder();
-                String message = wrapper.getMessage();
-                int lines = wrapper.getLines();
-                if (lines > 0 && event.getCallerData() != null) {
-                    StringBuilder msb = new StringBuilder(message);
-                    IThrowableProxy throwableProxy = event.getThrowableProxy();
-                    int s = 0;
-                    while (throwableProxy != null && s++ < lines) {
-                        msb.append("\n").append(throwableProxy.getClassName())
-                                .append(": ").append(throwableProxy.getMessage());
-                        StackTraceElementProxy[] traceElementProxyArray = throwableProxy.getStackTraceElementProxyArray();
-                        for (int i = 0; i < traceElementProxyArray.length && s < lines; i++, s++) {
-                            StackTraceElementProxy traceElement = traceElementProxyArray[i];
-                            msb.append("\n\t").append(traceElement.toString());
-                        }
-                        throwableProxy = throwableProxy.getCause();
-                    }
-                    message = msb.toString();
-                }
-                writeMessage(writer, event, sb, message);
-            } catch (IOException e) {
-                addError("Could not write message", e);
-            }
+            writeSingle(writer, wrapper);
         }
         singles.clearCount();
+    }
+
+    private void writeSingle(WritableByteChannel writer, EventWrapper<E> wrapper) {
+        try {
+            E event = wrapper.getEvent();
+            StringBuilder sb = new StringBuilder();
+            String message = wrapper.getMessage();
+            int lines = wrapper.getLines();
+            if (lines > 0 && event.getCallerData() != null) {
+                StringBuilder msb = new StringBuilder(message);
+                IThrowableProxy throwableProxy = event.getThrowableProxy();
+                int s = 0;
+                while (throwableProxy != null && s++ < lines) {
+                    msb.append("\n").append(throwableProxy.getClassName())
+                            .append(": ").append(throwableProxy.getMessage());
+                    StackTraceElementProxy[] traceElementProxyArray = throwableProxy.getStackTraceElementProxyArray();
+                    for (int i = 0; i < traceElementProxyArray.length && s < lines; i++, s++) {
+                        StackTraceElementProxy traceElement = traceElementProxyArray[i];
+                        msb.append("\n\t").append(traceElement.toString());
+                    }
+                    throwableProxy = throwableProxy.getCause();
+                }
+                message = msb.toString();
+            }
+            writeMessage(writer, event, sb, message);
+        } catch (IOException e) {
+            addError("Could not write message", e);
+        }
+    }
+
+    @Override
+    public boolean sendErrorInstance(WritableByteChannel writableByteChannel, E event) {
+        LogbackEventTrigger logbackEventTrigger = new LogbackEventTrigger();
+        if (logbackEventTrigger.isErrorInstance(event)){
+            writeSingle(writableByteChannel,createWrapper(event,Integer.MAX_VALUE));
+            return true;
+        }
+        return false;
     }
 
     private void writeMessage(WritableByteChannel writer,

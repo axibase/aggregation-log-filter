@@ -47,7 +47,12 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
 
     @Override
     public boolean onEvent(E event) {
-        return event != null && event.getLevel().levelInt == level.levelInt && super.onEvent(event) || (event.getLevel().toInt() == Level.ERROR.toInt() && Error.class.isInstance(((ThrowableProxy) event.getThrowableProxy()).getThrowable()));
+        return event != null && event.getLevel().levelInt == level.levelInt && super.onEvent(event);
+    }
+
+    @Override
+    public boolean isErrorInstance(E event) {
+        return (event.getLevel().toInt() == Level.ERROR.toInt() && Error.class.isInstance(((ThrowableProxy) event.getThrowableProxy()).getThrowable()));
     }
 
     @Override
