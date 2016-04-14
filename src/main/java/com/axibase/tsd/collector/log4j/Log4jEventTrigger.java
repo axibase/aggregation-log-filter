@@ -18,6 +18,7 @@ package com.axibase.tsd.collector.log4j;
 import com.axibase.tsd.collector.SendMessageTrigger;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
 
 public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
     public static final Level DEFAULT_LEVEL = Level.WARN;
@@ -47,7 +48,11 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
 
     @Override
     public boolean isErrorInstance(LoggingEvent event) {
-        return (event.getLevel().toInt() == Level.ERROR.toInt() && event.getThrowableInformation().getThrowable() instanceof Error);
+        if (event.getLevel().toInt() == Level.ERROR.toInt()){
+            ThrowableInformation throwableInformation = event.getThrowableInformation();
+            return (throwableInformation != null && throwableInformation.getThrowable() instanceof Error);
+        }
+        return false;
     }
 
     @Override
