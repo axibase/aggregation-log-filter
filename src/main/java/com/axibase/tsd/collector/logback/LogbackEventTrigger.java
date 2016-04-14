@@ -17,6 +17,7 @@ package com.axibase.tsd.collector.logback;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import com.axibase.tsd.collector.SendMessageTrigger;
 
@@ -52,7 +53,11 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
 
     @Override
     public boolean isErrorInstance(E event) {
-        return (event.getLevel().toInt() == Level.ERROR.toInt() && Error.class.isInstance(((ThrowableProxy) event.getThrowableProxy()).getThrowable()));
+        if (event.getLevel().toInt() == Level.ERROR.toInt()) {
+            IThrowableProxy throwableProxy = event.getThrowableProxy();
+            return (throwableProxy != null && Error.class.isInstance(((ThrowableProxy) throwableProxy).getThrowable()));
+        }
+        return false;
     }
 
     @Override
