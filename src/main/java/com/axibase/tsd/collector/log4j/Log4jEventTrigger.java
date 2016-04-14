@@ -42,7 +42,12 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
 
     @Override
     public boolean onEvent(LoggingEvent event) {
-        return event != null && event.getLevel().toInt() == level.toInt() && super.onEvent(event) || (event.getLevel().toInt() == Level.ERROR.toInt() && event.getThrowableInformation().getThrowable() instanceof Error);
+        return event != null && event.getLevel().toInt() == level.toInt() && super.onEvent(event);
+    }
+
+    @Override
+    public boolean isErrorInstance(LoggingEvent event) {
+        return (event.getLevel().toInt() == Level.ERROR.toInt() && event.getThrowableInformation().getThrowable() instanceof Error);
     }
 
     @Override
