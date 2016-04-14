@@ -66,6 +66,8 @@ public abstract class SendMessageTrigger<E> {
         return result;
     }
 
+    public abstract boolean isErrorInstance(E event);
+
     public abstract String resolveKey(E event);
 
 //    public void setEvery(int every) {
