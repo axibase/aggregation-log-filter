@@ -127,32 +127,46 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                              CountedQueue<EventWrapper<LogEvent>> singles) throws IOException {
         EventWrapper<LogEvent> wrapper;
         while ((wrapper = singles.poll()) != null) {
-            try {
-                LogEvent event = wrapper.getEvent();
-                StringBuilder sb = new StringBuilder();
-                String message = wrapper.getMessage();
-                int lines = wrapper.getLines();
-                final ThrowableProxy tp = event.getThrownProxy();
-                if (lines > 0 && tp != null) {
-                    StringBuilder msb = new StringBuilder(message);
-                    int s = 0;
-                    final Throwable throwableProxy = tp.getThrowable();
-                    msb.append("\n").append(throwableProxy.getClass().getName())
-                            .append(": ").append(throwableProxy.getMessage());
-                    ExtendedStackTraceElement[] traceElementProxyArray = tp.getExtendedStackTrace();
-                    if (traceElementProxyArray != null) {
-                        for (int i = 0; i < traceElementProxyArray.length && s < lines; i++, s++) {
-                            msb.append("\n\t").append(traceElementProxyArray[i].toString());
-                        }
-                    }
-                    message = msb.toString();
-                }
-                writeMessage(writer, event, sb, message);
-            } catch (Exception e) {
-                AtsdUtil.logInfo("Could not write message", e);
-            }
+            writeSingle(writer, wrapper);
         }
         singles.clearCount();
+    }
+
+    private void writeSingle(WritableByteChannel writer, EventWrapper<LogEvent> wrapper) {
+        try {
+            LogEvent event = wrapper.getEvent();
+            StringBuilder sb = new StringBuilder();
+            String message = wrapper.getMessage();
+            int lines = wrapper.getLines();
+            final ThrowableProxy tp = event.getThrownProxy();
+            if (lines > 0 && tp != null) {
+                StringBuilder msb = new StringBuilder(message);
+                int s = 0;
+                final Throwable throwableProxy = tp.getThrowable();
+                msb.append("\n").append(throwableProxy.getClass().getName())
+                        .append(": ").append(throwableProxy.getMessage());
+                ExtendedStackTraceElement[] traceElementProxyArray = tp.getExtendedStackTrace();
+                if (traceElementProxyArray != null) {
+                    for (int i = 0; i < traceElementProxyArray.length && s < lines; i++, s++) {
+                        msb.append("\n\t").append(traceElementProxyArray[i].toString());
+                    }
+                }
+                message = msb.toString();
+            }
+            writeMessage(writer, event, sb, message);
+        } catch (Exception e) {
+            AtsdUtil.logInfo("Could not write message", e);
+        }
+    }
+
+    @Override
+    public boolean sendErrorInstance(WritableByteChannel writableByteChannel, LogEvent logEvent) {
+        Log4j2EventTrigger log4j2EventTrigger = new Log4j2EventTrigger();
+        if (log4j2EventTrigger.isErrorInstance(logEvent)) {
+            writeSingle(writableByteChannel, createWrapper(logEvent, Integer.MAX_VALUE));
+            return true;
+        }
+        return false;
     }
 
     private void writeMessage(WritableByteChannel writer,
