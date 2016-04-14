@@ -13,22 +13,27 @@ log_event_counter           #Number of log events for active loggers. Tags: leve
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
 
-Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR
+> Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR
  
 In addition to counters, the logger can send a small subset of raw events to the database for L2/L3 triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
-```
-- INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
-- WARN.  Multiplier 3. Events sent: 1, 3, 9, 27 ...   3^(n-1)
-- ERROR. Multiplier 2. Events sent: 1, 2, 4, 8 ...    2^(n-1)
-```
+* INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
+* WARN.  Multiplier 3. Events sent: 1, 3, 9, 27 ...   3^(n-1)
+* ERROR. Multiplier 2. Events sent: 1, 2, 4, 8 ...    2^(n-1)
 
-Since counters are flushed to the database every 10 seconds, the incoming data can be also used for heartbeat monitoring as an early warning for network outages, application crashes, and garbage collection freezes.
+> ERROR events that inherit from java.lang.Error are sent to the database instantly, regardless of the event index.
+
+The aggregation logger sends a small subset of events to the database and as such is not a replacement for specialized log search and indexing tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
 
 The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
 
-The aggregation logger is not a replacement for full-text search and indexing tools and seeks to strike a balance between volume of data collected and response time.
+## Heartbeat
 
+Since counters are flushed to the database every 10 seconds, the incoming data can be also used for heartbeat monitoring as an early warning for network outages, application crashes, and garbage collection freezes.
+
+![Heartbeat rule example](log_writer_heartbeat.png)
+
+![Heartbeat rule in XML](rule_java_log_writer_heartbeat_stopped.xml)
 
 ## Sample Portal
 
