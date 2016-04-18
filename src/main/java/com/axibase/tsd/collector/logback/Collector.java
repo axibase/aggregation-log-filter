@@ -76,9 +76,11 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
 
         logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
-        if (pattern != null) {
-            logbackWriter.setPattern(pattern);
+        if (pattern == null) {
+            pattern = "%m";
         }
+        logbackWriter.setPattern(pattern);
+
         logbackWriter.setContext(getContext());
         for (Tag tag : tags) {
             logbackWriter.addTag(tag);
@@ -87,6 +89,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         initWriter();
         if (debug != null) {
             writer = new LoggingWrapper(writer);
+        } else {
+            debug = "false";
         }
         aggregator.setWriter(writer);
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
@@ -99,7 +103,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        logbackWriter.start(writer, level.levelInt);
+        logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), debug, pattern);
     }
 
     private void initSeriesSenderConfig() {
