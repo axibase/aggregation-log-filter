@@ -25,11 +25,11 @@ public interface MessageWriter<E, K, L> {
 
     void writeSingles(WritableByteChannel writer, CountedQueue<EventWrapper<E>> singles) throws IOException;
 
-    boolean sendErrorInstance(WritableByteChannel writer, E event);
-
-    void start(WritableByteChannel writer, int level);
+    void start(WritableByteChannel writer, int level, int intervalSeconds, String debug, String pattern);
 
     void stop();
+
+    boolean sendErrorInstance(WritableByteChannel writer, E event);
 
     EventWrapper<E> createWrapper(E event, int lines);
 }

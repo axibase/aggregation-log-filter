@@ -16,11 +16,17 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
+import com.sun.management.UnixOperatingSystemMXBean;
 
 import java.io.IOException;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
@@ -45,7 +51,8 @@ public class MessageHelper {
         this.entity = entity;
     }
 
-    public void init() {
+    public void init(WritableByteChannel writer, String level, int intervalSeconds, String debug, String pattern) {
+
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
             command = "default";
@@ -53,6 +60,9 @@ public class MessageHelper {
         if (command.contains(" ")) {
             command = command.split(" ")[0];
         }
+
+        sendAggregatorSettings(writer, level, intervalSeconds, debug, pattern);
+        sendAggregatorRuntime(writer);
 
         {
             StringBuilder sb = new StringBuilder();
@@ -89,6 +99,90 @@ public class MessageHelper {
             unsafeAppendTag(sb, "type", "logger");
             sb.append(" m:");
             messagePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
+        }
+    }
+
+    private void sendAggregatorRuntime(WritableByteChannel writer) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("property e:").append(entity);
+        sb.append(" k:command=").append(command);
+        sb.append(" t:java.log_aggregator.runtime");
+
+        Properties systemProperties = System.getProperties();
+
+        Enumeration enumeration = systemProperties.propertyNames();
+
+        while (enumeration.hasMoreElements()) {
+            String key = (String) enumeration.nextElement();
+            String value = systemProperties.getProperty(key);
+            if (!value.isEmpty()) {
+                String s = value.replaceAll("(\\r|\\n|\\r\\n)+", "\\\\n");
+                sb.append(" v:").append(key).append("=\"").append(s).append("\"");
+            }
+        }
+
+        OperatingSystemMXBean osMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        sb.append(" v:").append("Arch=\"").append(osMXBean.getArch()).append("\"");
+        sb.append(" v:").append("AvailableProcessors=\"").append(osMXBean.getAvailableProcessors()).append("\"");
+        sb.append(" v:").append("Name=\"").append(osMXBean.getName()).append("\"");
+        sb.append(" v:").append("Version=\"").append(osMXBean.getVersion()).append("\"");
+
+        UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
+        sb.append(" v:").append("MaxFileDescriptorCount=\"").append(osMXBeanUnix.getMaxFileDescriptorCount()).append("\"");
+        sb.append(" v:").append("TotalPhysicalMemorySize=\"").append(osMXBeanUnix.getTotalPhysicalMemorySize()).append("\"");
+        sb.append(" v:").append("TotalSwapSpaceSize=\"").append(osMXBeanUnix.getTotalSwapSpaceSize()).append("\"");
+
+
+        RuntimeMXBean runtimeMXBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
+        sb.append(" v:").append("getBootClassPath=\"").append(runtimeMXBean.getBootClassPath()).append("\"");
+        String name = runtimeMXBean.getName();
+        sb.append(" v:").append("Name=\"").append(name).append("\"");
+        if (name.contains("@")){
+            sb.append(" v:").append("Hostname=\"").append(name.substring(name.lastIndexOf("@") + 1)).append("\"");
+        }
+        sb.append(" v:").append("ClassPath=\"").append(runtimeMXBean.getClassPath()).append("\"");
+        sb.append(" v:").append("LibraryPath=\"").append(runtimeMXBean.getLibraryPath()).append("\"");
+        sb.append(" v:").append("SpecName=\"").append(runtimeMXBean.getSpecName()).append("\"");
+        sb.append(" v:").append("SpecVendor=\"").append(runtimeMXBean.getSpecVendor()).append("\"");
+        sb.append(" v:").append("StartTime=\"").append(runtimeMXBean.getStartTime()).append("\"");
+        sb.append(" v:").append("VmName=\"").append(runtimeMXBean.getVmName()).append("\"");
+        sb.append(" v:").append("VmVendor=\"").append(runtimeMXBean.getVmVendor()).append("\"");
+        sb.append(" v:").append("VmVersion=\"").append(runtimeMXBean.getVmVersion()).append("\"");
+        List<String> inputArguments = runtimeMXBean.getInputArguments();
+        sb.append(" v:").append("InputArguments=\"");
+        for (String inputArgument : inputArguments) {
+            sb.append(inputArgument).append(" ");
+        }
+        sb.append("\"");
+
+        sb.append("\n");
+        byte[] bytes = sb.toString().getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+        byteBuffer.rewind();
+        try {
+            writer.write(byteBuffer);
+        } catch (IOException e) {
+            AtsdUtil.logError("Writer failed to send java.log_aggregator.runtime property command " + sb.toString(), e);
+        }
+    }
+
+    private void sendAggregatorSettings(WritableByteChannel writer, String level, int intervalSeconds, String debug, String pattern) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("property e:").append(entity);
+        sb.append(" k:command=").append(command);
+        sb.append(" t:java.log_aggregator.settings");
+        sb.append(" v:level=").append(level);
+        sb.append(" v:interval=").append(intervalSeconds);
+        sb.append(" v:debug=").append(debug);
+        sb.append(" v:pattern=").append("\"").append(pattern).append("\"");
+        sb.append("\n");
+        byte[] bytes = sb.toString().getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+        byteBuffer.rewind();
+        try {
+            writer.write(byteBuffer);
+        } catch (IOException e) {
+            AtsdUtil.logError("Writer failed to send java.log_aggregator.settings property command " + sb.toString(), e);
         }
     }
 
