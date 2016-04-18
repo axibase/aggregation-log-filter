@@ -173,11 +173,12 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     }
 
     @Override
-    public void start(WritableByteChannel writer, int level) {
+    public void start(WritableByteChannel writer, int level, int intervalSeconds, String debug, String pattern) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
-        messageHelper.init();
+        String stringLevel = Level.toLevel(level).toString();
+        messageHelper.init(writer, stringLevel, intervalSeconds,  debug, pattern);
 
         if (pattern != null) {
             patternLayout = new PatternLayout(pattern);

@@ -34,7 +34,7 @@ import java.util.List;
 public class Log4jCollector extends Filter {
     private Aggregator<LoggingEvent, String, String> aggregator;
     private final List<Log4jEventTrigger> triggers = new ArrayList<Log4jEventTrigger>();
-    private Log4jMessageWriter messageBuilder;
+    private Log4jMessageWriter log4jMessageWriter;
 
     private final List<Tag> tags = new ArrayList<Tag>();
 
@@ -97,20 +97,24 @@ public class Log4jCollector extends Filter {
         initWriter();
         initSeriesSenderConfig();
 
-        messageBuilder = new Log4jMessageWriter();
+        log4jMessageWriter = new Log4jMessageWriter();
         if (entity != null) {
-            messageBuilder.setEntity(entity);
+            log4jMessageWriter.setEntity(entity);
         }
         if (seriesSenderConfig != null) {
-            messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
+            log4jMessageWriter.setSeriesSenderConfig(seriesSenderConfig);
         }
-        if (pattern != null) {
-            messageBuilder.setPattern(pattern);
+        if (pattern == null) {
+            pattern = "%m";
+        }
+        log4jMessageWriter.setPattern(pattern);
+        if (debug == null){
+            debug = "false";
         }
         for (Tag tag : tags) {
-            messageBuilder.addTag(tag);
+            log4jMessageWriter.addTag(tag);
         }
-        aggregator = new Aggregator<LoggingEvent, String, String>(messageBuilder, new Log4jEventProcessor());
+        aggregator = new Aggregator<LoggingEvent, String, String>(log4jMessageWriter, new Log4jEventProcessor());
         writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
@@ -124,7 +128,7 @@ public class Log4jCollector extends Filter {
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        messageBuilder.start(writer,level.toInt());
+        log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs()/1000), debug, pattern);
     }
 
     private void initSeriesSenderConfig() {
