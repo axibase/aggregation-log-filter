@@ -116,7 +116,11 @@ public class Log4j2Collector extends AbstractFilter {
         if (pattern != null) {
             messageBuilder.setPattern(pattern);
         } else {
+            pattern = DEFAULT_PATTERN;
             messageBuilder.setPattern(DEFAULT_PATTERN);
+        }
+        if (debug == null){
+            debug = "false";
         }
         for (Tag tag : tags) {
             messageBuilder.addTag(tag);
@@ -134,7 +138,7 @@ public class Log4j2Collector extends AbstractFilter {
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        messageBuilder.start(writer,level.intLevel());
+        messageBuilder.start(writer,level.intLevel(),(int) (seriesSenderConfig.getIntervalMs()/1000), debug, pattern);
 
     }
 
