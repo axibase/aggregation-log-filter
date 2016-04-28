@@ -18,7 +18,8 @@ package com.axibase.tsd.collector.writer;
 public enum WriterType {
     UDP(UdpAtsdWriter.class),
     TCP(TcpAtsdWriter.class),
-    HTTP(HttpAtsdWriter.class);
+    HTTP(HttpAtsdWriter.class),
+    HTTPS(HttpsAtsdWriter.class);
 
     private Class writerClass;
 

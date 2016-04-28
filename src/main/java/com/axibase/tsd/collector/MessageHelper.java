@@ -51,7 +51,7 @@ public class MessageHelper {
         this.entity = entity;
     }
 
-    public void init(WritableByteChannel writer, String level, int intervalSeconds, String debug, String pattern) {
+    public void init(WritableByteChannel writer, Map<String,String> stringSettings) {
 
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
@@ -61,7 +61,7 @@ public class MessageHelper {
             command = command.split(" ")[0];
         }
 
-        sendAggregatorSettings(writer, level, intervalSeconds, debug, pattern);
+        sendAggregatorSettings(writer, stringSettings);
         sendAggregatorRuntime(writer);
 
         {
@@ -105,8 +105,8 @@ public class MessageHelper {
     private void sendAggregatorRuntime(WritableByteChannel writer) {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
-        sb.append(" k:command=").append(command);
         sb.append(" t:java.log_aggregator.runtime");
+        sb.append(" k:command=").append(command);
 
         Properties systemProperties = System.getProperties();
 
@@ -162,19 +162,19 @@ public class MessageHelper {
         try {
             writer.write(byteBuffer);
         } catch (IOException e) {
-            AtsdUtil.logError("Writer failed to send java.log_aggregator.runtime property command " + sb.toString(), e);
+            AtsdUtil.logError("Writer failed to send java.log_aggregator.runtime property command: " + sb.toString(), e);
         }
     }
 
-    private void sendAggregatorSettings(WritableByteChannel writer, String level, int intervalSeconds, String debug, String pattern) {
+    private void sendAggregatorSettings(WritableByteChannel writer, Map<String,String> stringSettings) {
+//    private void sendAggregatorSettings(WritableByteChannel writer, String level, int intervalSeconds, String debug, String pattern) {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
-        sb.append(" k:command=").append(command);
         sb.append(" t:java.log_aggregator.settings");
-        sb.append(" v:level=").append(level);
-        sb.append(" v:interval=").append(intervalSeconds);
-        sb.append(" v:debug=").append(debug);
-        sb.append(" v:pattern=").append("\"").append(pattern).append("\"");
+        sb.append(" k:command=").append(command);
+        for (String key : stringSettings.keySet()) {
+            sb.append(" v:").append(key).append("=").append("\"").append(stringSettings.get(key)).append("\"");
+        }
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
@@ -182,7 +182,7 @@ public class MessageHelper {
         try {
             writer.write(byteBuffer);
         } catch (IOException e) {
-            AtsdUtil.logError("Writer failed to send java.log_aggregator.settings property command " + sb.toString(), e);
+            AtsdUtil.logError("Writer failed to send java.log_aggregator.settings property command: " + sb.toString(), e);
         }
     }
 
