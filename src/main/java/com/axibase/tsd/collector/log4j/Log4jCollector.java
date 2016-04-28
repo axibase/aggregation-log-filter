@@ -27,9 +27,13 @@ import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Log4jCollector extends Filter {
     private Aggregator<LoggingEvent, String, String> aggregator;
@@ -57,6 +61,7 @@ public class Log4jCollector extends Filter {
     private Integer intervalSeconds;
     private String debug;
     private String pattern;
+    private String scheme;
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -108,7 +113,7 @@ public class Log4jCollector extends Filter {
             pattern = "%m";
         }
         log4jMessageWriter.setPattern(pattern);
-        if (debug == null){
+        if (debug == null) {
             debug = "false";
         }
         for (Tag tag : tags) {
@@ -128,7 +133,11 @@ public class Log4jCollector extends Filter {
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs()/1000), debug, pattern);
+        Map<String, String> stringSettings = new HashMap<>();
+        stringSettings.put("debug", debug);
+        stringSettings.put("pattern", pattern);
+        stringSettings.put("scheme", scheme);
+        log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
     private void initSeriesSenderConfig() {
@@ -157,6 +166,12 @@ public class Log4jCollector extends Filter {
             simpleHttpAtsdWriter.setUsername(writerUsername);
             simpleHttpAtsdWriter.setPassword(writerPassword);
             writer = simpleHttpAtsdWriter;
+        } else if (writer instanceof HttpsAtsdWriter) {
+            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
+            simpleHttpsAtsdWriter.setUrl(writerUrl);
+            simpleHttpsAtsdWriter.setUsername(writerUsername);
+            simpleHttpsAtsdWriter.setPassword(writerPassword);
+            writer = simpleHttpsAtsdWriter;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             LogLog.error(msg);
@@ -171,44 +186,6 @@ public class Log4jCollector extends Filter {
             LogLog.error(msg);
             throw new IllegalStateException(msg);
         }
-    }
-
-    public void setWriter(String writerTypeName) {
-        try {
-            final WriterType writerType = WriterType.valueOf(writerTypeName.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-            if (writerPort == 0) {
-                writerTypeName = writerTypeName.toLowerCase();
-                if (writerTypeName.equals("tcp")) writerPort = 8081;
-                if (writerTypeName.equals("udp")) writerPort = 8082;
-                if (writerTypeName.equals("http")) writerPort = 8088;
-            }
-        } catch (Exception e) {
-            final String msg = "Could not create writer instance by type: " + writerTypeName + ", "
-                    + e.getMessage();
-            LogLog.error(msg);
-            throw new IllegalStateException(msg);
-        }
-    }
-
-    public void setWriterHost(String host) {
-        this.writerHost = host;
-    }
-
-    public void setWriterPort(int port) {
-        this.writerPort = port;
-    }
-
-    public void setWriterUrl(String writerUrl) {
-        this.writerUrl = writerUrl;
-    }
-
-    public void setWriterUsername(String writerUsername) {
-        this.writerUsername = writerUsername;
-    }
-
-    public void setWriterPassword(String writerPassword) {
-        this.writerPassword = writerPassword;
     }
 
     public void setWriterReconnectTimeoutMs(long writerReconnectTimeoutMs) {
@@ -257,12 +234,6 @@ public class Log4jCollector extends Filter {
                     if (vParts.length >= 2) {
                         trigger.setSendMultiplier(Double.parseDouble(vParts[1]));
                     }
-//                    if (vParts.length >= 3) {
-//                        trigger.setResetIntervalSeconds(Long.parseLong(vParts[2]));
-//                    }
-//                    if (vParts.length >= 4) {
-//                        trigger.setEvery(Integer.parseInt(vParts[3]));
-//                    }
                 }
                 trigger.init();
                 triggers.add(trigger);
@@ -276,6 +247,39 @@ public class Log4jCollector extends Filter {
 
     public void setPattern(String pattern) {
         this.pattern = pattern;
+    }
+
+    public void setUrl(String stringURI) {
+        try {
+            URI uri = new URI(stringURI);
+            this.scheme = uri.getScheme();
+            if (scheme.equals("http") || scheme.equals("https")) {
+                String info = uri.getUserInfo();
+                if (!info.isEmpty()) {
+                    this.writerUrl = stringURI.replace(info + "@", "");
+                    String[] userInfo = info.split(":", 2);
+                    this.writerUsername = userInfo[0];
+                    this.writerPassword = userInfo[1];
+                } else {
+                    this.writerUrl = stringURI;
+                    this.writerUsername = "";
+                    this.writerPassword = "";
+                }
+            } else {
+                this.writerHost = uri.getHost();
+                this.writerPort = uri.getPort();
+            }
+            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
+            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+        } catch (InstantiationException e) {
+            final String msg = "Could not create writer instance by type, "
+                    + e.getMessage();
+            LogLog.error(msg);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            LogLog.error("Could not parse generic url " + stringURI, e);
+        }
     }
 
     @Override
