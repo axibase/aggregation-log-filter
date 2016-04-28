@@ -179,12 +179,22 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     }
 
     @Override
-    public void start(WritableByteChannel writer, int level, int intervalSeconds, String debug, String pattern) {
+    public void start(WritableByteChannel writer, int level, int intervalSeconds,  Map<String, String> stringSettings) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
-        String stringLevel = Level.forName("tryExtractInt",level).toString();
-        messageHelper.init(writer, stringLevel, intervalSeconds, debug, pattern);
+
+        if (!tags.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (String key : tags.keySet()) {
+                sb.append(key).append("=").append(tags.get(key)).append(" ");
+            }
+            stringSettings.put("tags", sb.toString().trim());
+        }
+//        stringSettings.put("level", Level.forName("extractFromSecondArg", level).toString());
+        stringSettings.put("intervalSeconds", intervalSeconds + "");
+        stringSettings.put("framework", "log4j2");
+        messageHelper.init(writer, stringSettings);
 
         if (pattern != null) {
             final PatternParser patternParser = new PatternParser(null, PatternLayout.KEY,

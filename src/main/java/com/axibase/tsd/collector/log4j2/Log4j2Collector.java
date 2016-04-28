@@ -20,10 +20,7 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
-import com.axibase.tsd.collector.writer.HttpAtsdWriter;
-import com.axibase.tsd.collector.writer.LoggingWrapper;
-import com.axibase.tsd.collector.writer.WriterType;
+import com.axibase.tsd.collector.writer.*;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
@@ -33,9 +30,13 @@ import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.logging.log4j.status.StatusLogger;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Plugin(name = "Collector", category = "Core", elementType = "filter", printObject = true)
 public class Log4j2Collector extends AbstractFilter {
@@ -63,6 +64,8 @@ public class Log4j2Collector extends AbstractFilter {
     private Integer intervalSeconds;
     private String debug;
     private String pattern;
+    private String scheme;
+
     private final int DEFAULT_INTERVAL = 60;
     private final String DEFAULT_PATTERN = "%m";
 
@@ -119,7 +122,7 @@ public class Log4j2Collector extends AbstractFilter {
             pattern = DEFAULT_PATTERN;
             messageBuilder.setPattern(DEFAULT_PATTERN);
         }
-        if (debug == null){
+        if (debug == null) {
             debug = "false";
         }
         for (Tag tag : tags) {
@@ -138,7 +141,11 @@ public class Log4j2Collector extends AbstractFilter {
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        messageBuilder.start(writer,level.intLevel(),(int) (seriesSenderConfig.getIntervalMs()/1000), debug, pattern);
+        Map<String, String> stringSettings = new HashMap<>();
+        stringSettings.put("debug", debug);
+        stringSettings.put("pattern", pattern);
+        stringSettings.put("scheme", scheme);
+        messageBuilder.start(writer, level.intLevel(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
 
     }
 
@@ -153,12 +160,7 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("tags") final String tags,
             @PluginAttribute("messages") final String messages,
             @PluginAttribute("level") final Level level,
-            @PluginAttribute("writer") final String writer,
-            @PluginAttribute("writerHost") final String writerHost,
-            @PluginAttribute("writerPort") final int writerPort,
-            @PluginAttribute("writerUrl") final String writerUrl,
-            @PluginAttribute("writerUsername") final String writerUsername,
-            @PluginAttribute("writerPassword") final String writerPassword,
+            @PluginAttribute("url") final String url,
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
             @PluginAttribute("pattern") final String pattern,
             @PluginAttribute("debug") final String debug) {
@@ -168,20 +170,7 @@ public class Log4j2Collector extends AbstractFilter {
         collector.setTags(tags);
         collector.setMessages(messages);
         collector.setLevel(minLevel);
-        if (writer == null) {
-            collector.setWriter("tcp");
-        } else {
-            collector.setWriter(writer);
-        }
-        collector.setWriterHost(writerHost);
-        if (writerPort == 0) {
-            collector.setWriterPort(8081);
-        } else {
-            collector.setWriterPort(writerPort);
-        }
-        collector.setWriterUrl(writerUrl);
-        collector.setWriterUsername(writerUsername);
-        collector.setWriterPassword(writerPassword);
+        collector.setUrl(url);
         if (intervalSeconds <= 0) {
             collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
         } else {
@@ -217,6 +206,12 @@ public class Log4j2Collector extends AbstractFilter {
             simpleHttpAtsdWriter.setUsername(writerUsername);
             simpleHttpAtsdWriter.setPassword(writerPassword);
             writer = simpleHttpAtsdWriter;
+        } else if (writer instanceof HttpsAtsdWriter) {
+            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
+            simpleHttpsAtsdWriter.setUrl(writerUrl);
+            simpleHttpsAtsdWriter.setUsername(writerUsername);
+            simpleHttpsAtsdWriter.setPassword(writerPassword);
+            writer = simpleHttpsAtsdWriter;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             StatusLogger.getLogger().error(msg);
@@ -242,6 +237,7 @@ public class Log4j2Collector extends AbstractFilter {
                 if (writerTypeName.equals("tcp")) writerPort = 8081;
                 if (writerTypeName.equals("udp")) writerPort = 8082;
                 if (writerTypeName.equals("http")) writerPort = 8088;
+                if (writerTypeName.equals("https")) writerPort = 8443;
             }
         } catch (Exception e) {
             final String msg = "Could not create writer instance by type: " + writerTypeName + ", "
@@ -251,24 +247,37 @@ public class Log4j2Collector extends AbstractFilter {
         }
     }
 
-    public void setWriterHost(String host) {
-        this.writerHost = host;
-    }
-
-    public void setWriterPort(int port) {
-        this.writerPort = port;
-    }
-
-    public void setWriterUrl(String writerUrl) {
-        this.writerUrl = writerUrl;
-    }
-
-    public void setWriterUsername(String writerUsername) {
-        this.writerUsername = writerUsername;
-    }
-
-    public void setWriterPassword(String writerPassword) {
-        this.writerPassword = writerPassword;
+    public void setUrl(String stringURI) {
+        try {
+            URI uri = new URI(stringURI);
+            this.scheme = uri.getScheme();
+            if (scheme.equals("http") || scheme.equals("https")) {
+                String info = uri.getUserInfo();
+                if (!info.isEmpty()) {
+                    this.writerUrl = stringURI.replace(info + "@", "");
+                    String[] userInfo = info.split(":", 2);
+                    this.writerUsername = userInfo[0];
+                    this.writerPassword = userInfo[1];
+                } else {
+                    this.writerUrl = stringURI;
+                    this.writerUsername = "";
+                    this.writerPassword = "";
+                }
+            } else {
+                this.writerHost = uri.getHost();
+                this.writerPort = uri.getPort();
+            }
+            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
+            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+        } catch (InstantiationException e) {
+            final String msg = "Could not create writer instance by type, "
+                    + e.getMessage();
+            AtsdUtil.logError(msg);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            AtsdUtil.logError("Could not parse generic url " + stringURI, e);
+        }
     }
 
     public void setEntity(String entity) {
@@ -355,6 +364,7 @@ public class Log4j2Collector extends AbstractFilter {
                 ", writerUrl='" + writerUrl + '\'' +
                 ", writerUsername='" + writerUsername + '\'' +
                 ", writerPassword='" + writerPassword + '\'' +
+                ", scheme='" + scheme + '\'' +
                 ", seriesSenderConfig=" + seriesSenderConfig +
                 ", intervalSeconds=" + intervalSeconds +
                 ", debug='" + debug + '\'' +
