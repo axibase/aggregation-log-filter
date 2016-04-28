@@ -25,15 +25,16 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.writer.AbstractAtsdWriter;
-import com.axibase.tsd.collector.writer.HttpAtsdWriter;
-import com.axibase.tsd.collector.writer.LoggingWrapper;
-import com.axibase.tsd.collector.writer.WriterType;
+import com.axibase.tsd.collector.writer.*;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
     private LogbackWriter<E> logbackWriter;
@@ -53,6 +54,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String password;
     private String debug;
     private String pattern;
+    private String scheme;
 
     @Override
     public FilterReply decide(E event) {
@@ -103,7 +105,11 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             aggregator.addSendMessageTrigger(trigger);
         }
         aggregator.start();
-        logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), debug, pattern);
+        Map<String, String> stringSettings = new HashMap<>();
+        stringSettings.put("debug", debug);
+        stringSettings.put("pattern", pattern);
+        stringSettings.put("scheme", scheme);
+        logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
     private void initSeriesSenderConfig() {
@@ -114,23 +120,24 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     private void initWriter() {
-        if (writer == null) {
-            if (writerType == null) {
-                writerType = "tcp";
-            }
-            final WriterType w = WriterType.valueOf(writerType.toUpperCase());
-            try {
-                this.writer = (WritableByteChannel) w.getWriterClass().newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            if (port == 0) {
-                if (writerType.equals("tcp")) port = 8081;
-                if (writerType.equals("udp")) port = 8082;
-                if (writerType.equals("http")) port = 8088;
-            }
+//        if (writer == null) {
+//            if (writerType == null) {
+//                writerType = "tcp";
+//            }
+//            final WriterType w = WriterType.valueOf(writerType.toUpperCase());
+//            try {
+//                this.writer = (WritableByteChannel) w.getWriterClass().newInstance();
+//            } catch (InstantiationException e) {
+//                e.printStackTrace();
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//            if (port == 0) {
+//                if (writerType.equals("tcp")) port = 8081;
+//                if (writerType.equals("udp")) port = 8082;
+//                if (writerType.equals("http")) port = 8088;
+//                if (writerType.equals("https")) port = 8443;
+//            }
             if (writer instanceof AbstractAtsdWriter) {
                 final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
                 atsdWriter.setHost(host);
@@ -141,11 +148,17 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 simpleHttpAtsdWriter.setUsername(username);
                 simpleHttpAtsdWriter.setPassword(password);
                 writer = simpleHttpAtsdWriter;
+            } else if (writer instanceof HttpsAtsdWriter) {
+                final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
+                simpleHttpsAtsdWriter.setUrl(url);
+                simpleHttpsAtsdWriter.setUsername(username);
+                simpleHttpsAtsdWriter.setPassword(password);
+                writer = simpleHttpsAtsdWriter;
             } else {
                 final String msg = "Undefined writer for Collector: " + writer;
                 throw new IllegalStateException(msg);
             }
-        }
+//        }
     }
 
     @Override
@@ -205,8 +218,33 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.port = port;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUrl(String stringURI) {
+        try {
+            URI uri = new URI(stringURI);
+            String protocol = uri.getScheme();
+            scheme = protocol;
+
+            if (protocol.equals("http") || protocol.equals("https")) {
+                String info = uri.getUserInfo();
+                String[] userInfo = info.split(":", 2);
+                username = userInfo[0];
+                password = userInfo[1];
+                url = stringURI.replace(info + "@", "");
+            } else {
+                this.host = uri.getHost();
+                this.port = uri.getPort();
+            }
+            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
+            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+        } catch (InstantiationException e) {
+            final String msg = "Could not create writer instance by type, "
+                    + e.getMessage();
+            AtsdUtil.logError(msg);
+        } catch (IllegalAccessException e) {
+            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
+        } catch (URISyntaxException e) {
+            AtsdUtil.logError("Could not parse generic url " + stringURI, e);
+        }
     }
 
     public void setUsername(String username) {
