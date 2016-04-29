@@ -20,6 +20,7 @@ import sun.misc.BASE64Encoder;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -31,20 +32,15 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     private static final int DEFAULT_TIMEOUT_MS = 5000;
     protected String method = DEFAULT_METHOD;
     protected String url;
-    protected String username;
-    protected String password;
+    protected String credentials;
     protected int timeout = DEFAULT_TIMEOUT_MS;
 
     public void setUrl(String url) {
         this.url = url;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setCredentials(String credentials) {
+        this.credentials = credentials;
     }
 
     protected void setMethod(String method) {
@@ -69,8 +65,8 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     protected void initConnection(HttpURLConnection con) throws IOException {
         con.setRequestMethod(method);
         BASE64Encoder enc = new BASE64Encoder();
-        if (username != null && username.trim().length() > 0) {
-            String encodedAuthorization = enc.encode((username + ":" + password).getBytes());
+        if (credentials != null && credentials.trim().length() > 0) {
+            String encodedAuthorization = enc.encode((URLDecoder.decode(credentials, "UTF-8")).getBytes());
             con.setRequestProperty("Authorization",
                     "Basic " + encodedAuthorization);
         }
