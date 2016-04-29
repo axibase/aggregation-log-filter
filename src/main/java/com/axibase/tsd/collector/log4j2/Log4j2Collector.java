@@ -56,8 +56,6 @@ public class Log4j2Collector extends AbstractFilter {
     private int writerPort;
 
     private String writerUrl;
-    private String writerUsername;
-    private String writerPassword;
 
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
@@ -203,14 +201,10 @@ public class Log4j2Collector extends AbstractFilter {
         } else if (writer instanceof HttpAtsdWriter) {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(writerUrl);
-            simpleHttpAtsdWriter.setUsername(writerUsername);
-            simpleHttpAtsdWriter.setPassword(writerPassword);
             writer = simpleHttpAtsdWriter;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(writerUrl);
-            simpleHttpsAtsdWriter.setUsername(writerUsername);
-            simpleHttpsAtsdWriter.setPassword(writerPassword);
             writer = simpleHttpsAtsdWriter;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
@@ -252,19 +246,9 @@ public class Log4j2Collector extends AbstractFilter {
             URI uri = new URI(stringURI);
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
-                String info = uri.getUserInfo();
                 if (uri.getPath().isEmpty())
                     stringURI = stringURI.concat("/api/v1/commands/batch");
-                if (!info.isEmpty()) {
-                    this.writerUrl = stringURI.replace(info + "@", "");
-                    String[] userInfo = info.split(":", 2);
-                    this.writerUsername = userInfo[0];
-                    this.writerPassword = userInfo[1];
-                } else {
-                    this.writerUrl = stringURI;
-                    this.writerUsername = "";
-                    this.writerPassword = "";
-                }
+                this.writerUrl = stringURI;
             } else {
                 this.writerHost = uri.getHost();
                 this.writerPort = uri.getPort();
@@ -364,8 +348,6 @@ public class Log4j2Collector extends AbstractFilter {
                 ", writerHost='" + writerHost + '\'' +
                 ", writerPort=" + writerPort +
                 ", writerUrl='" + writerUrl + '\'' +
-                ", writerUsername='" + writerUsername + '\'' +
-                ", writerPassword='" + writerPassword + '\'' +
                 ", scheme='" + scheme + '\'' +
                 ", seriesSenderConfig=" + seriesSenderConfig +
                 ", intervalSeconds=" + intervalSeconds +
