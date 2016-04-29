@@ -146,18 +146,34 @@ public class Log4jCollector extends Filter {
     }
 
     private void initWriter() {
-        if (writer == null) {
-            writer = new TcpAtsdWriter();
+        final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
+        try {
+            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+        } catch (InstantiationException e) {
+            final String msg = "Could not create writer instance by type, "
+                    + e.getMessage();
+            LogLog.error(msg);
+        } catch (IllegalAccessException e) {
+            LogLog.error("Could not instantiate writerType ", e);
         }
-        if (writerPort == 0) {
-            writerPort = 8081;
-        }
+
         if (writer instanceof AbstractAtsdWriter) {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
             checkWriterProperty(writerHost == null, "writerHost", writerHost);
-            checkWriterProperty(writerPort <= 0, "writerPort", Integer.toString(writerPort));
+            if (writerPort <= 0)
+                switch (scheme.toLowerCase()){
+                    case "tcp":
+                        writerPort = 8081;
+                        break;
+                    case "udp":
+                        writerPort = 8082;
+                        break;
+                    default:
+                        LogLog.error("Invalid scheme " + scheme);
+                }
             atsdWriter.setHost(writerHost);
             atsdWriter.setPort(writerPort);
+            writer = atsdWriter;
         } else if (writer instanceof HttpAtsdWriter) {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(writerUrl);
@@ -255,14 +271,6 @@ public class Log4jCollector extends Filter {
                 this.writerHost = uri.getHost();
                 this.writerPort = uri.getPort();
             }
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, "
-                    + e.getMessage();
-            LogLog.error(msg);
-        } catch (IllegalAccessException e) {
-            LogLog.error("Could not instantiate writerType ", e);
         } catch (URISyntaxException e) {
             LogLog.error("Could not parse generic uri " + stringURI, e);
         }
