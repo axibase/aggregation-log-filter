@@ -46,7 +46,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
     private final List<Tag> tags = new ArrayList<Tag>();
     private WritableByteChannel writer;
-    private String writerType;
     private String host;
     private int port;
     private String url;
@@ -118,10 +117,32 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     private void initWriter() {
+        try {
+            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
+            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+        } catch (InstantiationException e) {
+            final String msg = "Could not create writer instance by type, "
+                    + e.getMessage();
+            AtsdUtil.logError(msg);
+        } catch (IllegalAccessException e) {
+            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
+        }
         if (writer instanceof AbstractAtsdWriter) {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
+                        if (port <= 0)
+                switch (scheme.toLowerCase()){
+                    case "tcp":
+                        port = 8081;
+                        break;
+                    case "udp":
+                        port = 8082;
+                        break;
+                    default:
+                        AtsdUtil.logError("Invalid scheme " + scheme);
+                }
             atsdWriter.setHost(host);
             atsdWriter.setPort(port);
+            writer = atsdWriter;
         } else if (writer instanceof HttpAtsdWriter) {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(url);
@@ -181,18 +202,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.writer = writer;
     }
 
-    public void setWriterType(String writerTypeName) {
-        writerType = writerTypeName;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
     public void setUrl(String stringURI) {
         try {
             URI uri = new URI(stringURI);
@@ -206,14 +215,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 this.host = uri.getHost();
                 this.port = uri.getPort();
             }
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, "
-                    + e.getMessage();
-            AtsdUtil.logError(msg);
-        } catch (IllegalAccessException e) {
-            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
         } catch (URISyntaxException e) {
             AtsdUtil.logError("Could not parse generic url " + stringURI, e);
         }
