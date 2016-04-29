@@ -15,11 +15,14 @@
 
 package com.axibase.tsd.collector.writer;
 
+import com.axibase.tsd.collector.AtsdUtil;
 import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -37,10 +40,11 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public void setCredentials(String credentials) {
-        this.credentials = credentials;
+        try {
+            this.credentials = new URL(url).getUserInfo();
+        } catch (MalformedURLException e) {
+                AtsdUtil.logInfo("Could not get credentials from url", e);
+        }
     }
 
     protected void setMethod(String method) {
