@@ -120,45 +120,26 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     private void initWriter() {
-//        if (writer == null) {
-//            if (writerType == null) {
-//                writerType = "tcp";
-//            }
-//            final WriterType w = WriterType.valueOf(writerType.toUpperCase());
-//            try {
-//                this.writer = (WritableByteChannel) w.getWriterClass().newInstance();
-//            } catch (InstantiationException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
-//            if (port == 0) {
-//                if (writerType.equals("tcp")) port = 8081;
-//                if (writerType.equals("udp")) port = 8082;
-//                if (writerType.equals("http")) port = 8088;
-//                if (writerType.equals("https")) port = 8443;
-//            }
-            if (writer instanceof AbstractAtsdWriter) {
-                final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
-                atsdWriter.setHost(host);
-                atsdWriter.setPort(port);
-            } else if (writer instanceof HttpAtsdWriter) {
-                final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
-                simpleHttpAtsdWriter.setUrl(url);
-                simpleHttpAtsdWriter.setUsername(username);
-                simpleHttpAtsdWriter.setPassword(password);
-                writer = simpleHttpAtsdWriter;
-            } else if (writer instanceof HttpsAtsdWriter) {
-                final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
-                simpleHttpsAtsdWriter.setUrl(url);
-                simpleHttpsAtsdWriter.setUsername(username);
-                simpleHttpsAtsdWriter.setPassword(password);
-                writer = simpleHttpsAtsdWriter;
-            } else {
-                final String msg = "Undefined writer for Collector: " + writer;
-                throw new IllegalStateException(msg);
-            }
-//        }
+        if (writer instanceof AbstractAtsdWriter) {
+            final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
+            atsdWriter.setHost(host);
+            atsdWriter.setPort(port);
+        } else if (writer instanceof HttpAtsdWriter) {
+            final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
+            simpleHttpAtsdWriter.setUrl(url);
+            simpleHttpAtsdWriter.setUsername(username);
+            simpleHttpAtsdWriter.setPassword(password);
+            writer = simpleHttpAtsdWriter;
+        } else if (writer instanceof HttpsAtsdWriter) {
+            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
+            simpleHttpsAtsdWriter.setUrl(url);
+            simpleHttpsAtsdWriter.setUsername(username);
+            simpleHttpsAtsdWriter.setPassword(password);
+            writer = simpleHttpsAtsdWriter;
+        } else {
+            final String msg = "Undefined writer for Collector: " + writer;
+            throw new IllegalStateException(msg);
+        }
     }
 
     @Override
@@ -221,15 +202,18 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public void setUrl(String stringURI) {
         try {
             URI uri = new URI(stringURI);
-            String protocol = uri.getScheme();
-            scheme = protocol;
+            this.scheme = uri.getScheme();
 
-            if (protocol.equals("http") || protocol.equals("https")) {
+            if (scheme.equals("http") || scheme.equals("https")) {
                 String info = uri.getUserInfo();
-                String[] userInfo = info.split(":", 2);
-                username = userInfo[0];
-                password = userInfo[1];
-                url = stringURI.replace(info + "@", "");
+                if (uri.getPath().isEmpty())
+                    stringURI = stringURI.concat("/api/v1/commands/batch");
+                if (!info.isEmpty()) {
+                    String[] userInfo = info.split(":", 2);
+                    username = userInfo[0];
+                    password = userInfo[1];
+                    url = stringURI.replace(info + "@", "");
+                }
             } else {
                 this.host = uri.getHost();
                 this.port = uri.getPort();
@@ -260,9 +244,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     public void setSendMessage(LogbackEventTrigger<E> messageTrigger) {
-//        if (messageTrigger.getEvery() > 0) {
         triggers.add(messageTrigger);
-//        }
     }
 
     public void setIntervalSeconds(int intervalSeconds) {
