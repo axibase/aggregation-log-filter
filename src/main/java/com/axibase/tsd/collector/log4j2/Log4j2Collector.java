@@ -192,12 +192,33 @@ public class Log4j2Collector extends AbstractFilter {
     }
 
     private void initWriter() {
+        final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
+        try {
+            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
+        } catch (InstantiationException e) {
+            final String msg = "Could not create writer instance by type, " + e.getMessage();
+            AtsdUtil.logError(msg);
+        } catch (IllegalAccessException e) {
+            AtsdUtil.logError("Could not instantiate writerType ", e);
+        }
+
         if (writer instanceof AbstractAtsdWriter) {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
             checkWriterProperty(writerHost == null, "writerHost", writerHost);
-            checkWriterProperty(writerPort <= 0, "writerPort", Integer.toString(writerPort));
+            if (writerPort <= 0)
+                switch (scheme.toLowerCase()){
+                    case "tcp":
+                        writerPort = 8081;
+                        break;
+                    case "udp":
+                        writerPort = 8082;
+                        break;
+                    default:
+                        AtsdUtil.logError("Invalid scheme " + scheme);
+                }
             atsdWriter.setHost(writerHost);
             atsdWriter.setPort(writerPort);
+            writer = atsdWriter;
         } else if (writer instanceof HttpAtsdWriter) {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(writerUrl);
@@ -222,25 +243,6 @@ public class Log4j2Collector extends AbstractFilter {
         }
     }
 
-    public void setWriter(String writerTypeName) {
-        try {
-            final WriterType writerType = WriterType.valueOf(writerTypeName.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-            if (writerPort == 0) {
-                writerTypeName = writerTypeName.toLowerCase();
-                if (writerTypeName.equals("tcp")) writerPort = 8081;
-                if (writerTypeName.equals("udp")) writerPort = 8082;
-                if (writerTypeName.equals("http")) writerPort = 8088;
-                if (writerTypeName.equals("https")) writerPort = 8443;
-            }
-        } catch (Exception e) {
-            final String msg = "Could not create writer instance by type: " + writerTypeName + ", "
-                    + e.getMessage();
-            AtsdUtil.logError(msg);
-            throw new IllegalStateException(msg);
-        }
-    }
-
     public void setUrl(String stringURI) {
         try {
             URI uri = new URI(stringURI);
@@ -253,14 +255,6 @@ public class Log4j2Collector extends AbstractFilter {
                 this.writerHost = uri.getHost();
                 this.writerPort = uri.getPort();
             }
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, "
-                    + e.getMessage();
-            AtsdUtil.logError(msg);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
         } catch (URISyntaxException e) {
             AtsdUtil.logError("Could not parse generic url " + stringURI, e);
         }
