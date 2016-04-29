@@ -179,7 +179,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     }
 
     @Override
-    public void start(WritableByteChannel writer, int level, int intervalSeconds,  Map<String, String> stringSettings) {
+    public void start(WritableByteChannel writer, int level, int intervalSeconds, Map<String, String> stringSettings) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
@@ -191,7 +191,21 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             }
             stringSettings.put("tags", sb.toString().trim());
         }
-//        stringSettings.put("level", Level.forName("extractFromSecondArg", level).toString());
+
+        Level curLevel = Level.TRACE;
+        Level[] levels = new Level[]{
+                Level.FATAL, Level.ERROR,
+                Level.WARN, Level.INFO,
+                Level.DEBUG, Level.TRACE};
+
+        for (Level l : levels) {
+            if (l.intLevel() == level) {
+                curLevel = l;
+                break;
+            }
+        }
+
+        stringSettings.put("level", curLevel.toString());
         stringSettings.put("intervalSeconds", intervalSeconds + "");
         stringSettings.put("framework", "log4j2");
         messageHelper.init(writer, stringSettings);
@@ -203,16 +217,11 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         }
 
         if (writer != null) {
-            Level[] levels = new Level[]{
-                    Level.FATAL, Level.ERROR,
-                    Level.WARN, Level.INFO,
-                    Level.DEBUG, Level.TRACE};
             try {
                 for (Level l : levels) {
                     if (l.intLevel() > level)
                         continue;
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
-
                 }
             } catch (IOException e) {
                 e.printStackTrace();
