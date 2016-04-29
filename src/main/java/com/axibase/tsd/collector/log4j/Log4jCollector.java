@@ -255,6 +255,8 @@ public class Log4jCollector extends Filter {
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 String info = uri.getUserInfo();
+                if (uri.getPath().isEmpty())
+                    stringURI = stringURI.concat("/api/v1/commands/batch");
                 if (!info.isEmpty()) {
                     this.writerUrl = stringURI.replace(info + "@", "");
                     String[] userInfo = info.split(":", 2);
