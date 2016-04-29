@@ -52,8 +52,6 @@ public class Log4jCollector extends Filter {
     private int writerPort;
 
     private String writerUrl;
-    private String writerUsername;
-    private String writerPassword;
     private long writerReconnectTimeoutMs;
 
     // series sender
@@ -163,14 +161,10 @@ public class Log4jCollector extends Filter {
         } else if (writer instanceof HttpAtsdWriter) {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(writerUrl);
-            simpleHttpAtsdWriter.setUsername(writerUsername);
-            simpleHttpAtsdWriter.setPassword(writerPassword);
             writer = simpleHttpAtsdWriter;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(writerUrl);
-            simpleHttpsAtsdWriter.setUsername(writerUsername);
-            simpleHttpsAtsdWriter.setPassword(writerPassword);
             writer = simpleHttpsAtsdWriter;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
@@ -254,19 +248,9 @@ public class Log4jCollector extends Filter {
             URI uri = new URI(stringURI);
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
-                String info = uri.getUserInfo();
                 if (uri.getPath().isEmpty())
                     stringURI = stringURI.concat("/api/v1/commands/batch");
-                if (!info.isEmpty()) {
-                    this.writerUrl = stringURI.replace(info + "@", "");
-                    String[] userInfo = info.split(":", 2);
-                    this.writerUsername = userInfo[0];
-                    this.writerPassword = userInfo[1];
-                } else {
-                    this.writerUrl = stringURI;
-                    this.writerUsername = "";
-                    this.writerPassword = "";
-                }
+                this.writerUrl = stringURI;
             } else {
                 this.writerHost = uri.getHost();
                 this.writerPort = uri.getPort();
@@ -278,9 +262,9 @@ public class Log4jCollector extends Filter {
                     + e.getMessage();
             LogLog.error(msg);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            LogLog.error("Could not instantiate writerType ", e);
         } catch (URISyntaxException e) {
-            LogLog.error("Could not parse generic url " + stringURI, e);
+            LogLog.error("Could not parse generic uri " + stringURI, e);
         }
     }
 
