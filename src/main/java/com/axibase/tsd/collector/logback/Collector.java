@@ -50,8 +50,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String host;
     private int port;
     private String url;
-    private String username;
-    private String password;
     private String debug;
     private String pattern;
     private String scheme;
@@ -127,14 +125,10 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         } else if (writer instanceof HttpAtsdWriter) {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(url);
-            simpleHttpAtsdWriter.setUsername(username);
-            simpleHttpAtsdWriter.setPassword(password);
             writer = simpleHttpAtsdWriter;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(url);
-            simpleHttpsAtsdWriter.setUsername(username);
-            simpleHttpsAtsdWriter.setPassword(password);
             writer = simpleHttpsAtsdWriter;
         } else {
             final String msg = "Undefined writer for Collector: " + writer;
@@ -205,15 +199,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             this.scheme = uri.getScheme();
 
             if (scheme.equals("http") || scheme.equals("https")) {
-                String info = uri.getUserInfo();
                 if (uri.getPath().isEmpty())
                     stringURI = stringURI.concat("/api/v1/commands/batch");
-                if (!info.isEmpty()) {
-                    String[] userInfo = info.split(":", 2);
-                    username = userInfo[0];
-                    password = userInfo[1];
-                    url = stringURI.replace(info + "@", "");
-                }
+                this.url = stringURI;
             } else {
                 this.host = uri.getHost();
                 this.port = uri.getPort();
@@ -229,14 +217,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         } catch (URISyntaxException e) {
             AtsdUtil.logError("Could not parse generic url " + stringURI, e);
         }
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public void setEntity(String entity) {
