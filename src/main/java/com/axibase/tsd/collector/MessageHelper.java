@@ -51,7 +51,7 @@ public class MessageHelper {
         this.entity = entity;
     }
 
-    public void init(WritableByteChannel writer, Map<String,String> stringSettings) {
+    public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
 
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
@@ -127,17 +127,20 @@ public class MessageHelper {
         sb.append(" v:").append("Name=\"").append(osMXBean.getName()).append("\"");
         sb.append(" v:").append("Version=\"").append(osMXBean.getVersion()).append("\"");
 
-        UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
-        sb.append(" v:").append("MaxFileDescriptorCount=\"").append(osMXBeanUnix.getMaxFileDescriptorCount()).append("\"");
-        sb.append(" v:").append("TotalPhysicalMemorySize=\"").append(osMXBeanUnix.getTotalPhysicalMemorySize()).append("\"");
-        sb.append(" v:").append("TotalSwapSpaceSize=\"").append(osMXBeanUnix.getTotalSwapSpaceSize()).append("\"");
-
+        try {
+            UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
+            sb.append(" v:").append("MaxFileDescriptorCount=\"").append(osMXBeanUnix.getMaxFileDescriptorCount()).append("\"");
+            sb.append(" v:").append("TotalPhysicalMemorySize=\"").append(osMXBeanUnix.getTotalPhysicalMemorySize()).append("\"");
+            sb.append(" v:").append("TotalSwapSpaceSize=\"").append(osMXBeanUnix.getTotalSwapSpaceSize()).append("\"");
+        } catch (Exception e) {
+            AtsdUtil.logError("Writer failed to get java.log_aggregator.runtime properties for UnixOperatingSystem ", e);
+        }
 
         RuntimeMXBean runtimeMXBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
         sb.append(" v:").append("getBootClassPath=\"").append(runtimeMXBean.getBootClassPath()).append("\"");
         String name = runtimeMXBean.getName();
         sb.append(" v:").append("Name=\"").append(name).append("\"");
-        if (name.contains("@")){
+        if (name.contains("@")) {
             sb.append(" v:").append("Hostname=\"").append(name.substring(name.lastIndexOf("@") + 1)).append("\"");
         }
         sb.append(" v:").append("ClassPath=\"").append(runtimeMXBean.getClassPath()).append("\"");
@@ -166,8 +169,7 @@ public class MessageHelper {
         }
     }
 
-    private void sendAggregatorSettings(WritableByteChannel writer, Map<String,String> stringSettings) {
-//    private void sendAggregatorSettings(WritableByteChannel writer, String level, int intervalSeconds, String debug, String pattern) {
+    private void sendAggregatorSettings(WritableByteChannel writer, Map<String, String> stringSettings) {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
         sb.append(" t:java.log_aggregator.settings");

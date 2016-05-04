@@ -57,9 +57,7 @@ The logger consists of the core library and adapters for supported logging frame
 
 ```
 #log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
-#log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
-#log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
-#log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
+#log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
 
 **DONE in 5589**
@@ -68,9 +66,7 @@ The logger consists of the core library and adapters for supported logging frame
 
 ```
 log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
-log4j.appender.APPENDER.filter.COLLECTOR.writer=tcp
-log4j.appender.APPENDER.filter.COLLECTOR.writerHost=localhost
-log4j.appender.APPENDER.filter.COLLECTOR.writerPort=8081
+log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
 
 **DONE in 6002**
@@ -128,10 +124,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repositor
 
         <!-- attach log aggregator to 'FILE' appender --> 
         <filter class="com.axibase.tsd.collector.logback.Collector">
-            <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
-                <host>database_host</host>
-                <port>8081</port>
-            </writer>
+            <url>tcp://atsd_host:tcp_port</url>
         </filter>
     </appender>
 
@@ -148,9 +141,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ "https://repositor
 ```properties
 #attach log aggregator to 'logfile' appender --> 
 log4j.appender.logfile.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
-log4j.appender.logfile.filter.COLLECTOR.writer=tcp
-log4j.appender.logfile.filter.COLLECTOR.writerHost=database_hostname
-log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
+log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 ```
 
   - [View log4j.properties example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
@@ -163,9 +154,7 @@ log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
             <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
-            <param name="writer" value="tcp"/>
-            <param name="writerHost" value="database_hostname"/>
-            <param name="writerPort" value="8081"/>
+            <param name="url" value="tcp://atsd_host:tcp_port"/>
         </filter>
     </appender>
 ```
@@ -179,7 +168,7 @@ log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
     <Appenders>
         <Console name="APPENDER">
             <Filters>
-                <Collector writer="tcp" writerHost="database_host" writerPort="8081" />
+                <Collector url="tcp://atsd_host:tcp_port"/>
             </Filters>
         </Console>
     </Appenders>
@@ -224,7 +213,7 @@ log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| writer | yes | - | see `writer` config |
+| url | yes | - | scheme, host and port |
 | level | no | TRACE | minimum level to process events |
 | entity | no | machine hostname | entity name for series and messages, usually hostname of the machine where the application is running |
 | tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
@@ -236,49 +225,43 @@ log4j.appender.logfile.filter.COLLECTOR.writerPort=8081
 
 Configures a TCP, UDP or HTTP writer to send statistics and messages to a supported time series database.
 
-### TCP writer
+### TCP scheme
 
 ```xml
-<writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
-    <host>database_hostname</host>
-    <port>8081</port>
-</writer>
+<url>tcp://atsd_host:tcp_port</url>
 ```
 
 | Name | Required | Default | Description |
 |---|---|---|---| 
+| scheme | yes | - | protocol (tcp/udp/http), string |
 | host | yes | - | database hostname or IP address, string |
 | port | no | 8081 | database TCP port, integer |
 
-### UDP writer
+### UDP scheme
 
 ```xml
-<writer class="com.axibase.tsd.collector.writer.UdpAtsdWriter">
-    <host>database_hostname</host>
-    <port>8082</port>
-</writer>
+<url>udp://atsd_host:udp_port</url>
 ```
 
 | Name | Required | Default | Description |
 |---|---|---|---|
+| scheme | yes | - | protocol (tcp/udp/http), string |
 | host | yes | - | database hostname or IP address, string |
 | port | no | 8082 | database UDP port, integer |
 
-### HTTP writer
+### HTTP scheme
 
 ```xml
-<writer class="com.axibase.tsd.collector.writer.HttpAtsdWriter">
-    <url>http://database_hostname:8088/api/v1/commands/batch</url>
-    <username>USERNAME</username>
-    <password>PASSWORD</password>
-</writer>
+<url>http://username:password@atsd_host:port</url>
 ```
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | API command URL 'http://database_hostname:8088/api/v1/commands/batch', string |
+| scheme | yes | - | protocol (tcp/udp/http), string |
 | username | yes | - | username, string |
 | password | yes | - | password, string |
+| host | yes | - | database hostname or IP address, string |
+| path | no | /api/v1/commands/batch | API command, string |
 
 ## sendMessage
 
@@ -332,9 +315,7 @@ Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuratio
             <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
             <Filters>
                 <Collector
-                        writer="tcp"
-                        writerHost="database_host"
-                        writerPort="8081"
+                        url="tcp://atsd_host:tcp_port"
                         debug="true"
                         />
             </Filters>
