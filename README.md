@@ -103,7 +103,7 @@ Add Maven dependency to one of supported logging adapters (logback, log4j, log4j
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-logback</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5</version>
 </dependency>
 ```
 
@@ -116,7 +116,7 @@ Add core and adapter libraries to classpath:
 - Adds jar files to classpath
 
 ```
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.4.jar:lib/aggregation-log-filter-logback-1.0.4.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.5.jar:lib/aggregation-log-filter-logback-1.0.5.jar Main
 ```
 
 ### Option 3: lib directory 
