@@ -27,9 +27,7 @@
                         tags="ttt=ttt;ppp=ppp;mmm=mmm"
                         totalCountInit="INFO=-1;ERROR=0;TRACE=0"
                         pattern="%d [%t] %-5p %c - %m [%X{myKey}]%n"
-                        writer="tcp"
-                        writerHost="localhost"
-                        writerPort="35771"/>
+                        url="tcp://localhost:35771"/>
             </Filters>
         </Console>
         <Counter name="COUNTER"/>

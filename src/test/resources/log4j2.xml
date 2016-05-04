@@ -22,7 +22,7 @@
                 <!--todo replace complex attributes by elements-->
                 <Collector
                         pattern="%d [%t] %-5p %c - %m [%X{myKey}]%n"
-                        writerHost="atsd_database"/>
+                        url="tcp://localhost"/>
             </Filters>
         </Console>
     </Appenders>

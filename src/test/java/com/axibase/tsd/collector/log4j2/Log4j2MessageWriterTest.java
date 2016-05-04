@@ -35,10 +35,10 @@ public class Log4j2MessageWriterTest {
 
     @Test
     public void testBuildSingleStatMessage() throws Exception {
-        Log4j2MessageWriter messageBuilder = createMessageBuilder();
+        StringsCatcher catcher = new StringsCatcher();
+        Log4j2MessageWriter messageBuilder = createMessageBuilder(catcher);
         Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
         events.put("test-logger", createCounter(100, Level.ERROR.toString()));
-        StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -48,15 +48,17 @@ public class Log4j2MessageWriterTest {
 
     @Test
     public void testBuildMultipleStatMessage() throws Exception {
-        Log4j2MessageWriter messageBuilder = createMessageBuilder();
-        messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
-
         Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
-        events.put("test-logger", createCounter(100, Level.ERROR.toString(), Level.WARN.toString(), Level.DEBUG.toString()));
+        Log4j2MessageWriter messageBuilder;
 
         StringsCatcher catcher;
         {
             catcher = new StringsCatcher();
+            messageBuilder = createMessageBuilder(catcher);
+            messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
+
+            events.put("test-logger", createCounter(100, Level.ERROR.toString(), Level.WARN.toString(), Level.DEBUG.toString()));
+
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result0 = " + result);
@@ -121,9 +123,9 @@ public class Log4j2MessageWriterTest {
 
     @Test
     public void testBuildSingleMessage() throws Exception {
-        Log4j2MessageWriter messageBuilder = createMessageBuilder();
-        LogEvent event = Log4j2Utils.createLogEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
+        Log4j2MessageWriter messageBuilder = createMessageBuilder(catcher);
+        LogEvent event = Log4j2Utils.createLogEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
         assertTrue(result.substring(0, result.length()).contains(
@@ -132,10 +134,10 @@ public class Log4j2MessageWriterTest {
 
     @Test
     public void testBuildSingleMessageWithLines() throws Exception {
-        Log4j2MessageWriter messageBuilder = createMessageBuilder();
+        StringsCatcher catcher = new StringsCatcher();
+        Log4j2MessageWriter messageBuilder = createMessageBuilder(catcher);
         LogEvent event = Log4j2Utils.createLogEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
                 new NullPointerException("test"));
-        StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 10));
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -151,14 +153,14 @@ public class Log4j2MessageWriterTest {
         return singles;
     }
 
-    private Log4j2MessageWriter createMessageBuilder() {
+    private Log4j2MessageWriter createMessageBuilder(WritableByteChannel writer) {
         Log4j2MessageWriter messageBuilder = new Log4j2MessageWriter();
         messageBuilder.setEntity("test-entity");
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
         messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         messageBuilder.addTag(new Tag("ttt1", "vvv1"));
         messageBuilder.addTag(new Tag("ttt2", "vvv2"));
-        messageBuilder.start();
+        messageBuilder.start(writer, Level.TRACE.intLevel(), 60, new HashMap<String, String>());
         return messageBuilder;
     }
 
