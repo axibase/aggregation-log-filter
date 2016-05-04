@@ -221,11 +221,11 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
 | pattern | no | %m | pattern to format logging events sent to the database |
 
-## writer
+## scheme
 
 Configures a TCP, UDP or HTTP writer to send statistics and messages to a supported time series database.
 
-### TCP scheme
+### TCP
 
 ```xml
 <url>tcp://atsd_host:tcp_port</url>
@@ -233,11 +233,10 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 
 | Name | Required | Default | Description |
 |---|---|---|---| 
-| scheme | yes | - | protocol (tcp/udp/http), string |
 | host | yes | - | database hostname or IP address, string |
 | port | no | 8081 | database TCP port, integer |
 
-### UDP scheme
+### UDP
 
 ```xml
 <url>udp://atsd_host:udp_port</url>
@@ -245,11 +244,10 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| scheme | yes | - | protocol (tcp/udp/http), string |
 | host | yes | - | database hostname or IP address, string |
 | port | no | 8082 | database UDP port, integer |
 
-### HTTP scheme
+### HTTP
 
 ```xml
 <url>http://username:password@atsd_host:port</url>
@@ -257,10 +255,10 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| scheme | yes | - | protocol (tcp/udp/http), string |
 | username | yes | - | username, string |
 | password | yes | - | password, string |
 | host | yes | - | database hostname or IP address, string |
+| port | no | 80 | database HTTP port, integer |
 | path | no | /api/v1/commands/batch | API command, string |
 
 ## sendMessage
