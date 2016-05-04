@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,7 +44,6 @@ public class AggregatorTest extends TestCase {
         mockWriter = new MockWritableByteChannel();
     }
 
-    @Test
     public void testThresholds() throws Exception {
         int cnt = 15;
 
@@ -52,9 +52,9 @@ public class AggregatorTest extends TestCase {
         seriesSenderConfig.setTotalCountInit(new TotalCountInit("WARN", -1));
         seriesSenderConfig.setTotalCountInit(new TotalCountInit("ERROR", -1));
         seriesSenderConfig.setMinIntervalSeconds(0);
-        LogbackMessageWriter messageWriter = new LogbackMessageWriter();
+        LogbackWriter messageWriter = new LogbackWriter();
         messageWriter.setSeriesSenderConfig(seriesSenderConfig);
-        messageWriter.start();
+        messageWriter.start(mockWriter,Level.WARN_INT,60,new HashMap<String, String>());
         Aggregator aggregator = new Aggregator(messageWriter, new LogbackEventProcessor());
         aggregator.setWriter(mockWriter);
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
@@ -76,10 +76,12 @@ public class AggregatorTest extends TestCase {
         // 2 -- series fired by cnt (counter and total counter)
         // 3 -- warn message because of default warning multiplier is 3, i.e we got 1,3,9 messages
         // 2 -- series fired by time (counter and total counter)
-        assertEquals(7, mockWriter.cnt);
+        // 2 -- initial properties
+        // 2 -- initial total zeros for warn and error
+
+        assertEquals(11, mockWriter.cnt);
     }
 
-    @Ignore
     @Test
     public void loadTest() throws Exception {
         final int cnt = 1000000;
@@ -90,13 +92,13 @@ public class AggregatorTest extends TestCase {
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig(0, 1, 10);
         seriesSenderConfig.setMinIntervalSeconds(0);
         seriesSenderConfig.setMessageSkipThreshold(1000);
-        LogbackMessageWriter messageWriter = new LogbackMessageWriter();
+        LogbackWriter messageWriter = new LogbackWriter();
         messageWriter.setSeriesSenderConfig(seriesSenderConfig);
-        messageWriter.start();
-        final Aggregator aggregator = new Aggregator(messageWriter, new LogbackEventProcessor());
         UdpAtsdWriter writer = new UdpAtsdWriter();
         writer.setHost("localhost");
         writer.setPort(55555);
+        messageWriter.start(writer, Level.TRACE_INT, 60, new HashMap<String, String>());
+        final Aggregator aggregator = new Aggregator(messageWriter, new LogbackEventProcessor());
         aggregator.setWriter(writer);
         aggregator.setSeriesSenderConfig(seriesSenderConfig);
         aggregator.addSendMessageTrigger(new LogbackEventTrigger());

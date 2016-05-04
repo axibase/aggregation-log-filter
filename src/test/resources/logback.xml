@@ -7,7 +7,7 @@
             <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
         </encoder>
         <filter class="com.axibase.tsd.collector.logback.Collector">
-            <host>atsd_database</host>
+            <url>tcp://atsd_host:tcp_port</url>
         </filter>
     </appender>
     <root level="TRACE">

@@ -37,8 +37,7 @@
 
         <filter class="com.axibase.tsd.collector.logback.Collector">
             <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
-              <host>database_hostname</host>
-              <port>8081</port>
+              <url>tcp://atsd_host:tcp_port</url>
             </writer>
         </filter>
 

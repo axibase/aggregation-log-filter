@@ -36,10 +36,10 @@ public class LogbackMessageWriterTest {
 
     @Test
     public void testBuildSingleStatMessage() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
+        StringsCatcher catcher = new StringsCatcher();
+        LogbackWriter<ILoggingEvent> messageBuilder = createMessageBuilder(catcher);
         Map<String, EventCounter<Level>> events = new HashMap<String, EventCounter<Level>>();
         events.put("test-logger", createCounter(100, Level.ERROR));
-        StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -49,15 +49,18 @@ public class LogbackMessageWriterTest {
 
     @Test
     public void testBuildMultipleStatMessage() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
 
         Map<String, EventCounter<Level>> events = new HashMap<String, EventCounter<Level>>();
-        events.put("test-logger", createCounter(100, Level.ERROR, Level.WARN, Level.DEBUG));
 
         StringsCatcher catcher;
+        LogbackWriter<ILoggingEvent> messageBuilder;
         {
             catcher = new StringsCatcher();
+
+            messageBuilder = createMessageBuilder(catcher);
+            messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
+            events.put("test-logger", createCounter(100, Level.ERROR, Level.WARN, Level.DEBUG));
+
             messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result0 = " + result);
@@ -77,7 +80,7 @@ public class LogbackMessageWriterTest {
             catcher.clear();
             events.clear();
             events.put("test-logger", createCounter(1, Level.ERROR));
-            messageBuilder.writeStatMessages(catcher, events, 60000 );
+            messageBuilder.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result1 = " + result);
             assertTrue(result.contains("ERROR"));
@@ -122,9 +125,9 @@ public class LogbackMessageWriterTest {
 
     @Test
     public void testBuildSingleMessage() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
-        LoggingEvent event = LogbackUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
+        LogbackWriter<ILoggingEvent> messageBuilder = createMessageBuilder(catcher);
+        LoggingEvent event = LogbackUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -134,10 +137,10 @@ public class LogbackMessageWriterTest {
 
     @Test
     public void testBuildSingleMessageWithLines() throws Exception {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = createMessageBuilder();
+        StringsCatcher catcher = new StringsCatcher();
+        LogbackWriter<ILoggingEvent> messageBuilder = createMessageBuilder(catcher);
         LoggingEvent event = LogbackUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
                 new NullPointerException("test"));
-        StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 10));
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -153,14 +156,14 @@ public class LogbackMessageWriterTest {
         return singles;
     }
 
-    private LogbackMessageWriter<ILoggingEvent> createMessageBuilder() {
-        LogbackMessageWriter<ILoggingEvent> messageBuilder = new LogbackMessageWriter<ILoggingEvent>();
+    private LogbackWriter<ILoggingEvent> createMessageBuilder(WritableByteChannel writer) {
+        LogbackWriter<ILoggingEvent> messageBuilder = new LogbackWriter<ILoggingEvent>();
         messageBuilder.setEntity("test-entity");
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
         messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         messageBuilder.addTag(new Tag("ttt1", "vvv1"));
         messageBuilder.addTag(new Tag("ttt2", "vvv2"));
-        messageBuilder.start();
+        messageBuilder.start(writer, Level.TRACE_INT, 60, new HashMap<String, String>());
         return messageBuilder;
     }
 

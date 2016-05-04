@@ -31,11 +31,6 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
         super();
     }
 
-//    public LogbackEventTrigger(int every) {
-//        super();
-//        setEvery(every);
-//    }
-
     public LogbackEventTrigger(Level level) {
         super();
         this.level = level;
