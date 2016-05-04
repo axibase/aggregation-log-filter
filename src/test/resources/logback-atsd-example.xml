@@ -36,9 +36,7 @@
         </encoder>    
 
         <filter class="com.axibase.tsd.collector.logback.Collector">
-            <writer class="com.axibase.tsd.collector.writer.TcpAtsdWriter">
-              <url>tcp://atsd_host:tcp_port</url>
-            </writer>
+            <url>tcp://atsd_host:tcp_port</url>
         </filter>
 
     </appender>
