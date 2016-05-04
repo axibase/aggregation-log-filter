@@ -45,9 +45,7 @@ public class HttpAtsdWriterTest {
     public void ping() throws Exception {
         long st = System.currentTimeMillis();
         HttpAtsdWriter writer = new HttpAtsdWriter();
-        writer.setUrl("http://localhost:8088/api/v1/command/");
-        writer.setUsername("axibase");
-        writer.setPassword("11111");
+        writer.setUrl("http://axibase:11111@localhost:8088/api/v1/command/");
         writer.setTimeout(1000);
         for (long i = 0; i < 1E7; i++) {
             final String cmd = "ping\n";
@@ -63,11 +61,9 @@ public class HttpAtsdWriterTest {
     public void uploadMetrics() throws Exception {
         long st = System.currentTimeMillis();
         HttpAtsdWriter writer = new HttpAtsdWriter();
-        writer.setUrl("http://localhost:8088/api/v1/command/");
-        writer.setUsername("axibase");
-        writer.setPassword("11111");
+        writer.setUrl("http://axibase:11111@localhost:8088/api/v1/command/");
         writer.setTimeout(30000);
-        long cnt = M/10;
+        long cnt = M / 10;
         for (long i = 0; i < cnt; i++) {
             ByteBuffer data = ByteBuffer.wrap(("series e:test_entity ms:" + (st - (cnt - i) * 1000) +
                     " m:t_metric=" + i +
@@ -83,11 +79,9 @@ public class HttpAtsdWriterTest {
     public void uploadMetricsSsl() throws Exception {
         long st = System.currentTimeMillis();
         HttpAtsdWriter writer = new HttpAtsdWriter();
-        writer.setUrl("https://localhost:8443/api/v1/command/");
-        writer.setUsername("axibase");
-        writer.setPassword("11111");
+        writer.setUrl("https://axibase:11111@localhost:8443/api/v1/command/");
         writer.setTimeout(10000);
-        long cnt = M/10;
+        long cnt = M / 10;
         for (long i = 0; i < cnt; i++) {
             ByteBuffer data = ByteBuffer.wrap(("series e:test_entity ms:" + (st - (cnt - i) * 1000) +
                     " m:sec_metric=" + i +
