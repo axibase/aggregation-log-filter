@@ -22,9 +22,7 @@
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
             <param name="level" value="INFO"/>
-            <param name="writer" value="tcp"/>
-            <param name="writerHost" value="atsd_server"/>
-            <param name="writerPort" value="8081"/>
+            <param name="url" value="tcp://atsd_server"/>
         </filter>
     </appender>
     <logger name="com.axibase">
