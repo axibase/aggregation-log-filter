@@ -4,9 +4,15 @@ The aggregation logger tracks the total number of log events raised by a Java ap
 
 An asynchronous sender thread transmits the counters to a time series database every 60 seconds via TCP/UDP/HTTP(s) protocol for alerting and long-term retention.
 
-Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See **LogInfo/./LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example .
+Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See **LogInfo/./LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
-Aggregation Logger collects the following counters:
+The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
+
+## Collected Data
+
+### Counters
+
+Aggregation Logger collects the following metrics:
 
 ```
 log_event_total_counter     #Total number of log events raised by the application. Tags: level
@@ -16,6 +22,8 @@ log_event_counter           #Number of log events for active loggers. Tags: leve
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
 
 > Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR
+
+### Messages
  
 In addition to counters, the logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
@@ -26,8 +34,6 @@ In addition to counters, the logger can send a small subset of raw events to the
 > ERROR events that inherit from java.lang.Error are sent to the database instantly, regardless of the event index.
 
 The aggregation logger sends only a small subset of events to the database and as such is not a replacement for specialized log search tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
-
-The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
 
 ## Heartbeat
 
