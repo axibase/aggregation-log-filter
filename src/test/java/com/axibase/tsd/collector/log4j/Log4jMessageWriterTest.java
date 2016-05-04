@@ -35,10 +35,10 @@ public class Log4jMessageWriterTest {
 
     @Test
     public void testBuildSingleStatMessage() throws Exception {
-        Log4jMessageWriter messageBuilder = createMessageBuilder();
+        StringsCatcher catcher = new StringsCatcher();
+        Log4jMessageWriter messageBuilder = createMessageBuilder(catcher);
         Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
         events.put("test-logger", createCounter(100, Level.ERROR.toString()));
-        StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeStatMessages(catcher, events, 60000);
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -48,16 +48,17 @@ public class Log4jMessageWriterTest {
 
     @Test
     public void testBuildMultipleStatMessage() throws Exception {
-        Log4jMessageWriter messageBuilder = createMessageBuilder();
-        messageBuilder.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
-
-        Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
-        events.put("test-logger", createCounter(100, Level.ERROR.toString(), Level.WARN.toString(), Level.DEBUG.toString()));
-
         StringsCatcher catcher;
+        Log4jMessageWriter log4jMessageWriter;
+        Map<String, EventCounter<String>> events = new HashMap<String, EventCounter<String>>();
+
         {
             catcher = new StringsCatcher();
-            messageBuilder.writeStatMessages(catcher, events, 60000);
+            log4jMessageWriter = createMessageBuilder(catcher);
+            log4jMessageWriter.setSeriesSenderConfig(new SeriesSenderConfig(1, 30, -1));
+            events.put("test-logger", createCounter(100, Level.ERROR.toString(), Level.WARN.toString(), Level.DEBUG.toString()));
+
+            log4jMessageWriter.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result0 = " + result);
             assertTrue(
@@ -76,7 +77,7 @@ public class Log4jMessageWriterTest {
             catcher.clear();
             events.clear();
             events.put("test-logger", createCounter(1, Level.ERROR.toString()));
-            messageBuilder.writeStatMessages(catcher, events, 60000 );
+            log4jMessageWriter.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result1 = " + result);
             assertTrue(result.contains("ERROR"));
@@ -92,7 +93,7 @@ public class Log4jMessageWriterTest {
         {
             catcher.clear();
             events.clear();
-            messageBuilder.writeStatMessages(catcher, events, 60000);
+            log4jMessageWriter.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result2 = " + result);
             assertTrue(result.contains("ERROR"));
@@ -106,36 +107,32 @@ public class Log4jMessageWriterTest {
         {
             catcher.clear();
             events.clear();
-            messageBuilder.writeStatMessages(catcher, events, 60000);
+            log4jMessageWriter.writeStatMessages(catcher, events, 60000);
             String result = catcher.sb.toString();
             System.out.println("result3 = " + result);
             assertTrue(result.contains("ERROR"));
             assertTrue(result.contains("WARN"));
             assertTrue(result.contains("DEBUG"));
-//            assertFalse(result.contains("m:log_event_rate=0"));
-//            assertTrue(result.contains("m:log_event_total_rate=0"));
             assertTrue(result.contains("m:log_event_total_counter=100"));
             assertTrue(result.contains("m:log_event_total_counter=101"));
         }
     }
 
-    @Test
     public void testBuildSingleMessage() throws Exception {
-        Log4jMessageWriter messageBuilder = createMessageBuilder();
-        LoggingEvent event = Log4jUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         StringsCatcher catcher = new StringsCatcher();
+        Log4jMessageWriter messageBuilder = createMessageBuilder(catcher);
+        LoggingEvent event = Log4jUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread");
         messageBuilder.writeSingles(catcher, createSingles(event, 0));
         String result = catcher.sb.toString();
         assertTrue(result.substring(0, result.length()).contains(
                 "t:ttt1=vvv1 t:ttt2=vvv2 t:type=logger m:test-message t:severity=ERROR t:level=ERROR t:source=test-logger"));
     }
 
-    @Test
     public void testBuildSingleMessageWithLines() throws Exception {
-        Log4jMessageWriter messageBuilder = createMessageBuilder();
+        StringsCatcher catcher = new StringsCatcher();
+        Log4jMessageWriter messageBuilder = createMessageBuilder(catcher);
         LoggingEvent event = Log4jUtils.createLoggingEvent(Level.ERROR, "test-logger", "test-message", "test-thread",
                 new NullPointerException("test"));
-        StringsCatcher catcher = new StringsCatcher();
         messageBuilder.writeSingles(catcher, createSingles(event, 10));
         String result = catcher.sb.toString();
         System.out.println("result = " + result);
@@ -152,15 +149,15 @@ public class Log4jMessageWriterTest {
         return singles;
     }
 
-    private Log4jMessageWriter createMessageBuilder() {
-        Log4jMessageWriter messageBuilder = new Log4jMessageWriter();
-        messageBuilder.setEntity("test-entity");
+    private Log4jMessageWriter createMessageBuilder(WritableByteChannel writer) {
+        Log4jMessageWriter log4jMessageWriter = new Log4jMessageWriter();
+        log4jMessageWriter.setEntity("test-entity");
         SeriesSenderConfig seriesSenderConfig = new SeriesSenderConfig();
-        messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
-        messageBuilder.addTag(new Tag("ttt1", "vvv1"));
-        messageBuilder.addTag(new Tag("ttt2", "vvv2"));
-        messageBuilder.start();
-        return messageBuilder;
+        log4jMessageWriter.setSeriesSenderConfig(seriesSenderConfig);
+        log4jMessageWriter.addTag(new Tag("ttt1", "vvv1"));
+        log4jMessageWriter.addTag(new Tag("ttt2", "vvv2"));
+        log4jMessageWriter.start(writer, Level.TRACE_INT, 60, new HashMap<String, String>());
+        return log4jMessageWriter;
     }
 
     private SimpleCounter<String> createCounter(int cnt, String... levels) {

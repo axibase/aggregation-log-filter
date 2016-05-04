@@ -22,7 +22,7 @@
         </layout>
         <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
             <param name="pattern" value="%d [%t] %-5p %c - %m [%X{myKey}]%n"/>
-            <param name="writerHost" value="atsd_database"/>
+            <param name="url" value="tcp://atsd_database"/>
         </filter>
     </appender>
     <root>
