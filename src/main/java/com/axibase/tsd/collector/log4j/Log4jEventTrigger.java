@@ -30,12 +30,6 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
         super();
     }
 
-//    public Log4jEventTrigger(int every) {
-//        super();
-//        setEvery(every);
-//    }
-
-
     public Log4jEventTrigger(Level level) {
         super();
         this.level = level;

@@ -207,10 +207,15 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                             Level.toLevel(l).toString());
                 }
             } catch (IOException e) {
-                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                AtsdUtil.logError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
 
+    }
+
+    @Override
+    public void checkPropertiesSent(WritableByteChannel writer) {
+        messageHelper.checkSentStatus(writer);
     }
 
     @Override
