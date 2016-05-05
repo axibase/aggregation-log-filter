@@ -164,8 +164,8 @@ public class LogbackWriter<E extends ILoggingEvent>
     @Override
     public boolean sendErrorInstance(WritableByteChannel writableByteChannel, E event) {
         LogbackEventTrigger logbackEventTrigger = new LogbackEventTrigger();
-        if (logbackEventTrigger.isErrorInstance(event)){
-            writeSingle(writableByteChannel,createWrapper(event,Integer.MAX_VALUE));
+        if (logbackEventTrigger.isErrorInstance(event)) {
+            writeSingle(writableByteChannel, createWrapper(event, Integer.MAX_VALUE));
             return true;
         }
         return false;
@@ -191,7 +191,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             for (String key : tags.keySet()) {
                 sb.append(key).append("=").append(tags.get(key)).append(" ");
             }
-            stringSettings.put("tags",sb.toString().trim());
+            stringSettings.put("tags", sb.toString().trim());
         }
         stringSettings.put("level", Level.toLevel(level).toString());
         stringSettings.put("intervalSeconds", intervalSeconds + "");
@@ -217,9 +217,15 @@ public class LogbackWriter<E extends ILoggingEvent>
                             Level.toLevel(l).toString());
                 }
             } catch (IOException e) {
-                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                AtsdUtil.logError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
+
+    }
+
+    @Override
+    public void checkPropertiesSent(WritableByteChannel writer) {
+        messageHelper.checkSentStatus(writer);
     }
 
     @Override
