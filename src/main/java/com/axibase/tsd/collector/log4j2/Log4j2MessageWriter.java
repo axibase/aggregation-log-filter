@@ -224,10 +224,15 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                AtsdUtil.logError("Writer failed to send initial total counter value for " + curLevel);
             }
         }
 
+    }
+
+    @Override
+    public void checkPropertiesSent(WritableByteChannel writer) {
+        messageHelper.checkSentStatus(writer);
     }
 
     @Override
