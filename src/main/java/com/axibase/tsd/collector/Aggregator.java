@@ -178,6 +178,7 @@ public class Aggregator<E, K, L> {
             while (!stopped) {
                 try {
                     Thread.sleep(seriesSenderConfig.getCheckIntervalMs());
+                    messageWriter.checkPropertiesSent(writer);
                     checkThresholdsAndWrite();
                 } catch (IOException e) {
                     AtsdUtil.logInfo("Could not write messages", e);

@@ -38,6 +38,8 @@ public class MessageHelper {
     private Map<String, String> tags;
     private String entity;
     private String command;
+    private boolean sentStatus;
+    private ByteBuffer[] props;
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
@@ -52,6 +54,9 @@ public class MessageHelper {
     }
 
     public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
+
+        sentStatus = true;
+        props = new ByteBuffer[2];
 
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
@@ -164,7 +169,10 @@ public class MessageHelper {
         byteBuffer.rewind();
         try {
             writer.write(byteBuffer);
+            sentStatus = true;
         } catch (IOException e) {
+            props[0] = byteBuffer;
+            sentStatus = false;
             AtsdUtil.logError("Writer failed to send java.log_aggregator.runtime property command: " + sb.toString(), e);
         }
     }
@@ -183,7 +191,10 @@ public class MessageHelper {
         byteBuffer.rewind();
         try {
             writer.write(byteBuffer);
+            sentStatus = true;
         } catch (IOException e) {
+            props[1] = byteBuffer;
+            sentStatus = false;
             AtsdUtil.logError("Writer failed to send java.log_aggregator.settings property command: " + sb.toString(), e);
         }
     }
@@ -266,5 +277,18 @@ public class MessageHelper {
                 .put(messagePrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
         writer.write(byteBuffer);
+    }
+
+    public void checkSentStatus(WritableByteChannel writer) {
+        if (!sentStatus) {
+            try {
+                writer.write(props[0]);
+                writer.write(props[1]);
+                sentStatus = true;
+                AtsdUtil.logInfo("Writer succeeded to send java.log_aggregator property command");
+            } catch (IOException e) {
+                sentStatus = false;
+            }
+        }
     }
 }

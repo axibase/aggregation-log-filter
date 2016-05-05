@@ -27,6 +27,8 @@ public interface MessageWriter<E, K, L> {
 
     void start(WritableByteChannel writer, int level, int intervalSeconds, Map<String,String> stringSettings);
 
+    void checkPropertiesSent(WritableByteChannel writer);
+
     void stop();
 
     boolean sendErrorInstance(WritableByteChannel writer, E event);
