@@ -1,10 +1,18 @@
 # Aggregation Logger
 
-The aggregation logger tracks the total number of log events raised by a Java application as well as by active loggers with  breakdown by level (severity). An asynchronous sender thread transmits the counters to a time series database every 60 seconds via TCP/UDP/HTTP(s) protocols for alerting and long-term retention.
+The aggregation logger tracks the total number of log events raised by a Java application as well as by active loggers with  breakdown by level (severity). 
 
-Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See LogInfo/./LogFatal metrics in Hadoop as an example  https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html.
+An asynchronous sender thread transmits the counters to a time series database every 60 seconds via TCP/UDP/HTTP(s) protocol for alerting and long-term retention.
 
-The following counters are collected:
+Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See **LogInfo/./LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
+
+The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
+
+## Collected Data
+
+### Counters
+
+Aggregation Logger collects the following metrics:
 
 ```
 log_event_total_counter     #Total number of log events raised by the application. Tags: level
@@ -14,8 +22,10 @@ log_event_counter           #Number of log events for active loggers. Tags: leve
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
 
 > Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR
+
+### Messages
  
-In addition to counters, the logger can send a small subset of raw events to the database for L2/L3 triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
+In addition to counters, the logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
 * INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
 * WARN.  Multiplier 3. Events sent: 1, 3, 9, 27 ...   3^(n-1)
@@ -23,9 +33,7 @@ In addition to counters, the logger can send a small subset of raw events to the
 
 > ERROR events that inherit from java.lang.Error are sent to the database instantly, regardless of the event index.
 
-The aggregation logger sends a small subset of events to the database and as such is not a replacement for specialized log search and indexing tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
-
-The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
+The aggregation logger sends only a small subset of events to the database and as such is not a replacement for specialized log search tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
 
 ## Heartbeat
 
@@ -82,7 +90,7 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 #log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
 
-**DONE in 5589**
+> DONE in 5589 ms
 
 #### Filter Enabled
 
@@ -91,19 +99,21 @@ log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCo
 log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
 
-**DONE in 6002**
+> DONE in 6002 ms
 
 ## Installation
 
 ### Option 1: Maven
 
-Add Maven dependency to one of supported logging adapters (logback, log4j, log4j2). Dependency to aggregator core will be imported automatically:
+Add Maven dependency to one of supported logging adapters: logback, log4j, or log4j2. 
+
+Dependency to aggregator core will be imported automatically:
 
 ```xml
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-logback</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5</version>
 </dependency>
 ```
 
@@ -116,12 +126,12 @@ Add core and adapter libraries to classpath:
 - Adds jar files to classpath
 
 ```
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.4.jar:lib/aggregation-log-filter-logback-1.0.4.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.5.jar:lib/aggregation-log-filter-logback-1.0.5.jar Main
 ```
 
 ### Option 3: lib directory 
 
-Cope core and adapter libraries to application lib directory.
+Copy core and adapter libraries to application lib directory.
 
 Apache ActiveMQ example:
 
@@ -273,8 +283,16 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 
 ### HTTP
 
+#### http
+
 ```xml
 <url>http://username:password@atsd_host:http_port</url>
+```
+
+#### https
+
+```xml
+<url>https://username:password@atsd_host:https_port</url>
 ```
 
 | Name | Required | Default | Description |
@@ -282,8 +300,7 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 | username | yes | - | username, string |
 | password | yes | - | password, string |
 | host | yes | - | database hostname or IP address, string |
-| port | no | 80 | database HTTP port, integer |
-| path | no | /api/v1/commands/batch | API command, string |
+| port | no | 80/443 | database HTTP/s port, integer |
 
 ## sendMessage
 
