@@ -217,7 +217,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                             Level.toLevel(l).toString());
                 }
             } catch (IOException e) {
-                AtsdUtil.logError("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
 
