@@ -30,6 +30,7 @@ import java.util.Properties;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
+    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000;
     private SeriesSenderConfig seriesSenderConfig;
     private ByteBuffer seriesCounterPrefix;
     private ByteBuffer seriesTotalRatePrefix;
@@ -38,8 +39,8 @@ public class MessageHelper {
     private Map<String, String> tags;
     private String entity;
     private String command;
-    private boolean sentStatus;
     private ByteBuffer[] props;
+    private long lastPropertySentTime;
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
         this.seriesSenderConfig = seriesSenderConfig;
@@ -55,7 +56,6 @@ public class MessageHelper {
 
     public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
 
-        sentStatus = true;
         props = new ByteBuffer[2];
 
         command = System.getProperty("sun.java.command");
@@ -66,8 +66,9 @@ public class MessageHelper {
             command = command.split(" ")[0];
         }
 
-        sendAggregatorSettings(writer, stringSettings);
-        sendAggregatorRuntime(writer);
+        sendAggregatorSettingsProperty(writer, stringSettings);
+        sendAggregatorRuntimeProperty(writer);
+        lastPropertySentTime = System.currentTimeMillis();
 
         {
             StringBuilder sb = new StringBuilder();
@@ -107,7 +108,7 @@ public class MessageHelper {
         }
     }
 
-    private void sendAggregatorRuntime(WritableByteChannel writer) {
+    private void sendAggregatorRuntimeProperty(WritableByteChannel writer) {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
         sb.append(" t:java.log_aggregator.runtime");
@@ -167,17 +168,16 @@ public class MessageHelper {
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
+        props[0] = byteBuffer;
         try {
-            writer.write(byteBuffer);
-            sentStatus = true;
+            writer.write(props[0]);
+            props[0].rewind();
         } catch (IOException e) {
-            props[0] = byteBuffer;
-            sentStatus = false;
-            AtsdUtil.logError("Writer failed to send java.log_aggregator.runtime property command: " + sb.toString(), e);
+            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property command: " + sb.toString(), e);
         }
     }
 
-    private void sendAggregatorSettings(WritableByteChannel writer, Map<String, String> stringSettings) {
+    private void sendAggregatorSettingsProperty(WritableByteChannel writer, Map<String, String> stringSettings) {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
         sb.append(" t:java.log_aggregator.settings");
@@ -189,13 +189,12 @@ public class MessageHelper {
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
+        props[1] = byteBuffer;
         try {
-            writer.write(byteBuffer);
-            sentStatus = true;
+            writer.write(props[1]);
+            props[1].rewind();
         } catch (IOException e) {
-            props[1] = byteBuffer;
-            sentStatus = false;
-            AtsdUtil.logError("Writer failed to send java.log_aggregator.settings property command: " + sb.toString(), e);
+            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property command: " + sb.toString(), e);
         }
     }
 
@@ -280,14 +279,16 @@ public class MessageHelper {
     }
 
     public void checkSentStatus(WritableByteChannel writer) {
-        if (!sentStatus) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
                 writer.write(props[0]);
                 writer.write(props[1]);
-                sentStatus = true;
-                AtsdUtil.logInfo("Writer succeeded to send java.log_aggregator property command");
+                props[0].rewind();
+                props[1].rewind();
+                lastPropertySentTime = currentTime;
             } catch (IOException e) {
-                sentStatus = false;
+                AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");
             }
         }
     }
