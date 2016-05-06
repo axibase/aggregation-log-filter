@@ -232,13 +232,13 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 ### Log4j
 
 ```
-   log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m [%X{job_name}]%n
+   log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m [jobId=%X{job_id}, taskId=%X{task_id}]%n
 ```
 
 ### Logback
 
 ```xml
- <pattern>%m [%X{job_name}]%n</pattern>
+ <pattern>%m [jobId=%X{job_id}, taskId=%X{task_id}]%n</pattern>
 ```
 
   - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
