@@ -108,9 +108,6 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             String level = entry.getKey();
             CounterWithSum counterWithSum = entry.getValue();
             try {
-                // write total rate
-                double rate = counterWithSum.getValue() * (double) seriesSenderConfig.getRateIntervalMs() / deltaTime;
-                messageHelper.writeTotalRate(writer, time, rate, level);
                 counterWithSum.clean();
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
@@ -214,6 +211,12 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             final PatternParser patternParser = new PatternParser(null, PatternLayout.KEY,
                     LogEventPatternConverter.class);
             formatters = patternParser.parse(pattern);
+        }
+        for (Level l : levels) {
+            if (l.intLevel() > level)
+                continue;
+            CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
+            totals.put(l.toString(), total);
         }
 
         if (writer != null) {
