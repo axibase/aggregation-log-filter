@@ -104,9 +104,6 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             String level = entry.getKey();
             CounterWithSum counterWithSum = entry.getValue();
             try {
-                // write total rate
-                double rate = counterWithSum.getValue() * (double) seriesSenderConfig.getRateIntervalMs() / deltaTime;
-                messageHelper.writeTotalRate(writer, time, rate, level);
                 counterWithSum.clean();
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
@@ -182,7 +179,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             for (String key : tags.keySet()) {
                 sb.append(key).append("=").append(tags.get(key)).append(" ");
             }
-            stringSettings.put("tags",sb.toString().trim());
+            stringSettings.put("tags", sb.toString().trim());
         }
         stringSettings.put("level", Level.toLevel(level).toString());
         stringSettings.put("intervalSeconds", intervalSeconds + "");
@@ -193,11 +190,18 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             patternLayout = new PatternLayout(pattern);
             patternLayout.activateOptions();
         }
+        int[] levels = new int[]{
+                Level.TRACE_INT, Level.DEBUG_INT,
+                Level.FATAL_INT, Level.INFO_INT,
+                Level.WARN_INT, Level.ERROR_INT};
+        for (int l : levels) {
+            if (l < level) {
+                continue;
+            }
+            CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
+            totals.put(Level.toLevel(l).toString(), total);
+        }
         if (writer != null) {
-            int[] levels = new int[]{
-                    Level.TRACE_INT, Level.DEBUG_INT,
-                    Level.FATAL_INT, Level.INFO_INT,
-                    Level.WARN_INT, Level.ERROR_INT};
             try {
                 for (int l : levels) {
                     if (l < level) {
