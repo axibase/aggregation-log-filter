@@ -77,9 +77,8 @@ public class AggregatorTest extends TestCase {
         // 3 -- warn message because of default warning multiplier is 3, i.e we got 1,3,9 messages
         // 2 -- series fired by time (counter and total counter)
         // 2 -- initial properties
-        // 2 -- initial total zeros for warn and error
-
-        assertEquals(11, mockWriter.cnt);
+        // 4 -- initial total zeros
+        assertEquals(13, mockWriter.cnt);
     }
 
     @Test

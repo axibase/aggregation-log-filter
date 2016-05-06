@@ -109,10 +109,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             Level level = entry.getKey();
             CounterWithSum counterWithSum = entry.getValue();
             try {
-                // write total rate
-                double rate = counterWithSum.getValue() * (double) seriesSenderConfig.getRateIntervalMs() / deltaTime;
                 String levelString = level.toString();
-                messageHelper.writeTotalRate(writer, time, rate, levelString);
                 counterWithSum.clean();
                 // write total sum
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
@@ -204,10 +201,17 @@ public class LogbackWriter<E extends ILoggingEvent>
             patternLayout.setPattern(pattern);
             patternLayout.start();
         }
+        int[] levels = new int[]{
+                Level.TRACE_INT, Level.DEBUG_INT,
+                Level.INFO_INT, Level.WARN_INT, Level.ERROR_INT};
+        for (int l : levels) {
+            if (l < level) {
+                continue;
+            }
+            CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
+            totals.put(Level.toLevel(l), total);
+        }
         if (writer != null) {
-            int[] levels = new int[]{
-                    Level.TRACE_INT, Level.DEBUG_INT,
-                    Level.INFO_INT, Level.WARN_INT, Level.ERROR_INT};
             try {
                 for (int l : levels) {
                     if (l < level) {
