@@ -81,7 +81,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 long value = counter.getValue();
                 counter.clean();
                 try {
-                    messageHelper.writeCounter(writer, time, key, level, counter.getSum());
+                    if (seriesSenderConfig.isSendLoggerCounter())
+                        messageHelper.writeCounter(writer, time, key, level, counter.getSum());
                 } catch (Throwable e) {
                     AtsdUtil.logInfo("Could not write series", e);
                 } finally {

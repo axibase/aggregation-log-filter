@@ -57,6 +57,7 @@ public class Log4jCollector extends Filter {
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
     private Integer intervalSeconds;
+    private Boolean sendLoggerCounter;
     private String debug;
     private String pattern;
     private String scheme;
@@ -143,6 +144,9 @@ public class Log4jCollector extends Filter {
         if (intervalSeconds != null) {
             seriesSenderConfig.setIntervalSeconds(intervalSeconds);
         }
+        if (sendLoggerCounter != null) {
+            seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
+        }
     }
 
     private void initWriter() {
@@ -224,6 +228,10 @@ public class Log4jCollector extends Filter {
 
     public void setIntervalSeconds(int intervalSeconds) {
         this.intervalSeconds = intervalSeconds;
+    }
+
+    public void setSendLoggerCounter(boolean sendLoggerCounter) {
+        this.sendLoggerCounter = sendLoggerCounter;
     }
 
     public void setMessages(String messages) {
