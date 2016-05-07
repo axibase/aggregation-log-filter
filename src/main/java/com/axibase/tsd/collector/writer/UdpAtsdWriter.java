@@ -15,9 +15,12 @@
 
 package com.axibase.tsd.collector.writer;
 
+import com.axibase.tsd.collector.AtsdUtil;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.nio.channels.UnresolvedAddressException;
 
 /**
  * A client to a ATSD server via UDP.
@@ -45,14 +48,18 @@ public class UdpAtsdWriter extends AbstractAtsdWriter {
     }
 
     @Override
-    public int write(ByteBuffer message) throws IOException {
+    public int write(ByteBuffer message) {
         try {
             if (!isConnected()) {
                 connect();
             }
             return datagramChannel.send(message, getAddress());
         } catch (IOException e) {
-            throw e;
+            AtsdUtil.logInfo("Writer failed to send message via udp", e);
+            return 0;
+        } catch (UnresolvedAddressException e) {
+            AtsdUtil.logInfo("Writer failed to send message via udp: unresolved address", e);
+            return 0;
         }
     }
 

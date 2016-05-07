@@ -32,6 +32,7 @@ public class SeriesSenderConfig {
     public static final int MIN_MESSAGE_SKIP_THRESHOLD = 10;
     public static final int DEFAULT_MESSAGE_SKIP_THRESHOLD = 100;
     public static final int MAX_MESSAGE_SKIP_THRESHOLD = 1000;
+    private static final boolean DEFAULT_SEND_LOGGER_COUNTER = true;
 
     public static final SeriesSenderConfig DEFAULT = new SeriesSenderConfig();
 
@@ -48,6 +49,8 @@ public class SeriesSenderConfig {
 
     private int messageSkipThreshold = DEFAULT_MESSAGE_SKIP_THRESHOLD;
     private int checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS;
+
+    private boolean sendLoggerCounter = DEFAULT_SEND_LOGGER_COUNTER;
 
     private Map<String, Integer> totalCountInitMap = new HashMap<String, Integer>();
 
@@ -109,6 +112,14 @@ public class SeriesSenderConfig {
 
     public int getMinIntervalThreshold() {
         return minIntervalThreshold;
+    }
+
+    public boolean isSendLoggerCounter() {
+        return sendLoggerCounter;
+    }
+
+    public void setSendLoggerCounter(boolean sendLoggerCounter) {
+        this.sendLoggerCounter = sendLoggerCounter;
     }
 
     public String getTotalSuffix() {
