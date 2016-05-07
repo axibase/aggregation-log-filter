@@ -85,8 +85,10 @@ public class LogbackWriter<E extends ILoggingEvent>
                 long value = counter.getValue();
                 counter.clean();
                 try {
-                    String levelString = level.toString();
-                    messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
+                    if (seriesSenderConfig.isSendLoggerCounter()) {
+                        String levelString = level.toString();
+                        messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
+                    }
                 } catch (Throwable e) {
                     addError("Could not write series", e);
                 } finally {

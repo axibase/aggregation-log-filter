@@ -42,6 +42,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private Level level = Level.TRACE;
     private SeriesSenderConfig seriesSenderConfig;
     private Integer intervalSeconds;
+    private Boolean sendLoggerCounter;
     private String entity;
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
     private final List<Tag> tags = new ArrayList<Tag>();
@@ -113,6 +114,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         seriesSenderConfig = new SeriesSenderConfig();
         if (intervalSeconds != null) {
             seriesSenderConfig.setIntervalSeconds(intervalSeconds);
+        }
+        if (sendLoggerCounter != null) {
+            seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
         }
     }
 
@@ -230,6 +234,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     public void setIntervalSeconds(int intervalSeconds) {
         this.intervalSeconds = intervalSeconds;
+    }
+    public void setSendLoggerCounter(boolean sendLoggerCounter) {
+        this.sendLoggerCounter = sendLoggerCounter;
     }
 
     public void setDebug(String debug) {
