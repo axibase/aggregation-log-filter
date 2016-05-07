@@ -60,6 +60,7 @@ public class Log4j2Collector extends AbstractFilter {
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
     private Integer intervalSeconds;
+    private Boolean sendLoggerCounter;
     private String debug;
     private String pattern;
     private String scheme;
@@ -160,6 +161,7 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("level") final Level level,
             @PluginAttribute("url") final String url,
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
+            @PluginAttribute("sendLoggerCounter") final Boolean sendLoggerCounter,
             @PluginAttribute("pattern") final String pattern,
             @PluginAttribute("debug") final String debug) {
         final Level minLevel = level == null ? Level.TRACE : level;
@@ -173,6 +175,11 @@ public class Log4j2Collector extends AbstractFilter {
             collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
         } else {
             collector.setIntervalSeconds(intervalSeconds);
+        }
+        if (sendLoggerCounter == null) {
+            collector.setSendLoggerCounter(false);
+        } else {
+            collector.setSendLoggerCounter(sendLoggerCounter);
         }
         collector.setPattern(pattern);
         collector.setDebug(debug);
@@ -188,6 +195,9 @@ public class Log4j2Collector extends AbstractFilter {
         seriesSenderConfig = new SeriesSenderConfig();
         if (intervalSeconds != null) {
             seriesSenderConfig.setIntervalSeconds(intervalSeconds);
+        }
+        if (sendLoggerCounter != null) {
+            seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
         }
     }
 
@@ -206,7 +216,7 @@ public class Log4j2Collector extends AbstractFilter {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
             checkWriterProperty(writerHost == null, "writerHost", writerHost);
             if (writerPort <= 0)
-                switch (scheme.toLowerCase()){
+                switch (scheme.toLowerCase()) {
                     case "tcp":
                         writerPort = 8081;
                         break;
@@ -284,6 +294,10 @@ public class Log4j2Collector extends AbstractFilter {
         this.intervalSeconds = intervalSeconds;
     }
 
+    public void setSendLoggerCounter(boolean sendLoggerCounter) {
+        this.sendLoggerCounter = sendLoggerCounter;
+    }
+
     public void setMessages(String messages) {
         if (messages == null) {
             return;
@@ -345,6 +359,7 @@ public class Log4j2Collector extends AbstractFilter {
                 ", scheme='" + scheme + '\'' +
                 ", seriesSenderConfig=" + seriesSenderConfig +
                 ", intervalSeconds=" + intervalSeconds +
+                ", sendLoggerCounter='" + sendLoggerCounter + '\'' +
                 ", debug='" + debug + '\'' +
                 ", pattern='" + pattern + '\'' +
                 '}';
