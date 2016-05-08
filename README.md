@@ -14,10 +14,10 @@ The logger consists of the core library and adapters for Logback and Log4j loggi
 
 Aggregation Logger collects the following metrics:
 
-```
-log_event_total_counter     #Total number of log events raised by the application. Tags: level
-log_event_counter           #Number of log events for active loggers. Tags: level, logger (full class name)
-```
+| **Metric** | **Tags** | **Type** | **Description** |
+|:---|:---|---|:---|
+| `log_event_total_counter`| level | counter | Total number of log events raised by the application. |
+| `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with `sendLoggerCounter` setting |
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
 
