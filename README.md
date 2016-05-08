@@ -350,10 +350,7 @@ Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuratio
         <Console name="APPENDER">
             <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
             <Filters>
-                <Collector
-                        url="tcp://atsd_host:tcp_port"
-                        debug="true"
-                        />
+                <Collector url="tcp://atsd_host:tcp_port" debug="true" />
             </Filters>
         </Console>
     </Appenders>
