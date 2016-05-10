@@ -176,7 +176,14 @@ public class LogbackWriter<E extends ILoggingEvent>
                               String message) throws IOException {
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
-        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName);
+        Map<String, String> locationMap = new HashMap<>();
+        locationMap.put("thread", event.getThreadName());
+        if (event.hasCallerData() && event.getCallerData().length > 0) {
+            StackTraceElement stackTraceElement = event.getCallerData()[0];
+            locationMap.put("line", String.valueOf(stackTraceElement.getLineNumber()));
+            locationMap.put("method", stackTraceElement.getMethodName());
+        }
+        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName, locationMap);
     }
 
     @Override
