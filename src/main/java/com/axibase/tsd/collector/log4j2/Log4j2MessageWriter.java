@@ -173,7 +173,15 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                               String message) throws IOException {
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
-        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName);
+        StackTraceElement source = event.getSource();
+        Map<String,String> locationMap = new HashMap<>();
+        locationMap.put("thread", event.getThreadName());
+        if (source != null){
+            locationMap.put("line", String.valueOf(source.getLineNumber()));
+            locationMap.put("method", source.getMethodName());
+        }
+
+        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName,locationMap);
     }
 
     @Override
