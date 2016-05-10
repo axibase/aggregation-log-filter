@@ -264,11 +264,18 @@ public class MessageHelper {
                              StringBuilder sb,
                              String message,
                              String levelValue,
-                             String loggerName) throws IOException {
+                             String loggerName,
+                             Map<String,String> locationInformation) throws IOException {
         sb.append(AtsdUtil.sanitizeMessage(message));
-        sb.append(" t:severity=").append(levelValue);
+        if (levelValue.toLowerCase().equals("trace") || levelValue.toLowerCase().equals("debug"))
+            sb.append(" t:severity=").append("Normal");
+        else
+            sb.append(" t:severity=").append(levelValue);
         sb.append(" t:level=").append(levelValue);
         sb.append(" t:source=").append(AtsdUtil.sanitizeTagValue(loggerName));
+        for (String key : locationInformation.keySet()) {
+            sb.append(" t:").append(key).append("=").append(locationInformation.get(key));
+        }
 //        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
