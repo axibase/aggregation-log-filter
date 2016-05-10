@@ -20,6 +20,7 @@ import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
 
@@ -167,7 +168,14 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                               String message) throws IOException {
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
-        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName);
+        LocationInfo locationInformation = event.getLocationInformation();
+        Map<String,String> locationMap = new HashMap<>();
+        locationMap.put("thread", event.getThreadName());
+        if (!locationInformation.getLineNumber().equals(LocationInfo.NA)){
+            locationMap.put("line", locationInformation.getLineNumber());
+            locationMap.put("method", locationInformation.getMethodName());
+        }
+        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName, locationMap);
     }
 
     @Override
