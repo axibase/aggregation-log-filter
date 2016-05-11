@@ -21,7 +21,7 @@ Aggregation Logger collects the following metrics:
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
 
-> Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR
+> Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
 
 ### Messages
  
@@ -247,16 +247,16 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | scheme, host and port |
-| level | no | TRACE | minimum level to process events |
-| entity | no | machine hostname | entity name for series and messages, usually hostname of the machine where the application is running |
-| tag | no | - | user-defined tag(s) to be included in series and message commands, MULTIPLE |
-| intervalSeconds | no | 60 | interval in seconds for sending collected counters |
-| sendMessage | no | - | see `sendMessage` config, MULTIPLE |
-| pattern | no | %m | pattern to format logging events sent to the database |
-| sendLoggerCounter | no | true | sending log_event_counter metric |
+| url | yes | - | Database address specified with URI syntax: ```scheme:[//[user:password@]host[:port]]```<br>Supported schemes: [tcp](#tcp), [udp](#udp), [http](#http-1), [https](#https) |
+| entity | no | machine hostname | Entity name for series and messages, usually hostname of the machine where the application is running |
+| tag | no | - | User-defined tag(s) to be included in series and message commands, MULTIPLE |
+| level | no | TRACE | Minimum level for processed events |
+| intervalSeconds | no | 60 | Interval in seconds for sending collected counters |
+| sendMessage | no | - | See `sendMessage` config, MULTIPLE |
+| pattern | no | %m | Pattern to format logging events sent to the database. <br>The pattern should not include fields that are already included as tags such as logger name, level etc. |
+| sendLoggerCounter | no | true | Sending log_event_counter metric |
 
-## scheme
+## Database Address
 
 Configures a TCP, UDP or HTTP writer to send statistics and messages to a supported time series database.
 
