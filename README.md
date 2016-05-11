@@ -64,7 +64,7 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 
 ## Supported Time Series Databases
 
-- [Axibase Time Series Database][atsd]
+- [Axibase Time Series Database](https://axibase.com/products/axibase-time-series-database/)
 
 ## Configuration Examples
 
@@ -247,7 +247,7 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | Database address specified with URI syntax: ```scheme:[//[user:password@]host[:port]]```<br>Supported schemes: [tcp](#tcp), [udp](#udp), [http](#http-1), [https](#https) |
+| url | yes | - | Database address specified with URI syntax: ```scheme:[//[user:password@]host[:port]]```<br>Supported schemes: [tcp](#tcp), [udp](#udp), [http](#http), [https](#https) |
 | entity | no | machine hostname | Entity name for series and messages, usually hostname of the machine where the application is running |
 | tag | no | - | User-defined tag(s) to be included in series and message commands, MULTIPLE |
 | level | no | TRACE | Minimum level for processed events |
@@ -284,16 +284,8 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 
 ### HTTP
 
-#### http
-
 ```xml
 <url>http://username:password@atsd_host:http_port</url>
-```
-
-#### https
-
-```xml
-<url>https://username:password@atsd_host:https_port</url>
 ```
 
 | Name | Required | Default | Description |
@@ -301,11 +293,19 @@ Configures a TCP, UDP or HTTP writer to send statistics and messages to a suppor
 | username | yes | - | username, string |
 | password | yes | - | password, string |
 | host | yes | - | database hostname or IP address, string |
-| port | no | 80/443 | database HTTP/s port, integer |
+| port | no | 80/443 | database HTTP/s port, integer<br>Note that ATSD is listening on ports 8088/http and 8443/https by default. |
+
+### HTTPS
+
+```xml
+<url>https://username:password@atsd_host:https_port</url>
+```
+
+Same settings as [HTTP](#http) scheme.
 
 ## sendMessage
 
-Configures which log events should be sent to the storage system.
+Configures which log events should be sent to the database.
 
 ```xml
 <sendMessage>
@@ -324,10 +324,24 @@ Configures which log events should be sent to the storage system.
 | stackTraceLines | no | 0; ERROR: -1 | number of stacktrace lines included in the message, -1 -- all lines |
 | sendMultiplier | no | INFO-: 5; WARN: 3; ERROR: 2   | Determines index of events sent each period (10 minutes) determined as sendMultiplier^(n-1). |
 
-If appender pattern contains conversion characters that enable location information (e.g. %L, %M) 
-then received messages will contain corresponding tags line and method.
+### Location Fields
 
-[atsd]:https://axibase.com/products/axibase-time-series-database/
+If the appender pattern contains location fields such as %L (line) and %M (method), these fields will be added to messages as tags.
+
+```xml
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n %L"/>
+        </layout>
+```
+
+Message command example with location fields:
+
+```css
+ message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initialization complete" 
+    t:severity=INFO t:level=INFO t:source=com.axibase.tsd.InitLogger t:thread=main 
+    t:line=145 t:method=initBase
+```
+
 
 ## Troubleshooting
 
