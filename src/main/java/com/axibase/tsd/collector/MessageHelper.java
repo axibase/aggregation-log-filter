@@ -173,7 +173,7 @@ public class MessageHelper {
             writer.write(props[0]);
             props[0].rewind();
         } catch (IOException e) {
-            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property command: " + sb.toString(), e);
+            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
         }
     }
 
@@ -194,7 +194,7 @@ public class MessageHelper {
             writer.write(props[1]);
             props[1].rewind();
         } catch (IOException e) {
-            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property command: " + sb.toString(), e);
+            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property");
         }
     }
 
