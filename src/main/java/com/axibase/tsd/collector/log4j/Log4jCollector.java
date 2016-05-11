@@ -52,7 +52,6 @@ public class Log4jCollector extends Filter {
     private int writerPort;
 
     private String writerUrl;
-    private long writerReconnectTimeoutMs;
 
     // series sender
     private SeriesSenderConfig seriesSenderConfig;
@@ -184,15 +183,20 @@ public class Log4jCollector extends Filter {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(writerUrl);
             writer = simpleHttpAtsdWriter;
+            if (writerPort <= 0)
+                writerPort = 8088;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(writerUrl);
             writer = simpleHttpsAtsdWriter;
+            if (writerPort <= 0)
+                writerPort = 8443;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             LogLog.error(msg);
             throw new IllegalStateException(msg);
         }
+        atsdUrl = scheme + "://" + writerHost + ":" + writerPort;
     }
 
     private void checkWriterProperty(boolean check, String propName, String propValue) {
@@ -202,10 +206,6 @@ public class Log4jCollector extends Filter {
             LogLog.error(msg);
             throw new IllegalStateException(msg);
         }
-    }
-
-    public void setWriterReconnectTimeoutMs(long writerReconnectTimeoutMs) {
-        this.writerReconnectTimeoutMs = writerReconnectTimeoutMs;
     }
 
     public void setEntity(String entity) {
@@ -270,20 +270,18 @@ public class Log4jCollector extends Filter {
     }
 
     public void setUrl(String atsdUrl) {
-        this.atsdUrl = atsdUrl;
         try {
             URI uri = new URI(atsdUrl);
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
                     atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
-                this.writerUrl = atsdUrl;
-            } else {
-                this.writerHost = uri.getHost();
-                this.writerPort = uri.getPort();
+                writerUrl = atsdUrl;
             }
+            writerHost = uri.getHost();
+            writerPort = uri.getPort();
         } catch (URISyntaxException e) {
-            LogLog.error("Could not parse generic uri " + atsdUrl, e);
+            LogLog.error("Syntax error in atsd-url " + atsdUrl);
         }
     }
 
