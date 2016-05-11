@@ -220,6 +220,7 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 | intervalSeconds | no | 60 | interval in seconds for sending collected counters |
 | sendMessage | no | - | see `sendMessage` config, MULTIPLE |
 | pattern | no | %m | pattern to format logging events sent to the database |
+| sendLoggerCounter | no | true | sending log_event_counter metric |
 
 ## scheme
 
@@ -281,6 +282,9 @@ Configures which log events should be sent to the storage system.
 | level | no | WARN | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
 | stackTraceLines | no | 0; ERROR: -1 | number of stacktrace lines included in the message, -1 -- all lines |
 | sendMultiplier | no | INFO-: 5; WARN: 3; ERROR: 2   | Determines index of events sent each period (10 minutes) determined as sendMultiplier^(n-1). |
+
+If appender pattern contains conversion characters that enable location information (e.g. %L, %M) 
+then received messages will contain corresponding tags line and method.
 
 ## Log Counter Portal Example
 
