@@ -111,7 +111,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
             } catch (Throwable e) {
-                AtsdUtil.logInfo("Could not write series "  + atsdUrl);
+                AtsdUtil.logInfo("Could not write series " + atsdUrl);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -170,9 +170,9 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
         LocationInfo locationInformation = event.getLocationInformation();
-        Map<String,String> locationMap = new HashMap<>();
+        Map<String, String> locationMap = new HashMap<>();
         locationMap.put("thread", event.getThreadName());
-        if (!locationInformation.getLineNumber().equals(LocationInfo.NA)){
+        if (!locationInformation.getLineNumber().equals(LocationInfo.NA)) {
             locationMap.put("line", locationInformation.getLineNumber());
             locationMap.put("method", locationInformation.getMethodName());
         }
@@ -211,6 +211,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
             totals.put(Level.toLevel(l).toString(), total);
         }
+        System.out.println("Aggregation log filter: connecting to ATSD on " + atsdUrl);
         if (writer != null) {
             try {
                 for (int l : levels) {
@@ -220,7 +221,9 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
                             Level.toLevel(l).toString());
                 }
+                System.out.println("Aggregation log filter: connected to ATSD.");
             } catch (IOException e) {
+                System.out.println("Aggregation log filter: failed to connect to ATSD.");
                 AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
