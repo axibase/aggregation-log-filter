@@ -53,6 +53,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String debug;
     private String pattern;
     private String scheme;
+    private String atsdUrl;
 
     @Override
     public FilterReply decide(E event) {
@@ -71,6 +72,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         super.start();
         initSeriesSenderConfig();
         logbackWriter = new LogbackWriter<E>();
+        logbackWriter.setAtsdUrl(atsdUrl);
         if (entity != null) {
             logbackWriter.setEntity(entity);
         }
@@ -206,21 +208,22 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.writer = writer;
     }
 
-    public void setUrl(String stringURI) {
+    public void setUrl(String atsdUrl) {
+        this.atsdUrl = atsdUrl;
         try {
-            URI uri = new URI(stringURI);
+            URI uri = new URI(atsdUrl);
             this.scheme = uri.getScheme();
 
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
-                    stringURI = stringURI.concat("/api/v1/commands/batch");
-                this.url = stringURI;
+                    atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
+                this.url = atsdUrl;
             } else {
                 this.host = uri.getHost();
                 this.port = uri.getPort();
             }
         } catch (URISyntaxException e) {
-            AtsdUtil.logError("Could not parse generic url " + stringURI, e);
+            AtsdUtil.logError("Could not parse generic url " + atsdUrl, e);
         }
     }
 

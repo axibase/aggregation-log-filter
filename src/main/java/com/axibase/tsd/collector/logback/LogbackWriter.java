@@ -40,6 +40,7 @@ public class LogbackWriter<E extends ILoggingEvent>
     private MessageHelper messageHelper = new MessageHelper();
     private PatternLayout patternLayout = null;
     private String pattern;
+    private String atsdUrl;
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -90,7 +91,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                         messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
                     }
                 } catch (Throwable e) {
-                    addError("Could not write series", e);
+                    AtsdUtil.logInfo("Could not write series "  + atsdUrl);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -116,7 +117,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                 // write total sum
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
             } catch (Throwable e) {
-                addError("Could not write series", e);
+                AtsdUtil.logInfo("Could not write series "  + atsdUrl);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -156,7 +157,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             }
             writeMessage(writer, event, sb, message);
         } catch (IOException e) {
-            addError("Could not write message", e);
+            AtsdUtil.logInfo("Could not write message "  + atsdUrl);
         }
     }
 
@@ -270,5 +271,9 @@ public class LogbackWriter<E extends ILoggingEvent>
 
     public void setPattern(String pattern) {
         this.pattern = pattern;
+    }
+
+    public void setAtsdUrl(String atsdUrl) {
+        this.atsdUrl = atsdUrl;
     }
 }
