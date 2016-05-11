@@ -268,7 +268,7 @@ public class MessageHelper {
                              Map<String,String> locationInformation) throws IOException {
         sb.append(AtsdUtil.sanitizeMessage(message));
         if (levelValue.toLowerCase().equals("trace") || levelValue.toLowerCase().equals("debug"))
-            sb.append(" t:severity=").append("Normal");
+            sb.append(" t:severity=").append("NORMAL");
         else
             sb.append(" t:severity=").append(levelValue);
         sb.append(" t:level=").append(levelValue);
