@@ -64,6 +64,7 @@ public class Log4j2Collector extends AbstractFilter {
     private String debug;
     private String pattern;
     private String scheme;
+    private String atsdUrl;
 
     private final int DEFAULT_INTERVAL = 60;
     private final String DEFAULT_PATTERN = "%m";
@@ -109,6 +110,7 @@ public class Log4j2Collector extends AbstractFilter {
         initSeriesSenderConfig();
 
         messageBuilder = new Log4j2MessageWriter();
+        messageBuilder.setAtsdUrl(atsdUrl);
         if (entity != null) {
             messageBuilder.setEntity(entity);
         }
@@ -253,20 +255,21 @@ public class Log4j2Collector extends AbstractFilter {
         }
     }
 
-    public void setUrl(String stringURI) {
+    public void setUrl(String atsdUrl) {
+        this.atsdUrl = atsdUrl;
         try {
-            URI uri = new URI(stringURI);
+            URI uri = new URI(atsdUrl);
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
-                    stringURI = stringURI.concat("/api/v1/commands/batch");
-                this.writerUrl = stringURI;
+                    atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
+                this.writerUrl = atsdUrl;
             } else {
                 this.writerHost = uri.getHost();
                 this.writerPort = uri.getPort();
             }
         } catch (URISyntaxException e) {
-            AtsdUtil.logError("Could not parse generic url " + stringURI, e);
+            AtsdUtil.logError("Could not parse generic url " + atsdUrl, e);
         }
     }
 
