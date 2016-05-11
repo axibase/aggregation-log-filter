@@ -61,6 +61,7 @@ public class Log4jCollector extends Filter {
     private String debug;
     private String pattern;
     private String scheme;
+    private String atsdUrl;
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -102,6 +103,7 @@ public class Log4jCollector extends Filter {
         initSeriesSenderConfig();
 
         log4jMessageWriter = new Log4jMessageWriter();
+        log4jMessageWriter.setAtsdUrl(atsdUrl);
         if (entity != null) {
             log4jMessageWriter.setEntity(entity);
         }
@@ -267,20 +269,21 @@ public class Log4jCollector extends Filter {
         this.pattern = pattern;
     }
 
-    public void setUrl(String stringURI) {
+    public void setUrl(String atsdUrl) {
+        this.atsdUrl = atsdUrl;
         try {
-            URI uri = new URI(stringURI);
+            URI uri = new URI(atsdUrl);
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
-                    stringURI = stringURI.concat("/api/v1/commands/batch");
-                this.writerUrl = stringURI;
+                    atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
+                this.writerUrl = atsdUrl;
             } else {
                 this.writerHost = uri.getHost();
                 this.writerPort = uri.getPort();
             }
         } catch (URISyntaxException e) {
-            LogLog.error("Could not parse generic uri " + stringURI, e);
+            LogLog.error("Could not parse generic uri " + atsdUrl, e);
         }
     }
 

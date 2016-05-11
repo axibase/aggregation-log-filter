@@ -36,6 +36,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
     private String pattern;
+    private String atsdUrl;
     private PatternLayout patternLayout;
 
     @Override
@@ -85,7 +86,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                     if (seriesSenderConfig.isSendLoggerCounter())
                         messageHelper.writeCounter(writer, time, key, level, counter.getSum());
                 } catch (Throwable e) {
-                    AtsdUtil.logInfo("Could not write series", e);
+                    AtsdUtil.logInfo("Could not write series " + atsdUrl);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -110,7 +111,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
             } catch (Throwable e) {
-                AtsdUtil.logInfo("Could not write series", e);
+                AtsdUtil.logInfo("Could not write series "  + atsdUrl);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -149,7 +150,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             }
             writeMessage(writer, event, sb, message);
         } catch (Exception e) {
-            AtsdUtil.logInfo("Could not write message", e);
+            AtsdUtil.logInfo("Could not write message " + atsdUrl);
         }
     }
 
@@ -261,6 +262,10 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
 
     public void setPattern(String pattern) {
         this.pattern = pattern;
+    }
+
+    public void setAtsdUrl(String atsdUrl) {
+        this.atsdUrl = atsdUrl;
     }
 }
 
