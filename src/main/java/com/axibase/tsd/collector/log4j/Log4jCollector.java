@@ -184,13 +184,13 @@ public class Log4jCollector extends Filter {
             simpleHttpAtsdWriter.setUrl(writerUrl);
             writer = simpleHttpAtsdWriter;
             if (writerPort <= 0)
-                writerPort = 8088;
+                writerPort = 80;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(writerUrl);
             writer = simpleHttpsAtsdWriter;
             if (writerPort <= 0)
-                writerPort = 8443;
+                writerPort = 443;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             LogLog.error(msg);
