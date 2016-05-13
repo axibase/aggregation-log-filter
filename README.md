@@ -2,7 +2,7 @@
 
 The aggregation logger tracks the total number of log events raised by a Java application as well as by active loggers with  breakdown by level (severity). 
 
-An asynchronous sender thread transmits the counters to a time series database every 60 seconds via TCP/UDP/HTTP(s) protocol for alerting and long-term retention.
+An asynchronous sender thread transmits the counters to a time series database every 60 seconds, controlled with [`intervalSeconds`](#configuration-settings), via TCP/UDP/HTTP(s) protocol for alerting and long-term retention.
 
 Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See **LogInfo/./LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
