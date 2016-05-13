@@ -235,15 +235,22 @@ public class Log4j2Collector extends AbstractFilter {
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(writerUrl);
             writer = simpleHttpAtsdWriter;
+            if (writerPort <= 0)
+                writerPort = 80;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(writerUrl);
             writer = simpleHttpsAtsdWriter;
+            if (writerPort <= 0)
+                writerPort = 443;
         } else {
             final String msg = "Undefined writer for Log4jCollector: " + writer;
             StatusLogger.getLogger().error(msg);
             throw new IllegalStateException(msg);
         }
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(scheme).append("://").append(writerHost).append(":").append(writerPort);
+        atsdUrl = stringBuilder.toString();
     }
 
     private void checkWriterProperty(boolean check, String propName, String propValue) {
@@ -256,7 +263,6 @@ public class Log4j2Collector extends AbstractFilter {
     }
 
     public void setUrl(String atsdUrl) {
-        this.atsdUrl = atsdUrl;
         try {
             URI uri = new URI(atsdUrl);
             this.scheme = uri.getScheme();
@@ -264,10 +270,9 @@ public class Log4j2Collector extends AbstractFilter {
                 if (uri.getPath().isEmpty())
                     atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
                 this.writerUrl = atsdUrl;
-            } else {
-                this.writerHost = uri.getHost();
-                this.writerPort = uri.getPort();
             }
+            this.writerHost = uri.getHost();
+            this.writerPort = uri.getPort();
         } catch (URISyntaxException e) {
             AtsdUtil.logError("Could not parse generic url " + atsdUrl, e);
         }
