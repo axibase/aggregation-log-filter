@@ -196,8 +196,9 @@ public class Log4jCollector extends Filter {
             LogLog.error(msg);
             throw new IllegalStateException(msg);
         }
-        atsdUrl = scheme + "://" + writerHost + ":" + writerPort;
-    }
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(scheme).append("://").append(writerHost).append(":").append(writerPort);
+        atsdUrl = stringBuilder.toString();    }
 
     private void checkWriterProperty(boolean check, String propName, String propValue) {
         if (check) {
