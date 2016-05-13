@@ -91,7 +91,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                         messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
                     }
                 } catch (Throwable e) {
-                    AtsdUtil.logInfo("Could not write series "  + atsdUrl);
+                    AtsdUtil.logInfo("Could not write series " + atsdUrl);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -117,7 +117,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                 // write total sum
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
             } catch (Throwable e) {
-                AtsdUtil.logInfo("Could not write series "  + atsdUrl);
+                AtsdUtil.logInfo("Could not write series " + atsdUrl);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -157,7 +157,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             }
             writeMessage(writer, event, sb, message);
         } catch (IOException e) {
-            AtsdUtil.logInfo("Could not write message "  + atsdUrl);
+            AtsdUtil.logInfo("Could not write message " + atsdUrl);
         }
     }
 
@@ -232,7 +232,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                             Level.toLevel(l).toString());
                 }
                 System.out.println("Aggregation log filter: connected to ATSD.");
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
                 AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }

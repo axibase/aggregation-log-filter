@@ -72,7 +72,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         super.start();
         initSeriesSenderConfig();
         logbackWriter = new LogbackWriter<E>();
-        logbackWriter.setAtsdUrl(atsdUrl);
         if (entity != null) {
             logbackWriter.setEntity(entity);
         }
@@ -89,6 +88,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         aggregator = new Aggregator<E, String, Level>(logbackWriter, new LogbackEventProcessor<E>());
         initWriter();
+        logbackWriter.setAtsdUrl(atsdUrl);
         if (debug != null) {
             writer = new LoggingWrapper(writer);
         } else {
@@ -135,8 +135,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         if (writer instanceof AbstractAtsdWriter) {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
-                        if (port <= 0)
-                switch (scheme.toLowerCase()){
+            if (port <= 0)
+                switch (scheme.toLowerCase()) {
                     case "tcp":
                         port = 8081;
                         break;
@@ -153,14 +153,21 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
             simpleHttpAtsdWriter.setUrl(url);
             writer = simpleHttpAtsdWriter;
+            if (port <= 0)
+                port = 80;
         } else if (writer instanceof HttpsAtsdWriter) {
             final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
             simpleHttpsAtsdWriter.setUrl(url);
             writer = simpleHttpsAtsdWriter;
+            if (port <= 0)
+                port = 443;
         } else {
             final String msg = "Undefined writer for Collector: " + writer;
             throw new IllegalStateException(msg);
         }
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(scheme).append("://").append(host).append(":").append(port);
+        atsdUrl = stringBuilder.toString();
     }
 
     @Override
@@ -209,7 +216,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     public void setUrl(String atsdUrl) {
-        this.atsdUrl = atsdUrl;
         try {
             URI uri = new URI(atsdUrl);
             this.scheme = uri.getScheme();
@@ -217,13 +223,12 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
                     atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
-                this.url = atsdUrl;
-            } else {
-                this.host = uri.getHost();
-                this.port = uri.getPort();
+                url = atsdUrl;
             }
+            this.host = uri.getHost();
+            this.port = uri.getPort();
         } catch (URISyntaxException e) {
-            AtsdUtil.logError("Could not parse generic url " + atsdUrl, e);
+            AtsdUtil.logError("Syntax error in atsd-url " + atsdUrl);
         }
     }
 
@@ -238,6 +243,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public void setIntervalSeconds(int intervalSeconds) {
         this.intervalSeconds = intervalSeconds;
     }
+
     public void setSendLoggerCounter(boolean sendLoggerCounter) {
         this.sendLoggerCounter = sendLoggerCounter;
     }
