@@ -6,7 +6,7 @@ An asynchronous sender thread transmits the counters to a time series database e
 
 Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See **LogInfo/./LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
-The logger consists of the core library and adapters for Logback and Log4j logging frameworks.
+The logger consists of the core library and adapters for Logback, Log4j and Log4j2 logging frameworks.
 
 ## Collected Data
 
@@ -252,13 +252,14 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 | tag | no | - | User-defined tag(s) to be included in series and message commands, MULTIPLE |
 | level | no | TRACE | Minimum level for processed events |
 | intervalSeconds | no | 60 | Interval in seconds for sending collected counters |
-| sendMessage | no | - | See `sendMessage` config, MULTIPLE |
+| sendMessage | no | - | See [`sendMessage`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#sendmessage) config, MULTIPLE |
 | pattern | no | %m | Pattern to format logging events sent to the database. <br>The pattern should not include fields that are already included as tags such as logger name, level etc. |
-| sendLoggerCounter | no | true | Sending log_event_counter metric |
+| sendLoggerCounter | no | true | When disabled, event counts by logger are not tracked and [`log_event_counter`](https://github.com/axibase/aggregation-log-filter#counters) metric is not sent. |
+| debug | no | false | Flag to display debug information, see [`Troubleshooting`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#troubleshooting) |
 
 ## Database Address
 
-Configures a TCP, UDP or HTTP writer to send statistics and messages to a supported time series database.
+Configures a TCP, UDP, HTTP or HTTPS writer to send statistics and messages to a supported time series database.
 
 ### TCP
 
@@ -356,7 +357,7 @@ Logback: add under `<filter>`
 Log4j: add JVM setting -Dlog4j.debug and add DEBUG setting to log4j.properties file
 
 ```
-log4j.logger.com.axibase=DEBUG
+log4j.appender.APPENDER.filter.COLLECTOR.debug=true
 ```
 
 Log4j2: add debug under `<Collector>` and set status="DEBUG" under `Configuration`
