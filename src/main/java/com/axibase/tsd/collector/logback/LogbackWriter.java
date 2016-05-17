@@ -24,6 +24,9 @@ import ch.qos.logback.core.spi.ContextAwareBase;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
+import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.TcpAtsdWriter;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -91,7 +94,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                         messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
                     }
                 } catch (Throwable e) {
-                    AtsdUtil.logInfo("Could not write series " + atsdUrl);
+                    addError("Could not write series " + atsdUrl);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -117,7 +120,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                 // write total sum
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
             } catch (Throwable e) {
-                AtsdUtil.logInfo("Could not write series " + atsdUrl);
+                addError("Could not write series " + atsdUrl);
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -155,9 +158,9 @@ public class LogbackWriter<E extends ILoggingEvent>
                 }
                 message = msb.toString();
             }
-            writeMessage(writer, event, sb, message);
+            writeMessage(writer, event, sb, message, wrapper.getContext());
         } catch (IOException e) {
-            AtsdUtil.logInfo("Could not write message " + atsdUrl);
+            addError("Could not write message " + atsdUrl);
         }
     }
 
@@ -174,7 +177,7 @@ public class LogbackWriter<E extends ILoggingEvent>
     private void writeMessage(WritableByteChannel writer,
                               E event,
                               StringBuilder sb,
-                              String message) throws IOException {
+                              String message, Map context) throws IOException {
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
         Map<String, String> locationMap = new HashMap<>();
@@ -184,6 +187,8 @@ public class LogbackWriter<E extends ILoggingEvent>
             locationMap.put("line", String.valueOf(stackTraceElement.getLineNumber()));
             locationMap.put("method", stackTraceElement.getMethodName());
         }
+        if (context != null)
+            locationMap.putAll(context);
         messageHelper.writeMessage(writer, sb, message, levelValue, loggerName, locationMap);
     }
 
@@ -231,10 +236,14 @@ public class LogbackWriter<E extends ILoggingEvent>
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
                             Level.toLevel(l).toString());
                 }
-                System.out.println("Aggregation log filter: connected to ATSD.");
+                if (writer instanceof TcpAtsdWriter)
+                    System.out.println("Aggregation log filter: connected to ATSD.");
+                else if (writer instanceof BaseHttpAtsdWriter) {
+                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writer).getStatusCode());
+                }
             } catch (Exception e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
-                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                addError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
 
@@ -257,7 +266,8 @@ public class LogbackWriter<E extends ILoggingEvent>
         } else {
             message = patternLayout.doLayout(event);
         }
-        return new EventWrapper<E>(event, lines, message);
+        Map context = MDC.getCopyOfContextMap();
+        return new EventWrapper<E>(event, lines, message, context);
     }
 
     public void addTag(Tag tag) {

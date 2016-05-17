@@ -152,7 +152,7 @@ public class LogbackMessageWriterTest {
 
     private CountedQueue<EventWrapper<ILoggingEvent>> createSingles(LoggingEvent event, int lines) {
         CountedQueue<EventWrapper<ILoggingEvent>> singles = new CountedQueue<EventWrapper<ILoggingEvent>>();
-        singles.add(new EventWrapper<ILoggingEvent>(event, lines, event.getMessage()));
+        singles.add(new EventWrapper<ILoggingEvent>(event, lines, event.getMessage(),null));
         return singles;
     }
 
