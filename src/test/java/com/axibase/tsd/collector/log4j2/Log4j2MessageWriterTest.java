@@ -149,7 +149,7 @@ public class Log4j2MessageWriterTest {
 
     private CountedQueue<EventWrapper<LogEvent>> createSingles(LogEvent event, int lines) {
         CountedQueue<EventWrapper<LogEvent>> singles = new CountedQueue<EventWrapper<LogEvent>>();
-        singles.add(new EventWrapper<LogEvent>(event, lines, event.getMessage().getFormattedMessage()));
+        singles.add(new EventWrapper<LogEvent>(event, lines, event.getMessage().getFormattedMessage(),null));
         return singles;
     }
 

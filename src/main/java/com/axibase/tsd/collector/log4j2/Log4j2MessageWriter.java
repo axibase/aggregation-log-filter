@@ -18,6 +18,8 @@ package com.axibase.tsd.collector.log4j2;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
+import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.ExtendedStackTraceElement;
 import org.apache.logging.log4j.core.impl.ThrowableProxy;
@@ -89,7 +91,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                     if (seriesSenderConfig.isSendLoggerCounter())
                         messageHelper.writeCounter(writer, time, key, level, counter.getSum());
                 } catch (Throwable e) {
-                    AtsdUtil.logInfo("Could not write series "  + atsdUrl);
+                    AtsdUtil.logInfo("Could not write series " + atsdUrl);
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -152,7 +154,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                 }
                 message = msb.toString();
             }
-            writeMessage(writer, event, sb, message);
+            writeMessage(writer, event, sb, message, wrapper.getContext());
         } catch (Exception e) {
             AtsdUtil.logInfo("Could not write message " + atsdUrl);
         }
@@ -171,18 +173,19 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     private void writeMessage(WritableByteChannel writer,
                               LogEvent event,
                               StringBuilder sb,
-                              String message) throws IOException {
+                              String message, Map context) throws IOException {
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
         StackTraceElement source = event.getSource();
-        Map<String,String> locationMap = new HashMap<>();
+        Map<String, String> locationMap = new HashMap<>();
         locationMap.put("thread", event.getThreadName());
-        if (source != null){
+        if (source != null) {
             locationMap.put("line", String.valueOf(source.getLineNumber()));
             locationMap.put("method", source.getMethodName());
         }
-
-        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName,locationMap);
+        if (context != null)
+            locationMap.putAll(context);
+        messageHelper.writeMessage(writer, sb, message, levelValue, loggerName, locationMap);
     }
 
     @Override
@@ -236,7 +239,11 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                         continue;
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
                 }
-                System.out.println("Aggregation log filter: connected to ATSD.");
+                if (writer instanceof TcpAtsdWriter)
+                    System.out.println("Aggregation log filter: connected to ATSD.");
+                else if (writer instanceof BaseHttpAtsdWriter) {
+                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writer).getStatusCode());
+                }
             } catch (IOException e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
                 AtsdUtil.logInfo("Writer failed to send initial total counter value for " + curLevel);
@@ -266,7 +273,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             }
             message = sb.toString();
         }
-        return new EventWrapper<LogEvent>(event, lines, message);
+        return new EventWrapper<LogEvent>(event, lines, message, ThreadContext.getContext());
     }
 
     public void addTag(Tag tag) {
