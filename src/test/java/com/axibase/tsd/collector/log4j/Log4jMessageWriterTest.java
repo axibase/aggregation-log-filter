@@ -145,7 +145,7 @@ public class Log4jMessageWriterTest {
 
     private CountedQueue<EventWrapper<LoggingEvent>> createSingles(LoggingEvent event, int lines) {
         CountedQueue<EventWrapper<LoggingEvent>> singles = new CountedQueue<EventWrapper<LoggingEvent>>();
-        singles.add(new EventWrapper<LoggingEvent>(event, lines, event.getRenderedMessage()));
+        singles.add(new EventWrapper<LoggingEvent>(event, lines, event.getRenderedMessage(),null));
         return singles;
     }
 

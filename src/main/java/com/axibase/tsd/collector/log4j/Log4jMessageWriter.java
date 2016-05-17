@@ -18,7 +18,10 @@ package com.axibase.tsd.collector.log4j;
 import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
+import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.apache.log4j.Level;
+import org.apache.log4j.MDC;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
@@ -148,7 +151,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 }
                 message = msb.toString();
             }
-            writeMessage(writer, event, sb, message);
+            writeMessage(writer, event, sb, message, wrapper.getContext());
         } catch (Exception e) {
             AtsdUtil.logInfo("Could not write message " + atsdUrl);
         }
@@ -166,7 +169,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     private void writeMessage(WritableByteChannel writer,
                               LoggingEvent event,
                               StringBuilder sb,
-                              String message) throws IOException {
+                              String message, Map context) throws IOException {
         final String levelValue = event.getLevel().toString();
         final String loggerName = event.getLoggerName();
         LocationInfo locationInformation = event.getLocationInformation();
@@ -176,6 +179,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             locationMap.put("line", locationInformation.getLineNumber());
             locationMap.put("method", locationInformation.getMethodName());
         }
+        if (context != null)
+            locationMap.putAll(context);
         messageHelper.writeMessage(writer, sb, message, levelValue, loggerName, locationMap);
     }
 
@@ -221,7 +226,11 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
                             Level.toLevel(l).toString());
                 }
-                System.out.println("Aggregation log filter: connected to ATSD.");
+                if (writer instanceof TcpAtsdWriter)
+                    System.out.println("Aggregation log filter: connected to ATSD.");
+                else if (writer instanceof BaseHttpAtsdWriter){
+                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writer).getStatusCode());
+                }
             } catch (IOException e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
                 AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
@@ -248,7 +257,15 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
         } else {
             message = patternLayout.format(event);
         }
-        return new EventWrapper<LoggingEvent>(event, lines, message);
+        Hashtable mdcContext = MDC.getContext();
+        HashMap context = null;
+        if (mdcContext != null) {
+            context = new HashMap<String, String>();
+            for (Object o : mdcContext.keySet()) {
+                context.put(o.toString(), mdcContext.get(o.toString()));
+            }
+        }
+        return new EventWrapper<LoggingEvent>(event, lines, message, context);
     }
 
     public void addTag(Tag tag) {
