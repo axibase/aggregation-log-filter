@@ -265,7 +265,7 @@ public class MessageHelper {
                              String message,
                              String levelValue,
                              String loggerName,
-                             Map<String,String> locationInformation) throws IOException {
+                             Map<String, String> locationInformation) throws IOException {
         sb.append(AtsdUtil.sanitizeMessage(message));
         if (levelValue.toLowerCase().equals("trace") || levelValue.toLowerCase().equals("debug"))
             sb.append(" t:severity=").append("NORMAL");
@@ -289,11 +289,13 @@ public class MessageHelper {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
-                writer.write(props[0]);
-                writer.write(props[1]);
-                props[0].rewind();
-                props[1].rewind();
-                lastPropertySentTime = currentTime;
+                if (props[0] != null && props[1] != null) {
+                    writer.write(props[0]);
+                    writer.write(props[1]);
+                    props[0].rewind();
+                    props[1].rewind();
+                    lastPropertySentTime = currentTime;
+                }
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");
             }

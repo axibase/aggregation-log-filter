@@ -89,6 +89,15 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
     }
 
     @Override
+    public int getStatusCode() throws IOException {
+        int responseCode = -1;
+        if (isOpen()) {
+            responseCode = connection.getResponseCode();
+        }
+        return responseCode;
+    }
+
+    @Override
     public void setUrl(String url) {
         url = url.trim();
         if (!url.endsWith(STREAM_FALSE_PARAM) && !url.endsWith(COMMANDS_BATCH_SUFFIX)) {

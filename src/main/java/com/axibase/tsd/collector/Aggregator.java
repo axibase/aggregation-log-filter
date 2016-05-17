@@ -62,6 +62,7 @@ public class Aggregator<E, K, L> {
 
             totalCounter.incrementAndGet();
 
+            // try to send immediately instance of Error
             if (!messageWriter.sendErrorInstance(writer,event) && (triggers != null)) {
                 int lines = 0;
                 boolean fire = false;

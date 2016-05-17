@@ -15,15 +15,19 @@
 
 package com.axibase.tsd.collector;
 
+import java.util.Map;
+
 public class EventWrapper<E> {
     private final E event;
     private final int lines;
     private final String message;
+    private final Map context;
 
-    public EventWrapper(E event, int lines, String message) {
+    public EventWrapper(E event, int lines, String message, Map context) {
         this.event = event;
         this.lines = lines;
         this.message = message;
+        this.context = context;
     }
 
     public E getEvent() {
@@ -36,5 +40,9 @@ public class EventWrapper<E> {
 
     public String getMessage() {
         return message;
+    }
+
+    public Map getContext() {
+        return context;
     }
 }

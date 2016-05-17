@@ -66,6 +66,8 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     @Override
     public abstract void close() throws IOException;
 
+    public abstract int getStatusCode() throws IOException;
+
     protected void initConnection(HttpURLConnection con) throws IOException {
         con.setRequestMethod(method);
         BASE64Encoder enc = new BASE64Encoder();
