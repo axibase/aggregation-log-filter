@@ -188,7 +188,7 @@ public class Log4j2Collector extends AbstractFilter {
         try {
             collector.init();
         } catch (Exception e) {
-            AtsdUtil.logError("Could not initialize collector", e);
+            AtsdUtil.logError("Could not initialize collector. " + e.getMessage());
         }
         return collector;
     }
@@ -211,7 +211,7 @@ public class Log4j2Collector extends AbstractFilter {
             final String msg = "Could not create writer instance by type, " + e.getMessage();
             AtsdUtil.logError(msg);
         } catch (IllegalAccessException e) {
-            AtsdUtil.logError("Could not instantiate writerType ", e);
+            AtsdUtil.logError("Could not instantiate writerType. " + e.getMessage());
         }
 
         if (writer instanceof AbstractAtsdWriter) {
@@ -274,7 +274,7 @@ public class Log4j2Collector extends AbstractFilter {
             this.writerHost = uri.getHost();
             this.writerPort = uri.getPort();
         } catch (URISyntaxException e) {
-            AtsdUtil.logError("Could not parse generic url " + atsdUrl, e);
+            AtsdUtil.logError("Could not parse generic url " + atsdUrl + ". " + e.getMessage());
         }
     }
 
@@ -346,7 +346,7 @@ public class Log4j2Collector extends AbstractFilter {
                 aggregator.register(event);
             }
         } catch (IOException e) {
-            StatusLogger.getLogger().error("Could not write message", e);
+            StatusLogger.getLogger().error("Could not write message. " + e.getMessage());
         }
         return Result.NEUTRAL;
     }

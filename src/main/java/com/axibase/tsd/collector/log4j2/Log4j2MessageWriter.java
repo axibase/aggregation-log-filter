@@ -19,6 +19,7 @@ import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.ExtendedStackTraceElement;
@@ -239,10 +240,14 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                         continue;
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0), l.toString());
                 }
-                if (writer instanceof TcpAtsdWriter)
+                WritableByteChannel writerToCheck = writer;
+                if (writerToCheck instanceof LoggingWrapper){
+                    writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
+                }
+                if (writerToCheck instanceof TcpAtsdWriter)
                     System.out.println("Aggregation log filter: connected to ATSD.");
-                else if (writer instanceof BaseHttpAtsdWriter) {
-                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writer).getStatusCode());
+                else if (writerToCheck instanceof BaseHttpAtsdWriter){
+                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (IOException e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
