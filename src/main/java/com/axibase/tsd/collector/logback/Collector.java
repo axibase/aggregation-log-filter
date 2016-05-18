@@ -62,7 +62,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 aggregator.register(event);
             }
         } catch (IOException e) {
-            addError("Could not write message", e);
+            addError("Could not write message. " + e.getMessage());
         }
         return FilterReply.NEUTRAL;
     }

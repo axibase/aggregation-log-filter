@@ -25,6 +25,7 @@ import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.slf4j.MDC;
 
@@ -236,10 +237,14 @@ public class LogbackWriter<E extends ILoggingEvent>
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
                             Level.toLevel(l).toString());
                 }
-                if (writer instanceof TcpAtsdWriter)
+                WritableByteChannel writerToCheck = writer;
+                if (writerToCheck instanceof LoggingWrapper){
+                    writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
+                }
+                if (writerToCheck instanceof TcpAtsdWriter)
                     System.out.println("Aggregation log filter: connected to ATSD.");
-                else if (writer instanceof BaseHttpAtsdWriter) {
-                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writer).getStatusCode());
+                else if (writerToCheck instanceof BaseHttpAtsdWriter){
+                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (Exception e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
