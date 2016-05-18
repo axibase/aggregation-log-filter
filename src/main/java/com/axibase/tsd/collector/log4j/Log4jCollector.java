@@ -159,7 +159,7 @@ public class Log4jCollector extends Filter {
                     + e.getMessage();
             LogLog.error(msg);
         } catch (IllegalAccessException e) {
-            LogLog.error("Could not instantiate writerType ", e);
+            LogLog.error("Could not instantiate writerType. " + e.getMessage());
         }
 
         if (writer instanceof AbstractAtsdWriter) {
@@ -293,7 +293,7 @@ public class Log4jCollector extends Filter {
                 aggregator.register(event);
             }
         } catch (IOException e) {
-            LogLog.error("Could not write message", e);
+            LogLog.error("Could not write message. " + e.getMessage());
         }
         return NEUTRAL;
     }

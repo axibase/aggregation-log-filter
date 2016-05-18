@@ -19,6 +19,7 @@ import com.axibase.tsd.collector.*;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.apache.log4j.Level;
 import org.apache.log4j.MDC;
@@ -89,7 +90,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                     if (seriesSenderConfig.isSendLoggerCounter())
                         messageHelper.writeCounter(writer, time, key, level, counter.getSum());
                 } catch (Throwable e) {
-                    AtsdUtil.logInfo("Could not write series " + atsdUrl);
+                    AtsdUtil.logInfo("Could not write series " + atsdUrl + ". " + e.getMessage());
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -114,7 +115,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
             } catch (Throwable e) {
-                AtsdUtil.logInfo("Could not write series " + atsdUrl);
+                AtsdUtil.logInfo("Could not write series " + atsdUrl + ". " + e.getMessage());
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -153,7 +154,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             }
             writeMessage(writer, event, sb, message, wrapper.getContext());
         } catch (Exception e) {
-            AtsdUtil.logInfo("Could not write message " + atsdUrl);
+            AtsdUtil.logInfo("Could not write message " + atsdUrl  + " " + e.getMessage());
         }
     }
 
@@ -226,17 +227,20 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                     messageHelper.writeTotalCounter(writer, System.currentTimeMillis(), new CounterWithSum(0, 0),
                             Level.toLevel(l).toString());
                 }
-                if (writer instanceof TcpAtsdWriter)
+                WritableByteChannel writerToCheck = writer;
+                if (writerToCheck instanceof LoggingWrapper){
+                    writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
+                }
+                if (writerToCheck instanceof TcpAtsdWriter)
                     System.out.println("Aggregation log filter: connected to ATSD.");
-                else if (writer instanceof BaseHttpAtsdWriter){
-                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writer).getStatusCode());
+                else if (writerToCheck instanceof BaseHttpAtsdWriter){
+                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (IOException e) {
                 System.out.println("Aggregation log filter: failed to connect to ATSD.");
                 AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
-
     }
 
     @Override
