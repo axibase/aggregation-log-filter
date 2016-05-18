@@ -52,7 +52,7 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
 
             AtsdUtil.logInfo("Connected to " + url);
         } catch (Throwable e) {
-            AtsdUtil.logInfo("Could not write messages", e);
+            AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
             close();
         }
     }
@@ -69,7 +69,7 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                AtsdUtil.logInfo("Could not close output stream", e);
+                AtsdUtil.logInfo("Could not close output stream. " + e.getMessage());
             }
             outputStream = null;
         }
@@ -82,7 +82,7 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
             try {
                 connection.disconnect();
             } catch (Exception e) {
-                AtsdUtil.logInfo("Could not disconnect", e);
+                AtsdUtil.logInfo("Could not disconnect. " + e.getMessage());
             }
             connection = null;
         }
@@ -94,6 +94,7 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
         if (isOpen()) {
             responseCode = connection.getResponseCode();
         }
+        init();
         return responseCode;
     }
 

@@ -43,7 +43,7 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
         try {
             this.credentials = new URL(url).getUserInfo();
         } catch (MalformedURLException e) {
-                AtsdUtil.logInfo("Could not get credentials from url", e);
+                AtsdUtil.logInfo("Could not get credentials from url. " + e.getMessage());
         }
     }
 

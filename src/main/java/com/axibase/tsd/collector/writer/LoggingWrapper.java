@@ -59,4 +59,8 @@ public class LoggingWrapper implements WritableByteChannel {
             return writer;
         }
     }
+
+    public WritableByteChannel getWrapped() {
+        return wrapped;
+    }
 }

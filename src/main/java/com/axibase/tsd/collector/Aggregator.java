@@ -107,7 +107,7 @@ public class Aggregator<E, K, L> {
             try {
                 worker.finish();
             } catch (Exception e) {
-                AtsdUtil.logInfo("Could not finish worker", e);
+                AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
             }
             worker.stop();
         }
@@ -127,7 +127,7 @@ public class Aggregator<E, K, L> {
             try {
                 writer.close();
             } catch (IOException e) {
-                AtsdUtil.logInfo("Could not close writer", e);
+                AtsdUtil.logInfo("Could not close writer. "  + e.getMessage());
             }
         } else {
             AtsdUtil.logInfo("Writer has already been closed");
@@ -182,10 +182,10 @@ public class Aggregator<E, K, L> {
                     messageWriter.checkPropertiesSent(writer);
                     checkThresholdsAndWrite();
                 } catch (IOException e) {
-                    AtsdUtil.logInfo("Could not write messages", e);
+                    AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
                     // ignore
                 } catch (InterruptedException e) {
-                    AtsdUtil.logInfo("Interrupted", e);
+                    AtsdUtil.logInfo("Interrupted. " + e.getMessage());
                     // ignore
                     Thread.currentThread().interrupt();
                 }
@@ -255,7 +255,7 @@ public class Aggregator<E, K, L> {
             try {
                 worker.finish();
             } catch (Exception e) {
-                AtsdUtil.logInfo("Could not finish worker", e);
+                AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
             }
         }
     }

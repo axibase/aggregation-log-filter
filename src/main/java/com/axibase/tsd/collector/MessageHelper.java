@@ -139,7 +139,7 @@ public class MessageHelper {
             sb.append(" v:").append("TotalPhysicalMemorySize=\"").append(osMXBeanUnix.getTotalPhysicalMemorySize()).append("\"");
             sb.append(" v:").append("TotalSwapSpaceSize=\"").append(osMXBeanUnix.getTotalSwapSpaceSize()).append("\"");
         } catch (Exception e) {
-            AtsdUtil.logError("Writer failed to get java.log_aggregator.runtime properties for UnixOperatingSystem ", e);
+            AtsdUtil.logError("Writer failed to get java.log_aggregator.runtime properties for UnixOperatingSystem. " + e.getMessage());
         }
 
         RuntimeMXBean runtimeMXBean = java.lang.management.ManagementFactory.getRuntimeMXBean();

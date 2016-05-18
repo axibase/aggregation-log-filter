@@ -93,7 +93,7 @@ public class AtsdUtil {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            AtsdUtil.logInfo("Could not resolve hostname", e);
+            AtsdUtil.logInfo("Could not resolve hostname. " + e.getMessage());
             return DEFAULT_ENTITY;
         }
     }

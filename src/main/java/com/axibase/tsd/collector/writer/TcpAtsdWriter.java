@@ -62,7 +62,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
                 cnt+=client.write(message);
             }
         } catch (IOException e) {
-            AtsdUtil.logInfo("Could not write messages", e);
+            AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
             close();
             throw e;
         }

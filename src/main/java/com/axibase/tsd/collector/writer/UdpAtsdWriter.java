@@ -55,10 +55,10 @@ public class UdpAtsdWriter extends AbstractAtsdWriter {
             }
             return datagramChannel.send(message, getAddress());
         } catch (IOException e) {
-            AtsdUtil.logInfo("Writer failed to send message via udp", e);
+            AtsdUtil.logInfo("Writer failed to send message via udp. " + e.getMessage());
             return 0;
         } catch (UnresolvedAddressException e) {
-            AtsdUtil.logInfo("Writer failed to send message via udp: unresolved address", e);
+            AtsdUtil.logInfo("Writer failed to send message via udp: unresolved address. " + e.getMessage());
             return 0;
         }
     }
