@@ -268,7 +268,7 @@ public class Log4j2Collector extends AbstractFilter {
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
-                    atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
+                    atsdUrl = atsdUrl.concat("/api/v1/command");
                 this.writerUrl = atsdUrl;
             }
             this.writerHost = uri.getHost();
