@@ -276,7 +276,7 @@ public class Log4jCollector extends Filter {
             this.scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
-                    atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
+                    atsdUrl = atsdUrl.concat("/api/v1/command");
                 writerUrl = atsdUrl;
             }
             writerHost = uri.getHost();
