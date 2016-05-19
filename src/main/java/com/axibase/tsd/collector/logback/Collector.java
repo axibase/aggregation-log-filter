@@ -222,7 +222,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
-                    atsdUrl = atsdUrl.concat("/api/v1/commands/batch");
+                    atsdUrl = atsdUrl.concat("/api/v1/command");
                 url = atsdUrl;
             }
             this.host = uri.getHost();
