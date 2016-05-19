@@ -217,6 +217,14 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 
 ## Adding MDC Context Parameters to Messages
 
+By default all MDC context Parameters attached to message command as tags like job_id and task_id tags
+
+```css
+message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching error java.io.IOException:
+No files found: file:///opt/files" t:severity=ERROR t:level=ERROR t:source=com.collector.FileService 
+t:job_id=15 t:task_id=2 t:thread=taskExecutor-1
+```
+
 ### Java Example
 
 ```java
