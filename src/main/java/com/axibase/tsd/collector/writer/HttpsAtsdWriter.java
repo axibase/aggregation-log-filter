@@ -29,9 +29,8 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        if (!isOpen()) {
-            init();
-        }
+        close();
+        init();
         if (outputStream == null) {
             throw new IOException("outputStream has not been initialized properly");
         }
@@ -50,7 +49,6 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
 
             outputStream = connection.getOutputStream();
 
-            AtsdUtil.logInfo("Connected to " + url);
         } catch (Throwable e) {
             AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
             close();
@@ -101,10 +99,6 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
     @Override
     public void setUrl(String url) {
         url = url.trim();
-        if (!url.endsWith(STREAM_FALSE_PARAM) && !url.endsWith(COMMANDS_BATCH_SUFFIX)) {
-            super.setUrl(url + "?" + STREAM_FALSE_PARAM);
-        } else {
-            super.setUrl(url);
-        }
+        super.setUrl(url);
     }
 }
