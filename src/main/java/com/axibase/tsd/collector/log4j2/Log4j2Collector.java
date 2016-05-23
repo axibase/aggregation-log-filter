@@ -45,6 +45,7 @@ public class Log4j2Collector extends AbstractFilter {
     private Log4j2MessageWriter messageBuilder;
 
     private final List<Tag> tags = new ArrayList<>();
+    private final List<String> mdcTags = new ArrayList<String>();
 
     // common
     private String entity;
@@ -129,6 +130,9 @@ public class Log4j2Collector extends AbstractFilter {
         for (Tag tag : tags) {
             messageBuilder.addTag(tag);
         }
+        for (String mdcTag : mdcTags) {
+            messageBuilder.addMdcTag(mdcTag);
+        }
         aggregator = new Aggregator<>(messageBuilder, new Log4j2EventProcessor());
         writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
@@ -159,6 +163,7 @@ public class Log4j2Collector extends AbstractFilter {
     public static Log4j2Collector createFilter(
             @PluginAttribute("entity") final String entity,
             @PluginAttribute("tags") final String tags,
+            @PluginAttribute("mdcTags") final String mdcTags,
             @PluginAttribute("messages") final String messages,
             @PluginAttribute("level") final Level level,
             @PluginAttribute("url") final String url,
@@ -170,6 +175,7 @@ public class Log4j2Collector extends AbstractFilter {
         final Log4j2Collector collector = new Log4j2Collector();
         collector.setEntity(entity);
         collector.setTags(tags);
+        collector.setMdcTags(mdcTags);
         collector.setMessages(messages);
         collector.setLevel(minLevel);
         collector.setUrl(url);
@@ -294,6 +300,15 @@ public class Log4j2Collector extends AbstractFilter {
                 if (nameAndValue.length == 2) {
                     this.tags.add(new Tag(nameAndValue[0], nameAndValue[1]));
                 }
+            }
+        }
+    }
+
+    public void setMdcTags(String mdcTags) {
+        if (mdcTags != null) {
+            final String[] parts = mdcTags.split(";");
+            for (String tag : parts) {
+                this.mdcTags.add(tag);
             }
         }
     }
