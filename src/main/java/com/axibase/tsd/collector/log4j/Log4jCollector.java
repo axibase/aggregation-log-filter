@@ -41,6 +41,7 @@ public class Log4jCollector extends Filter {
     private Log4jMessageWriter log4jMessageWriter;
 
     private final List<Tag> tags = new ArrayList<Tag>();
+    private final List<String> mdcTags = new ArrayList<String>();
 
     // common
     private String entity;
@@ -119,6 +120,9 @@ public class Log4jCollector extends Filter {
         for (Tag tag : tags) {
             log4jMessageWriter.addTag(tag);
         }
+        for (String mdcTag : mdcTags){
+            log4jMessageWriter.addMdcTag(mdcTag);
+        }
         aggregator = new Aggregator<LoggingEvent, String, String>(log4jMessageWriter, new Log4jEventProcessor());
         writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
@@ -166,7 +170,7 @@ public class Log4jCollector extends Filter {
             final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
             checkWriterProperty(writerHost == null, "writerHost", writerHost);
             if (writerPort <= 0)
-                switch (scheme.toLowerCase()){
+                switch (scheme.toLowerCase()) {
                     case "tcp":
                         writerPort = 8081;
                         break;
@@ -198,7 +202,8 @@ public class Log4jCollector extends Filter {
         }
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(scheme).append("://").append(writerHost).append(":").append(writerPort);
-        atsdUrl = stringBuilder.toString();    }
+        atsdUrl = stringBuilder.toString();
+    }
 
     private void checkWriterProperty(boolean check, String propName, String propValue) {
         if (check) {
@@ -227,6 +232,10 @@ public class Log4jCollector extends Filter {
                 }
             }
         }
+    }
+
+    public void setMdcTag(String tag) {
+        this.mdcTags.add(tag);
     }
 
     public void setIntervalSeconds(int intervalSeconds) {
