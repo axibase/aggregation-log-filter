@@ -45,6 +45,7 @@ public class LogbackWriter<E extends ILoggingEvent>
     private PatternLayout patternLayout = null;
     private String pattern;
     private String atsdUrl;
+    private Set<String> mdcTags = new HashSet<>();
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -188,8 +189,13 @@ public class LogbackWriter<E extends ILoggingEvent>
             locationMap.put("line", String.valueOf(stackTraceElement.getLineNumber()));
             locationMap.put("method", stackTraceElement.getMethodName());
         }
-        if (context != null)
-            locationMap.putAll(context);
+        if (context != null && mdcTags.size() > 0) {
+            Set keySet = context.keySet();
+            for (String mdcTag : mdcTags) {
+                if (keySet.contains(mdcTag))
+                    locationMap.put(mdcTag, (String) context.get(mdcTag));
+            }
+        }
         messageHelper.writeMessage(writer, sb, message, levelValue, loggerName, locationMap);
     }
 
@@ -238,12 +244,12 @@ public class LogbackWriter<E extends ILoggingEvent>
                             Level.toLevel(l).toString());
                 }
                 WritableByteChannel writerToCheck = writer;
-                if (writerToCheck instanceof LoggingWrapper){
+                if (writerToCheck instanceof LoggingWrapper) {
                     writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
                 }
                 if (writerToCheck instanceof TcpAtsdWriter)
                     System.out.println("Aggregation log filter: connected to ATSD.");
-                else if (writerToCheck instanceof BaseHttpAtsdWriter){
+                else if (writerToCheck instanceof BaseHttpAtsdWriter) {
                     System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (Exception e) {
@@ -293,5 +299,9 @@ public class LogbackWriter<E extends ILoggingEvent>
 
     public void setAtsdUrl(String atsdUrl) {
         this.atsdUrl = atsdUrl;
+    }
+
+    public void addMdcTag(String mdcTag) {
+        mdcTags.add(mdcTag);
     }
 }

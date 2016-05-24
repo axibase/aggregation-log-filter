@@ -46,6 +46,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String entity;
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
     private final List<Tag> tags = new ArrayList<Tag>();
+    private final List<String> mdcTags = new ArrayList<String>();
     private WritableByteChannel writer;
     private String host;
     private int port;
@@ -85,6 +86,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         logbackWriter.setContext(getContext());
         for (Tag tag : tags) {
             logbackWriter.addTag(tag);
+        }
+        for (String mdcTag : mdcTags){
+            logbackWriter.addMdcTag(mdcTag);
         }
         aggregator = new Aggregator<E, String, Level>(logbackWriter, new LogbackEventProcessor<E>());
         initWriter();
@@ -205,6 +209,10 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     public void setTag(Tag tag) {
         tags.add(tag);
+    }
+
+    public void setMdcTag(String tag){
+        mdcTags.add(tag);
     }
 
     public void setLevel(Level level) {
