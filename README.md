@@ -215,9 +215,10 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 </Configuration>
 ```
 
-## Adding MDC Context Parameters to Messages
+## MDC Context Parameters in Messages
 
-MDC context parameters are already included in message command as tags such as job_id, task_id etc.
+MDC context parameters can be both to be included in message command as tags such as job_id, task_id etc
+and in message body via pattern.
 
 ```css
    message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching error java.io.IOException:
@@ -233,20 +234,23 @@ MDC context parameters are already included in message command as tags such as j
 ```
 
 ```
-%X{key} placeholder is replaced in message pattern based on MDC context parameters
-%m [%X{job_name}] is replaced to Job failed [snmp-prd-router]
+   %X{key} placeholder is replaced in message pattern based on MDC context parameters
+   %m [%X{job_name}] is replaced to Job failed [snmp-prd-router]
 ```
 
 ### Log4j
 
 ```
+   log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_id;task_id
    log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m [jobId=%X{job_id}, taskId=%X{task_id}]%n
 ```
 
 ### Logback
 
 ```xml
- <pattern>%m [jobId=%X{job_id}, taskId=%X{task_id}]%n</pattern>
+   <mdcTag>job_id</mdcTag>
+   <mdcTag>task_id</mdcTag>
+   <pattern>%m [jobId=%X{job_id}, taskId=%X{task_id}]%n</pattern>
 ```
 
   - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
@@ -263,7 +267,8 @@ MDC context parameters are already included in message command as tags such as j
 | sendMessage | no | - | See [`sendMessage`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#sendmessage) config, MULTIPLE |
 | pattern | no | %m | Pattern to format logging events sent to the database. <br>The pattern should not include fields that are already included as tags such as logger name, level etc. |
 | sendLoggerCounter | no | true | When disabled, event counts by logger are not tracked and [`log_event_counter`](https://github.com/axibase/aggregation-log-filter#counters) metric is not sent. |
-| debug | no | false | Flag to display debug information, see [`Troubleshooting`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#troubleshooting) |
+| mdcTags | no | - | User-defined tag(s) to be included in message commands, value extracted from [`MDC context`](https://github.com/axibase/aggregation-log-filter#mdc-context-parameters-in-messages), MULTIPLE |
+| debug | no | false | Enable logging to stdout debug information, see [`Troubleshooting`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#troubleshooting) |
 
 ## Database Address
 
