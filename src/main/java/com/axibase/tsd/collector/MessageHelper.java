@@ -23,10 +23,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
@@ -274,7 +271,7 @@ public class MessageHelper {
         sb.append(" t:level=").append(levelValue);
         sb.append(" t:source=").append(AtsdUtil.sanitizeTagValue(loggerName));
         for (String key : locationInformation.keySet()) {
-            sb.append(" t:").append(key).append("=").append(locationInformation.get(key));
+            sb.append(" t:").append(AtsdUtil.sanitizeTagKey(key)).append("=").append(AtsdUtil.sanitizeTagValue(locationInformation.get(key)));
         }
 //        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
         sb.append("\n");
