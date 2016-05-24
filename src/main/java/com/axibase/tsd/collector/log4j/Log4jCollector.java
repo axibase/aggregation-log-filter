@@ -120,7 +120,7 @@ public class Log4jCollector extends Filter {
         for (Tag tag : tags) {
             log4jMessageWriter.addTag(tag);
         }
-        for (String mdcTag : mdcTags){
+        for (String mdcTag : mdcTags) {
             log4jMessageWriter.addMdcTag(mdcTag);
         }
         aggregator = new Aggregator<LoggingEvent, String, String>(log4jMessageWriter, new Log4jEventProcessor());
@@ -234,8 +234,13 @@ public class Log4jCollector extends Filter {
         }
     }
 
-    public void setMdcTag(String tag) {
-        this.mdcTags.add(tag);
+    public void setMdcTags(String mdcTags) {
+        if (mdcTags != null) {
+            final String[] parts = mdcTags.split(";");
+            for (String tag : parts) {
+                this.mdcTags.add(tag);
+            }
+        }
     }
 
     public void setIntervalSeconds(int intervalSeconds) {
