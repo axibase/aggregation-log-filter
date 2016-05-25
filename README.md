@@ -217,13 +217,12 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 
 ## MDC Context Parameters in Messages
 
-MDC context parameters can be included in message command as tags such as job_id, task_id etc
-and in message body via pattern or both.
+MDC context parameters can be included in message command as tags such as job_name, task_id etc.
 
 ```ls
 message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching error java.io.IOException:
    No files found: file:///opt/files" t:severity=ERROR t:level=ERROR t:source=com.collector.FileService 
-   t:job_id=15 t:task_id=2 t:thread=taskExecutor-1
+   t:job_name=snmp-prd-router t:task_id=2 t:thread=taskExecutor-1
 ```
 
 ### Java Example
@@ -231,26 +230,20 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 ```java
    #MDC.put("job_name", job.getName());
    MDC.put("job_name", "snmp-prd-router");
-```
-
-```
-   %X{key} placeholder is replaced in message pattern based on MDC context parameters
-   %m [%X{job_name}] is replaced to Job failed [snmp-prd-router]
+   MDC.put("task_id", "2");
 ```
 
 ### Log4j
 
 ```
-   log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_id;task_id
-   log4j.appender.APPENDER.filter.COLLECTOR.pattern=%m [jobId=%X{job_id}, taskId=%X{task_id}]%n
+   log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_name;task_id
 ```
 
 ### Logback
 
 ```xml
-   <mdcTag>job_id</mdcTag>
+   <mdcTag>job_name</mdcTag>
    <mdcTag>task_id</mdcTag>
-   <pattern>%m [jobId=%X{job_id}, taskId=%X{task_id}]%n</pattern>
 ```
 
   - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
