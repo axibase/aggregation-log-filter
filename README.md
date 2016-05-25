@@ -76,11 +76,11 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 ## Performance
 
 ```java
-        long start = System.currentTimeMillis();
-        for (int i = 1; i <= 1000000; i++) {
-            logger.error("msg " + new Date() + " : index=" + i);
-        }
-        long end = System.currentTimeMillis();
+    long start = System.currentTimeMillis();
+    for (int i = 1; i <= 1000000; i++) {
+        logger.error("msg " + new Date() + " : index=" + i);
+    }
+    long end = System.currentTimeMillis();
 ```
 
 #### Filter Disabled
@@ -217,11 +217,11 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 
 ## MDC Context Parameters in Messages
 
-MDC context parameters can be both to be included in message command as tags such as job_id, task_id etc
-and in message body via pattern.
+MDC context parameters can be included in message command as tags such as job_id, task_id etc
+and in message body via pattern or both.
 
-```css
-   message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching error java.io.IOException:
+```ls
+message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching error java.io.IOException:
    No files found: file:///opt/files" t:severity=ERROR t:level=ERROR t:source=com.collector.FileService 
    t:job_id=15 t:task_id=2 t:thread=taskExecutor-1
 ```
@@ -350,8 +350,8 @@ If the appender pattern contains location fields such as %L (line) and %M (metho
 
 Message command example with location fields:
 
-```css
- message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initialization complete" 
+```ls
+message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initialization complete" 
     t:severity=INFO t:level=INFO t:source=com.axibase.tsd.InitLogger t:thread=main 
     t:line=145 t:method=initBase
 ```
