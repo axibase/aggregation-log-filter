@@ -23,7 +23,10 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
@@ -48,7 +51,7 @@ public class MessageHelper {
     }
 
     public void setEntity(String entity) {
-        this.entity = entity;
+        this.entity = AtsdUtil.sanitizeEntity(entity);
     }
 
     public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
@@ -71,9 +74,8 @@ public class MessageHelper {
             StringBuilder sb = new StringBuilder();
             sb.append("series e:").append(entity);
             appendTags(sb);
-            sb.append(" m:").append(
-                    AtsdUtil.sanitizeMetric(
-                            seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getCounterSuffix())).append(
+            sb.append(" m:").append(AtsdUtil.sanitizeName(
+                    seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getCounterSuffix())).append(
                     "=");
             seriesCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
@@ -81,7 +83,7 @@ public class MessageHelper {
             StringBuilder sb = new StringBuilder();
             sb.append("series e:").append(entity);
             appendTags(sb);
-            sb.append(" m:").append(AtsdUtil.sanitizeMetric(
+            sb.append(" m:").append(AtsdUtil.sanitizeName(
                     seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getRateSuffix())).append(
                     "=");
             seriesTotalRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
@@ -90,7 +92,7 @@ public class MessageHelper {
             StringBuilder sb = new StringBuilder();
             sb.append("series e:").append(entity);
             appendTags(sb);
-            sb.append(" m:").append(AtsdUtil.sanitizeMetric(
+            sb.append(" m:").append(AtsdUtil.sanitizeName(
                     seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getCounterSuffix())).append(
                     "=");
             seriesTotalCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
@@ -109,7 +111,7 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
         sb.append(" t:java.log_aggregator.runtime");
-        sb.append(" k:command=").append(command);
+        sb.append(" k:command=").append(AtsdUtil.sanitizeValue(command));
 
         Properties systemProperties = System.getProperties();
 
@@ -120,40 +122,40 @@ public class MessageHelper {
             String value = systemProperties.getProperty(key);
             if (!value.isEmpty()) {
                 String s = value.replaceAll("(\\r|\\n|\\r\\n)+", "\\\\n");
-                sb.append(" v:").append(key).append("=\"").append(s).append("\"");
+                sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(s));
             }
         }
 
         OperatingSystemMXBean osMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
-        sb.append(" v:").append("Arch=\"").append(osMXBean.getArch()).append("\"");
-        sb.append(" v:").append("AvailableProcessors=\"").append(osMXBean.getAvailableProcessors()).append("\"");
-        sb.append(" v:").append("Name=\"").append(osMXBean.getName()).append("\"");
-        sb.append(" v:").append("Version=\"").append(osMXBean.getVersion()).append("\"");
+        sb.append(" v:").append("Arch=").append(AtsdUtil.sanitizeValue(osMXBean.getArch()));
+        sb.append(" v:").append("AvailableProcessors=").append(AtsdUtil.sanitizeValue(osMXBean.getAvailableProcessors()));
+        sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(osMXBean.getName()));
+        sb.append(" v:").append("Version=").append(AtsdUtil.sanitizeValue(osMXBean.getVersion()));
 
         try {
             UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
-            sb.append(" v:").append("MaxFileDescriptorCount=\"").append(osMXBeanUnix.getMaxFileDescriptorCount()).append("\"");
-            sb.append(" v:").append("TotalPhysicalMemorySize=\"").append(osMXBeanUnix.getTotalPhysicalMemorySize()).append("\"");
-            sb.append(" v:").append("TotalSwapSpaceSize=\"").append(osMXBeanUnix.getTotalSwapSpaceSize()).append("\"");
+            sb.append(" v:").append("MaxFileDescriptorCount=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getMaxFileDescriptorCount()));
+            sb.append(" v:").append("TotalPhysicalMemorySize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalPhysicalMemorySize()));
+            sb.append(" v:").append("TotalSwapSpaceSize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalSwapSpaceSize()));
         } catch (Exception e) {
             AtsdUtil.logError("Writer failed to get java.log_aggregator.runtime properties for UnixOperatingSystem. " + e.getMessage());
         }
 
         RuntimeMXBean runtimeMXBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
-        sb.append(" v:").append("getBootClassPath=\"").append(runtimeMXBean.getBootClassPath()).append("\"");
+        sb.append(" v:").append("getBootClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getBootClassPath()));
         String name = runtimeMXBean.getName();
-        sb.append(" v:").append("Name=\"").append(name).append("\"");
+        sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(name));
         if (name.contains("@")) {
-            sb.append(" v:").append("Hostname=\"").append(name.substring(name.lastIndexOf("@") + 1)).append("\"");
+            sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(name.lastIndexOf("@") + 1)));
         }
-        sb.append(" v:").append("ClassPath=\"").append(runtimeMXBean.getClassPath()).append("\"");
-        sb.append(" v:").append("LibraryPath=\"").append(runtimeMXBean.getLibraryPath()).append("\"");
-        sb.append(" v:").append("SpecName=\"").append(runtimeMXBean.getSpecName()).append("\"");
-        sb.append(" v:").append("SpecVendor=\"").append(runtimeMXBean.getSpecVendor()).append("\"");
-        sb.append(" v:").append("StartTime=\"").append(runtimeMXBean.getStartTime()).append("\"");
-        sb.append(" v:").append("VmName=\"").append(runtimeMXBean.getVmName()).append("\"");
-        sb.append(" v:").append("VmVendor=\"").append(runtimeMXBean.getVmVendor()).append("\"");
-        sb.append(" v:").append("VmVersion=\"").append(runtimeMXBean.getVmVersion()).append("\"");
+        sb.append(" v:").append("ClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getClassPath()));
+        sb.append(" v:").append("LibraryPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getLibraryPath()));
+        sb.append(" v:").append("SpecName=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getSpecName()));
+        sb.append(" v:").append("SpecVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getSpecVendor()));
+        sb.append(" v:").append("StartTime=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getStartTime()));
+        sb.append(" v:").append("VmName=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmName()));
+        sb.append(" v:").append("VmVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVendor()));
+        sb.append(" v:").append("VmVersion=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVersion()));
         List<String> inputArguments = runtimeMXBean.getInputArguments();
         sb.append(" v:").append("InputArguments=\"");
         for (String inputArgument : inputArguments) {
@@ -178,9 +180,10 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder();
         sb.append("property e:").append(entity);
         sb.append(" t:java.log_aggregator.settings");
-        sb.append(" k:command=").append(command);
+        sb.append(" k:command=").append(AtsdUtil.sanitizeValue(command));
         for (String key : stringSettings.keySet()) {
-            sb.append(" v:").append(key).append("=").append("\"").append(stringSettings.get(key)).append("\"");
+            String value = stringSettings.get(key);
+            sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(value));
         }
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
@@ -200,8 +203,8 @@ public class MessageHelper {
             unsafeAppendTag(sb, COMMAND_TAG, command);
         }
         for (Map.Entry<String, String> entry : tags.entrySet()) {
-            String tagName = AtsdUtil.sanitizeTagKey(entry.getKey());
-            String tagValue = AtsdUtil.sanitizeTagValue(entry.getValue());
+            String tagName = AtsdUtil.sanitizeName(entry.getKey());
+            String tagValue = AtsdUtil.sanitizeValue(entry.getValue());
             unsafeAppendTag(sb, tagName, tagValue);
         }
     }
@@ -217,7 +220,7 @@ public class MessageHelper {
                              long value) throws IOException {
         StringBuilder sb = new StringBuilder().append(value);
         sb.append(" t:level=").append(levelString);
-        sb.append(" t:logger=").append(AtsdUtil.sanitizeTagValue(key.getLogger()));
+        sb.append(" t:logger=").append(AtsdUtil.sanitizeValue(key.getLogger()));
 //        sb.append(" ms:").append(time).append("\n");
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
@@ -263,15 +266,15 @@ public class MessageHelper {
                              String levelValue,
                              String loggerName,
                              Map<String, String> locationInformation) throws IOException {
-        sb.append(AtsdUtil.sanitizeMessage(message));
+        sb.append(AtsdUtil.escapeCSV(message));
         if (levelValue.toLowerCase().equals("trace") || levelValue.toLowerCase().equals("debug"))
             sb.append(" t:severity=").append("NORMAL");
         else
             sb.append(" t:severity=").append(levelValue);
         sb.append(" t:level=").append(levelValue);
-        sb.append(" t:source=").append(AtsdUtil.sanitizeTagValue(loggerName));
+        sb.append(" t:source=").append(AtsdUtil.sanitizeValue(loggerName));
         for (String key : locationInformation.keySet()) {
-            sb.append(" t:").append(AtsdUtil.sanitizeTagKey(key)).append("=").append(AtsdUtil.sanitizeTagValue(locationInformation.get(key)));
+            sb.append(" t:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(locationInformation.get(key)));
         }
 //        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
         sb.append("\n");

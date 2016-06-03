@@ -15,6 +15,8 @@
 
 package com.axibase.tsd.collector;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import java.lang.String;
 import java.lang.StringBuilder;
 import java.net.InetAddress;
@@ -49,38 +51,39 @@ public class AtsdUtil {
         return sanitize(s);
     }
 
-    public static String sanitizeMetric(String s) {
-        return sanitize(s);
-    }
-
-    public static String sanitizeTagKey(String s) {
-        return sanitize(s);
-    }
-
-    public static String sanitizeTagValue(String s) {
-        s = D_QUOTE.matcher(s).replaceAll("\\\\\"");
-        if (s.contains(" ") || s.contains("=")) {
+    public static String escapeCSV(String s) {
+        if (s == null || s.trim().length() == 0) {
+            s = EMPTY_MESSAGE;
+        } else
+            s = StringEscapeUtils.escapeCsv(s.trim());
+        if (s.contains(" ") && !s.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
             s = sb.append(s).append("\"").toString();
         }
         return s;
     }
 
-    public static String sanitizeMessage(String s) {
-        if (s == null) {
-            return EMPTY_MESSAGE;
-        } else {
-            s = s.trim();
-            if (s.length() == 0) {
-                return EMPTY_MESSAGE;
-            }
-        }
-        s = D_QUOTE.matcher(s).replaceAll("\\\\\"");
-        if (s.contains(" ")) {
+    public static String sanitizeName(String s) {
+        StringEscapeUtils.escapeCsv(SPACE.matcher(s.trim()).replaceAll("_"));
+        if (s.contains("=") && !s.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
             s = sb.append(s).append("\"").toString();
         }
         return s;
+    }
+
+    public static String sanitizeValue(String s) {
+        return escapeCSV(s);
+    }
+
+    public static String sanitizeValue(int i) {
+        String s = Integer.toString(i);
+        return sanitizeValue(s.trim());
+    }
+
+    public static String sanitizeValue(long l) {
+        String s = Long.toString(l);
+        return sanitizeValue(s.trim());
     }
 
     public static String sanitize(String s) {

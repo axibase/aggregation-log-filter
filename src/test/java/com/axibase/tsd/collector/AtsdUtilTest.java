@@ -29,11 +29,12 @@ public class AtsdUtilTest {
 
     @Test
     public void testSanitizeMessage() throws Exception {
-        assertEquals("\"\"", AtsdUtil.sanitizeMessage(null));
-        assertEquals("\"\"", AtsdUtil.sanitizeMessage(""));
-        assertEquals("\"\"", AtsdUtil.sanitizeMessage("  "));
-        assertEquals("\"\"", AtsdUtil.sanitizeMessage("\n"));
-        assertEquals("\"\"", AtsdUtil.sanitizeMessage("\r\n"));
-        assertEquals("aaa", AtsdUtil.sanitizeMessage(" aaa "));
+        assertEquals("\"\"", AtsdUtil.escapeCSV(null));
+        assertEquals("\"\"", AtsdUtil.escapeCSV(""));
+        assertEquals("\"\"", AtsdUtil.escapeCSV("  "));
+        assertEquals("\"\"", AtsdUtil.escapeCSV("\n"));
+        assertEquals("\"\"", AtsdUtil.escapeCSV("\r\n"));
+        assertEquals("aaa", AtsdUtil.escapeCSV(" aaa "));
+        assertEquals("\"\"\"\"", AtsdUtil.escapeCSV("\""));
     }
 }
