@@ -42,10 +42,7 @@ public class AtsdUtil {
     };
     private static final Pattern SPACE = Pattern.compile("[[\\s]]");
     private static final Pattern QUOTES = Pattern.compile("[[\'|\"]]");
-    private static final Pattern D_QUOTE = Pattern.compile("[[\"]]");
     public static final Charset UTF_8 = Charset.forName("UTF-8");
-    public static final String PING_COMMAND = "ping\n";
-    public static final String SAFE_PING_COMMAND = "\nping\n";
 
     public static String sanitizeEntity(String s) {
         return sanitize(s);
@@ -64,7 +61,7 @@ public class AtsdUtil {
     }
 
     public static String sanitizeName(String s) {
-        StringEscapeUtils.escapeCsv(SPACE.matcher(s.trim()).replaceAll("_"));
+        s = StringEscapeUtils.escapeCsv(SPACE.matcher(s.trim()).replaceAll("_"));
         if (s.contains("=") && !s.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
             s = sb.append(s).append("\"").toString();
@@ -73,7 +70,13 @@ public class AtsdUtil {
     }
 
     public static String sanitizeValue(String s) {
-        return escapeCSV(s);
+        s = escapeCSV(s);
+        if ((s.contains(" ") || s.contains("=") || s.contains("\t")) && !s.startsWith("\"")) {
+            StringBuilder sb = new StringBuilder("\"");
+            s = sb.append(s).append("\"").toString();
+        }
+
+        return s;
     }
 
     public static String sanitizeValue(int i) {
