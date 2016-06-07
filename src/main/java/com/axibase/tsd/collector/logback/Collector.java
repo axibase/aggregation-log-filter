@@ -134,7 +134,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             final String msg = "Could not create writer instance by type, "
                     + e.getMessage();
             AtsdUtil.logError(msg);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             AtsdUtil.logError("Could not get writer class, " + e.getMessage());
         }
         if (writer instanceof AbstractAtsdWriter) {
