@@ -210,13 +210,13 @@ public class Log4j2Collector extends AbstractFilter {
     }
 
     private void initWriter() {
-        final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
         try {
+            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
             this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
         } catch (InstantiationException e) {
             final String msg = "Could not create writer instance by type, " + e.getMessage();
             AtsdUtil.logError(msg);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             AtsdUtil.logError("Could not instantiate writerType. " + e.getMessage());
         }
 
