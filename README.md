@@ -1,12 +1,12 @@
 # Aggregation Logger
 
-The aggregation logger tracks the total number of log events raised by a Java application as well as by active loggers with  breakdown by level (severity). 
+The aggregation logger tracks the total number of log events raised by a Java application with breakdown by level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL. 
 
-An asynchronous sender thread transmits the counters to a time series database every 60 seconds, controlled with [`intervalSeconds`](#configuration-settings), via TCP/UDP/HTTP(s) protocol for alerting and long-term retention.
+The counters are sent via TCP/UDP/HTTP(s) protocol to a time series database every 60 seconds for alerting and long-term retention.
 
-Collecting aggregate error counts is particularly relevant for monitoring large-scale distributed applications where individual errors are too numerous to analyze. See **LogInfo/./LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
+Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
-The logger consists of the core library and adapters for Logback, Log4j and Log4j2 logging frameworks.
+The logger consists of the core library and adapters for **Logback**, **Log4j** and **Log4j2** logging frameworks.
 
 ## Collected Data
 
@@ -20,8 +20,6 @@ Aggregation Logger collects the following metrics:
 | `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with `sendLoggerCounter` setting |
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on sampling interval.
-
-> Supported Levels: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
 
 ### Messages
  
@@ -113,7 +111,7 @@ Dependency to aggregator core will be imported automatically:
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-logback</artifactId>
-            <version>1.0.5</version>
+            <version>1.0.9</version>
 </dependency>
 ```
 
@@ -126,7 +124,7 @@ Add core and adapter libraries to classpath:
 - Adds jar files to classpath
 
 ```
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.5.jar:lib/aggregation-log-filter-logback-1.0.5.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.9.jar:lib/aggregation-log-filter-logback-1.0.9.jar Main
 ```
 
 ### Option 3: lib directory 
