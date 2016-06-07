@@ -162,7 +162,7 @@ public class Log4jCollector extends Filter {
             final String msg = "Could not create writer instance by type, "
                     + e.getMessage();
             LogLog.error(msg);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             LogLog.error("Could not instantiate writerType. " + e.getMessage());
         }
 
