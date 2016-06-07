@@ -155,8 +155,8 @@ public class Log4jCollector extends Filter {
     }
 
     private void initWriter() {
-        final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
         try {
+            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
             this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
         } catch (InstantiationException e) {
             final String msg = "Could not create writer instance by type, "
