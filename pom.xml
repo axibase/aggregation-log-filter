@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.axibase</groupId>
     <artifactId>aggregation-log-filter-log4j</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
 
     <prerequisites>
@@ -80,6 +80,8 @@
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter</artifactId>
             <version>${aggregation.log.filter.version}</version>
+            <scope>system</scope>
+            <systemPath>/home/rustam/axibase/aggregation-log-filter/target/aggregation-log-filter-1.1.1.jar</systemPath>
         </dependency>
 
         <!--Logging-->
