@@ -80,8 +80,6 @@
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter</artifactId>
             <version>${aggregation.log.filter.version}</version>
-            <scope>system</scope>
-            <systemPath>/home/rustam/axibase/aggregation-log-filter/target/aggregation-log-filter-1.1.1.jar</systemPath>
         </dependency>
 
         <!--Logging-->
