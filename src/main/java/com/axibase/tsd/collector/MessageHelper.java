@@ -31,6 +31,7 @@ import java.util.Properties;
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
     private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000;
+    private static final int MAX_LENGTH = 32 * 1024;
     private SeriesSenderConfig seriesSenderConfig;
     private ByteBuffer seriesCounterPrefix;
     private ByteBuffer seriesTotalRatePrefix;
@@ -242,7 +243,6 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder().append(value);
         sb.append(" t:level=").append(levelString);
         sb.append(" t:logger=").append(AtsdUtil.sanitizeValue(key.getLogger()));
-//        sb.append(" ms:").append(time).append("\n");
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesCounterPrefix.remaining() + bytes.length)
@@ -257,7 +257,6 @@ public class MessageHelper {
                                   String levelString) throws IOException {
         StringBuilder sb = new StringBuilder().append(counterWithSum.getSum());
         sb.append(" t:level=").append(levelString);
-//        sb.append(" ms:").append(time).append("\n");
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalCounterPrefix.remaining() + bytes.length)
@@ -272,13 +271,11 @@ public class MessageHelper {
                                String levelString) throws IOException {
         StringBuilder sb = new StringBuilder().append(rate);
         sb.append(" t:level=").append(levelString);
-//        sb.append(" ms:").append(time).append("\n");
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
                 .put(seriesTotalRatePrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
-//        writer.write(byteBuffer);
     }
 
     public void writeMessage(WritableByteChannel writer,
@@ -287,6 +284,7 @@ public class MessageHelper {
                              String levelValue,
                              String loggerName,
                              Map<String, String> locationInformation) throws IOException {
+        message = message.substring(0, Math.min(message.length(), MAX_LENGTH));
         sb.append(AtsdUtil.escapeCSV(message));
         if (levelValue.toLowerCase().equals("trace") || levelValue.toLowerCase().equals("debug"))
             sb.append(" t:severity=").append("NORMAL");
@@ -297,7 +295,6 @@ public class MessageHelper {
         for (String key : locationInformation.keySet()) {
             sb.append(" t:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(locationInformation.get(key)));
         }
-//        sb.append(" ms:").append(System.currentTimeMillis()).append("\n");
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes();
         ByteBuffer byteBuffer = ByteBuffer.allocate(messagePrefix.remaining() + bytes.length)
