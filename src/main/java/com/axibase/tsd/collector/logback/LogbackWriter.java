@@ -233,7 +233,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
             totals.put(Level.toLevel(l), total);
         }
-        System.out.println("Aggregation log filter: connecting to ATSD on " + atsdUrl);
+        addInfo("Aggregation log filter: connecting to ATSD on " + atsdUrl);
         if (writer != null) {
             try {
                 for (int l : levels) {
@@ -248,12 +248,12 @@ public class LogbackWriter<E extends ILoggingEvent>
                     writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
                 }
                 if (writerToCheck instanceof TcpAtsdWriter)
-                    System.out.println("Aggregation log filter: connected to ATSD.");
+                    addInfo("Aggregation log filter: connected to ATSD.");
                 else if (writerToCheck instanceof BaseHttpAtsdWriter) {
-                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
+                    addInfo("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (Exception e) {
-                System.out.println("Aggregation log filter: failed to connect to ATSD.");
+                addInfo("Aggregation log filter: failed to connect to ATSD.");
                 addError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
