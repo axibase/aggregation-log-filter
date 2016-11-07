@@ -238,7 +238,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
             totals.put(l.toString(), total);
         }
-        System.out.println("Aggregation log filter: connecting to ATSD on " + atsdUrl);
+        AtsdUtil.logInfo("Aggregation log filter: connecting to ATSD on " + atsdUrl);
         if (writer != null) {
             try {
                 for (Level l : levels) {
@@ -251,12 +251,12 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                     writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
                 }
                 if (writerToCheck instanceof TcpAtsdWriter)
-                    System.out.println("Aggregation log filter: connected to ATSD.");
+                    AtsdUtil.logInfo("Aggregation log filter: connected to ATSD.");
                 else if (writerToCheck instanceof BaseHttpAtsdWriter) {
-                    System.out.println("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
+                    AtsdUtil.logInfo("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (IOException e) {
-                System.out.println("Aggregation log filter: failed to connect to ATSD.");
+                AtsdUtil.logInfo("Aggregation log filter: failed to connect to ATSD.");
                 AtsdUtil.logInfo("Writer failed to send initial total counter value for " + curLevel);
             }
         }
