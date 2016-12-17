@@ -16,15 +16,16 @@
 package com.axibase.tsd.collector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CountedQueue<E> extends ConcurrentLinkedQueue<E> {
-    private volatile int count;
+    private AtomicInteger count = new AtomicInteger();
 
     @Override
     public boolean offer(E e) {
         boolean offer = super.offer(e);
         if (offer) {
-            count++;
+            count.incrementAndGet();
         }
         return offer;
     }
@@ -32,17 +33,17 @@ public class CountedQueue<E> extends ConcurrentLinkedQueue<E> {
     @Override
     public E poll() {
         E value = super.poll();
-        if (count > 0) {
-            count--;
+        if (count.get() > 0) {
+            count.decrementAndGet();
         }
         return value;
     }
 
     public void clearCount() {
-        count = 0;
+        count.set(0);
     }
 
     public int getCount() {
-        return count;
+        return count.get();
     }
 }

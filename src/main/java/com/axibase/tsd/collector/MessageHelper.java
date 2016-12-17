@@ -23,6 +23,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +153,7 @@ public class MessageHelper {
             sb.append("\"");
         }
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
         props[0] = byteBuffer;
@@ -169,12 +170,11 @@ public class MessageHelper {
         sb.append("property e:").append(entity);
         sb.append(" t:java.log_aggregator.settings");
         sb.append(" k:command=").append(AtsdUtil.sanitizeValue(command));
-        for (String key : stringSettings.keySet()) {
-            String value = stringSettings.get(key);
-            sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(value));
+        for (Map.Entry<String, String> entry : stringSettings.entrySet()) {
+            sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
         }
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
         props[1] = byteBuffer;
@@ -244,7 +244,7 @@ public class MessageHelper {
         sb.append(" t:level=").append(levelString);
         sb.append(" t:logger=").append(AtsdUtil.sanitizeValue(key.getLogger()));
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesCounterPrefix.remaining() + bytes.length)
                 .put(seriesCounterPrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
@@ -258,7 +258,7 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder().append(counterWithSum.getSum());
         sb.append(" t:level=").append(levelString);
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalCounterPrefix.remaining() + bytes.length)
                 .put(seriesTotalCounterPrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
@@ -272,7 +272,7 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder().append(rate);
         sb.append(" t:level=").append(levelString);
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
                 .put(seriesTotalRatePrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
@@ -292,11 +292,11 @@ public class MessageHelper {
             sb.append(" t:severity=").append(levelValue);
         sb.append(" t:level=").append(levelValue);
         sb.append(" t:source=").append(AtsdUtil.sanitizeValue(loggerName));
-        for (String key : locationInformation.keySet()) {
-            sb.append(" t:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(locationInformation.get(key)));
+        for (Map.Entry<String, String> entry : locationInformation.entrySet()) {
+            sb.append(" t:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
         }
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(messagePrefix.remaining() + bytes.length)
                 .put(messagePrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
@@ -308,13 +308,13 @@ public class MessageHelper {
         if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
                 if (props[0] != null && props[1] != null && props[2] != null) {
+                    lastPropertySentTime = currentTime;
                     writer.write(props[0]);
                     writer.write(props[1]);
                     writer.write(props[2]);
                     props[0].rewind();
                     props[1].rewind();
                     props[2].rewind();
-                    lastPropertySentTime = currentTime;
                 }
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");

@@ -20,6 +20,7 @@ import com.axibase.tsd.collector.AtsdUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 
 public class LoggingWrapper implements WritableByteChannel {
     private final WritableByteChannel wrapped;
@@ -36,7 +37,7 @@ public class LoggingWrapper implements WritableByteChannel {
         ByteBuffer bbCopy = src.duplicate();
         final byte[] b = new byte[bbCopy.remaining()];
         bbCopy.get(b);
-        AtsdUtil.logInfo("WRITING:" + wrapped.getClass().getName() + ";" + new String(b).trim());
+        AtsdUtil.logInfo("WRITING:".concat(wrapped.getClass().getName()).concat(";").concat(new String(b, StandardCharsets.UTF_8).trim()));
         final int written = wrapped.write(src);
         AtsdUtil.logInfo(("WRITTEN:" + written + " bytes"));
         return written;

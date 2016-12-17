@@ -26,6 +26,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 
 public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     public static final String DEFAULT_METHOD = "POST";
@@ -70,7 +71,7 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
         con.setRequestMethod(method);
         BASE64Encoder enc = new BASE64Encoder();
         if (credentials != null && credentials.trim().length() > 0) {
-            String encodedAuthorization = enc.encode((URLDecoder.decode(credentials, "UTF-8")).getBytes());
+            String encodedAuthorization = enc.encode((URLDecoder.decode(credentials, "UTF-8")).getBytes(StandardCharsets.UTF_8));
             con.setRequestProperty("Authorization",
                     "Basic " + encodedAuthorization);
         }
