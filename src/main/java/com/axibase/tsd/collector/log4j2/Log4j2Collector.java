@@ -67,8 +67,8 @@ public class Log4j2Collector extends AbstractFilter {
     private String scheme;
     private String atsdUrl;
 
-    private final int DEFAULT_INTERVAL = 60;
-    private final String DEFAULT_PATTERN = "%m";
+    private final static int DEFAULT_INTERVAL = 60;
+    private final static String DEFAULT_PATTERN = "%m";
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -122,7 +122,7 @@ public class Log4j2Collector extends AbstractFilter {
             messageBuilder.setPattern(pattern);
         } else {
             pattern = DEFAULT_PATTERN;
-            messageBuilder.setPattern(DEFAULT_PATTERN);
+            messageBuilder.setPattern(pattern);
         }
         if (debug == null) {
             debug = "false";
