@@ -17,15 +17,21 @@ package com.axibase.tsd.collector.writer;
 
 import com.axibase.tsd.collector.AtsdUtil;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * A client to a ATSD server via TCP.
  */
 public class TcpAtsdWriter extends AbstractAtsdWriter {
-    private SocketChannel client;
+    private Socket client;
+    private DataOutputStream dOut;
+    private WritableByteChannel channel;
+
 
     public TcpAtsdWriter() {
     }
@@ -42,13 +48,17 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
             throw new java.net.UnknownHostException(address.getHostName());
         }
         AtsdUtil.logInfo("Connecting to: " + getAddress());
-        client = SocketChannel.open(address);
+        client = new Socket(address.getHostName(), address.getPort());
+        client.setSoTimeout(5000);
+        dOut = new DataOutputStream(client.getOutputStream());
+        channel = Channels.newChannel(dOut);
+
     }
 
     public boolean isConnected() {
         return client != null
-                && client.socket().isConnected()
-                && !client.socket().isClosed();
+                && client.isConnected()
+                && !client.isClosed();
     }
 
     @Override
@@ -59,7 +69,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
         }
         try {
             while (message.hasRemaining()) {
-                cnt+=client.write(message);
+                cnt += channel.write(message);
             }
         } catch (IOException e) {
             AtsdUtil.logInfo("Could not write messages", e);
@@ -76,6 +86,8 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
 
     public void close() throws IOException {
         if (client != null) {
+            channel.close();
+            dOut.close();
             client.close();
         }
     }

@@ -208,7 +208,7 @@ public class MessageHelper {
         }
 
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes();
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
         props[2] = byteBuffer;
