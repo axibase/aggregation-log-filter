@@ -18,25 +18,27 @@ package com.axibase.tsd.collector.logback;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SendCounter implements WritableByteChannel {
-    private volatile static long count;
+    private static AtomicInteger count = new AtomicInteger();
 
     public static long getCount() {
-        return count;
+        return count.get();
     }
 
     public static void clear() {
         System.out.println("SendCounter.clear");
-        count = 0;
+        count.set(0);
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
         byte[] array = new byte[src.remaining()];
         src.duplicate().get(array);
-        System.out.println("count:" + new String(array));
-        count++;
+        System.out.printf("count:%s%n", new String(array, StandardCharsets.UTF_8));
+        count.incrementAndGet();
         return 1;
     }
 

@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.*;
@@ -268,7 +269,7 @@ public class AggregatorTest extends TestCase {
             cnt++;
             byte[] data = new byte[src.remaining()];
             src.duplicate().get(data);
-            System.out.println(timePrefix() + new String(data));
+            System.out.printf("%s%s%n", timePrefix(), new String(data, StandardCharsets.UTF_8));
             return 0;
         }
 

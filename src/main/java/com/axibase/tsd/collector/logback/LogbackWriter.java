@@ -207,8 +207,8 @@ public class LogbackWriter<E extends ILoggingEvent>
 
         if (!tags.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            for (String key : tags.keySet()) {
-                sb.append(key).append("=").append(tags.get(key)).append(" ");
+            for (Map.Entry<String, String> entry : tags.entrySet()) {
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append(" ");
             }
             stringSettings.put("tags", sb.toString().trim());
         }
