@@ -46,6 +46,7 @@ public class LogbackWriter<E extends ILoggingEvent>
     private String pattern;
     private String atsdUrl;
     private Set<String> mdcTags = new HashSet<>();
+    private int messageLength = -1;
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -143,6 +144,8 @@ public class LogbackWriter<E extends ILoggingEvent>
             E event = wrapper.getEvent();
             StringBuilder sb = new StringBuilder();
             String message = wrapper.getMessage();
+            if (messageLength >= 0)
+                message = message.substring(0, Math.min(message.length(), messageLength));
             int lines = wrapper.getLines();
             if (lines > 0 && event.getCallerData() != null) {
                 StringBuilder msb = new StringBuilder(message);
@@ -303,5 +306,9 @@ public class LogbackWriter<E extends ILoggingEvent>
 
     public void addMdcTag(String mdcTag) {
         mdcTags.add(mdcTag);
+    }
+
+    public void setMessageLength(int messageLength) {
+        this.messageLength = messageLength;
     }
 }

@@ -55,6 +55,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String pattern;
     private String scheme;
     private String atsdUrl;
+    private int messageLength = -1;
+    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
 
     @Override
     public FilterReply decide(E event) {
@@ -81,14 +83,18 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         if (pattern == null) {
             pattern = "%m";
         }
-        logbackWriter.setPattern(pattern);
+        logbackWriter.setPattern(pattern.concat(MESSAGE_WITHOUT_STACKTRACE));
 
         logbackWriter.setContext(getContext());
         for (Tag tag : tags) {
             logbackWriter.addTag(tag);
         }
-        for (String mdcTag : mdcTags){
+        for (String mdcTag : mdcTags) {
             logbackWriter.addMdcTag(mdcTag);
+        }
+
+        if (messageLength >= 0) {
+            logbackWriter.setMessageLength(messageLength);
         }
         aggregator = new Aggregator<E, String, Level>(logbackWriter, new LogbackEventProcessor<E>());
         initWriter();
@@ -211,7 +217,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         tags.add(tag);
     }
 
-    public void setMdcTag(String tag){
+    public void setMdcTag(String tag) {
         mdcTags.add(tag);
     }
 
@@ -264,4 +270,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.pattern = pattern;
     }
 
+    public void setMessageLength(int messageLength) {
+        this.messageLength = messageLength;
+    }
 }
