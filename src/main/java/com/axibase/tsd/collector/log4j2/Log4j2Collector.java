@@ -66,9 +66,11 @@ public class Log4j2Collector extends AbstractFilter {
     private String pattern;
     private String scheme;
     private String atsdUrl;
+    private String messageLength;
 
     private final static int DEFAULT_INTERVAL = 60;
     private final static String DEFAULT_PATTERN = "%m";
+    private final static String DEFAULT_MESSAGE_LENGTH = "-1";
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -118,12 +120,10 @@ public class Log4j2Collector extends AbstractFilter {
         if (seriesSenderConfig != null) {
             messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         }
-        if (pattern != null) {
-            messageBuilder.setPattern(pattern);
-        } else {
+        if (pattern == null) {
             pattern = DEFAULT_PATTERN;
-            messageBuilder.setPattern(pattern);
         }
+        messageBuilder.setPattern(pattern);
         if (debug == null) {
             debug = "false";
         }
@@ -133,6 +133,11 @@ public class Log4j2Collector extends AbstractFilter {
         for (String mdcTag : mdcTags) {
             messageBuilder.addMdcTag(mdcTag);
         }
+        if (messageLength == null) {
+            messageLength = DEFAULT_MESSAGE_LENGTH;
+        }
+        messageBuilder.setMessageLength(messageLength);
+
         aggregator = new Aggregator<>(messageBuilder, new Log4j2EventProcessor());
         writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
@@ -170,6 +175,7 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
             @PluginAttribute("sendLoggerCounter") final Boolean sendLoggerCounter,
             @PluginAttribute("pattern") final String pattern,
+            @PluginAttribute("messageLength") final String messageLength,
             @PluginAttribute("debug") final String debug) {
         final Level minLevel = level == null ? Level.TRACE : level;
         final Log4j2Collector collector = new Log4j2Collector();
@@ -179,6 +185,7 @@ public class Log4j2Collector extends AbstractFilter {
         collector.setMessages(messages);
         collector.setLevel(minLevel);
         collector.setUrl(url);
+        collector.setMessageLength(messageLength);
         if (intervalSeconds <= 0) {
             collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
         } else {
@@ -352,6 +359,10 @@ public class Log4j2Collector extends AbstractFilter {
 
     public void setPattern(String pattern) {
         this.pattern = pattern;
+    }
+
+    public void setMessageLength(String messageLength) {
+        this.messageLength = messageLength;
     }
 
     @Override

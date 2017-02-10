@@ -29,12 +29,6 @@ public class Log4j2EventTrigger extends SendMessageTrigger<LogEvent> {
         super();
     }
 
-//    public Log4j2EventTrigger(int every) {
-//        super();
-//        setEvery(every);
-//    }
-
-
     public Log4j2EventTrigger(Level level) {
         super();
         this.level = level;
@@ -57,6 +51,12 @@ public class Log4j2EventTrigger extends SendMessageTrigger<LogEvent> {
 
     public void setLevel(Level level) {
         this.level = level;
+    }
+
+    @Override
+    public void setStackTraceLines(int stackTraceLines) {
+        super.setStackTraceLines(stackTraceLines);
+        definedSendMultiplier = true;
     }
 
     @Override

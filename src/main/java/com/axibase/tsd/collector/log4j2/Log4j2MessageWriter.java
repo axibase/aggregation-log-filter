@@ -45,6 +45,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     private String atsdUrl;
     private List<PatternFormatter> formatters;
     private Set<String> mdcTags = new HashSet<>();
+    private int messageLength = -1;
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -140,6 +141,8 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             LogEvent event = wrapper.getEvent();
             StringBuilder sb = new StringBuilder();
             String message = wrapper.getMessage();
+            if (messageLength >= 0)
+                message = message.substring(0, Math.min(message.length(), messageLength));
             int lines = wrapper.getLines();
             final ThrowableProxy tp = event.getThrownProxy();
             if (lines > 0 && tp != null) {
@@ -309,6 +312,10 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
 
     public void addMdcTag(String mdcTag) {
         mdcTags.add(mdcTag);
+    }
+
+    public void setMessageLength(String messageLength) {
+        this.messageLength = Integer.valueOf(messageLength);
     }
 }
 
