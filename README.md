@@ -260,6 +260,7 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 | sendLoggerCounter | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](https://github.com/axibase/aggregation-log-filter#counters) metric is not sent. |
 | mdcTags | no | - | User-defined tag(s) to be included in message commands, value extracted from [`MDC context`](https://github.com/axibase/aggregation-log-filter#mdc-context-parameters-in-messages), MULTIPLE. |
 | debug | no | false | Enable logging to stdout debug information, see [`Troubleshooting`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#troubleshooting). |
+| messageLength | no | -1 | Allow to control event message size, default value to show the whole message |
 
 ## Database Address
 
