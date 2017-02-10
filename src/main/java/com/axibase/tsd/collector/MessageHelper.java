@@ -31,8 +31,11 @@ import java.util.Properties;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
-    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000;
-    private static final int MAX_LENGTH = 32 * 1024;
+    private static final String LEVEL_TAG = " t:level=";
+    private static final String COMMAND_KEY = " k:command=";
+    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000l;
+    private static final String SERIES_COMMAND_PREFIX = "series e:";
+    private static final String PROPERTY_COMMAND_PREFIX = "property e:";
     private SeriesSenderConfig seriesSenderConfig;
     private ByteBuffer seriesCounterPrefix;
     private ByteBuffer seriesTotalRatePrefix;
@@ -74,8 +77,7 @@ public class MessageHelper {
         lastPropertySentTime = System.currentTimeMillis();
 
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append("series e:").append(entity);
+            StringBuilder sb = new StringBuilder(SERIES_COMMAND_PREFIX).append(entity);
             appendTags(sb);
             sb.append(" m:").append(AtsdUtil.sanitizeName(
                     seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getCounterSuffix())).append(
@@ -83,8 +85,7 @@ public class MessageHelper {
             seriesCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append("series e:").append(entity);
+            StringBuilder sb = new StringBuilder(SERIES_COMMAND_PREFIX).append(entity);
             appendTags(sb);
             sb.append(" m:").append(AtsdUtil.sanitizeName(
                     seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getRateSuffix())).append(
@@ -92,8 +93,7 @@ public class MessageHelper {
             seriesTotalRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append("series e:").append(entity);
+            StringBuilder sb = new StringBuilder(SERIES_COMMAND_PREFIX).append(entity);
             appendTags(sb);
             sb.append(" m:").append(AtsdUtil.sanitizeName(
                     seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getCounterSuffix())).append(
@@ -101,8 +101,7 @@ public class MessageHelper {
             seriesTotalCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append("message e:").append(entity);
+            StringBuilder sb = new StringBuilder("message e:").append(entity);
             appendTags(sb);
             unsafeAppendTag(sb, "type", "logger");
             sb.append(" m:");
@@ -111,10 +110,9 @@ public class MessageHelper {
     }
 
     private void sendAggregatorRuntimeProperty(WritableByteChannel writer) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("property e:").append(entity);
+        StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
         sb.append(" t:java.log_aggregator.runtime");
-        sb.append(" k:command=").append(AtsdUtil.sanitizeValue(command));
+        sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
         Properties systemProperties = System.getProperties();
 
@@ -134,7 +132,7 @@ public class MessageHelper {
         String name = runtimeMXBean.getName();
         sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(name));
         if (name.contains("@")) {
-            sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(name.lastIndexOf("@") + 1)));
+            sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(name.lastIndexOf('@') + 1)));
         }
         sb.append(" v:").append("ClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getClassPath()));
         sb.append(" v:").append("LibraryPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getLibraryPath()));
@@ -145,7 +143,7 @@ public class MessageHelper {
         sb.append(" v:").append("VmVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVendor()));
         sb.append(" v:").append("VmVersion=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVersion()));
         List<String> inputArguments = runtimeMXBean.getInputArguments();
-        if (inputArguments.size() > 0) {
+        if (inputArguments.isEmpty()) {
             sb.append(" v:").append("InputArguments=\"");
             for (String inputArgument : inputArguments) {
                 sb.append(inputArgument).append(" ");
@@ -166,10 +164,9 @@ public class MessageHelper {
     }
 
     private void sendAggregatorSettingsProperty(WritableByteChannel writer, Map<String, String> stringSettings) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("property e:").append(entity);
+        StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
         sb.append(" t:java.log_aggregator.settings");
-        sb.append(" k:command=").append(AtsdUtil.sanitizeValue(command));
+        sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
         for (Map.Entry<String, String> entry : stringSettings.entrySet()) {
             sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
         }
@@ -187,10 +184,9 @@ public class MessageHelper {
     }
 
     private void sendAggregatorOSProperty(WritableByteChannel writer) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("property e:").append(entity);
+        StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
         sb.append(" t:java.log_aggregator.operating_system");
-        sb.append(" k:command=").append(AtsdUtil.sanitizeValue(command));
+        sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
         OperatingSystemMXBean osMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
         sb.append(" v:").append("Arch=").append(AtsdUtil.sanitizeValue(osMXBean.getArch()));
@@ -236,12 +232,11 @@ public class MessageHelper {
     }
 
     public void writeCounter(WritableByteChannel writer,
-                             long time,
                              Key key,
                              String levelString,
                              long value) throws IOException {
-        StringBuilder sb = new StringBuilder().append(value);
-        sb.append(" t:level=").append(levelString);
+        StringBuilder sb = new StringBuilder(String.valueOf(value));
+        sb.append(LEVEL_TAG).append(levelString);
         sb.append(" t:logger=").append(AtsdUtil.sanitizeValue(key.getLogger()));
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
@@ -255,8 +250,8 @@ public class MessageHelper {
                                   long time,
                                   CounterWithSum counterWithSum,
                                   String levelString) throws IOException {
-        StringBuilder sb = new StringBuilder().append(counterWithSum.getSum());
-        sb.append(" t:level=").append(levelString);
+        StringBuilder sb = new StringBuilder(String.valueOf(counterWithSum.getSum()));
+        sb.append(LEVEL_TAG).append(levelString);
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalCounterPrefix.remaining() + bytes.length)
@@ -269,8 +264,8 @@ public class MessageHelper {
                                long time,
                                double rate,
                                String levelString) throws IOException {
-        StringBuilder sb = new StringBuilder().append(rate);
-        sb.append(" t:level=").append(levelString);
+        StringBuilder sb = new StringBuilder(String.valueOf(rate));
+        sb.append(LEVEL_TAG).append(levelString);
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
@@ -284,9 +279,8 @@ public class MessageHelper {
                              String levelValue,
                              String loggerName,
                              Map<String, String> locationInformation) throws IOException {
-        message = message.substring(0, Math.min(message.length(), MAX_LENGTH));
         sb.append(AtsdUtil.escapeCSV(message));
-        if (levelValue.toLowerCase().equals("trace") || levelValue.toLowerCase().equals("debug"))
+        if ("debug".equalsIgnoreCase(levelValue) || "trace".equalsIgnoreCase(levelValue))
             sb.append(" t:severity=").append("NORMAL");
         else
             sb.append(" t:severity=").append(levelValue);

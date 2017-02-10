@@ -28,10 +28,8 @@ public abstract class SendMessageTrigger<E> {
 
     public static final double DEFAULT_SEND_MULTIPLIER = 1.0;
     public static final long DEFAULT_RESET_INTERVAL = 600 * 1000L;
-//    public static final int DEFAULT_EVERY = 1;
     public static final int MIN_RESET_INTERVAL_SECONDS = 1;
     private Map<String, History> keyToHistory = new ConcurrentHashMap<String, History>();
-//    private int every = DEFAULT_EVERY;
     private int stackTraceLines = DEFAULT_STACK_TRACE_LINES;
 
     private double sendMultiplier = DEFAULT_SEND_MULTIPLIER;
@@ -41,25 +39,19 @@ public abstract class SendMessageTrigger<E> {
     }
 
     public boolean onEvent(E event) {
-//        if (every <= 0) {
-//            throw new IllegalStateException("Low every value to process event: " + event);
-//        }
         long st = System.currentTimeMillis();
         String key = resolveKey(event);
         History history = keyToHistory.get(key);
         if (history == null) {
             history = new History();
-//            history.reset(every);
             history.reset();
             keyToHistory.put(key, history);
         }
         if (st - history.first > resetInterval) {
-            // reset
-//            history.reset(every);
             history.reset();
         }
         history.count++;
-        boolean result = (history.count >= history.modEvery);
+        boolean result = history.count >= history.modEvery;
         if (result && sendMultiplier > 1 && history.count >= 1) {
             history.update(sendMultiplier);
         }
@@ -69,16 +61,6 @@ public abstract class SendMessageTrigger<E> {
     public abstract boolean isErrorInstance(E event);
 
     public abstract String resolveKey(E event);
-
-//    public void setEvery(int every) {
-//        if (every > DEFAULT_EVERY) {
-//            this.every = every;
-//        }
-//    }
-//
-//    public int getEvery() {
-//        return every;
-//    }
 
     public void setStackTraceLines(int stackTraceLines) {
         this.stackTraceLines = stackTraceLines;
@@ -111,7 +93,6 @@ public abstract class SendMessageTrigger<E> {
         private volatile long first;
         private double modEvery;
 
-//        public void reset(int every) {
         public void reset() {
             count = 0;
             modEvery = 1;
