@@ -38,7 +38,6 @@ public class MessageHelper {
     private static final String PROPERTY_COMMAND_PREFIX = "property e:";
     private SeriesSenderConfig seriesSenderConfig;
     private ByteBuffer seriesCounterPrefix;
-    private ByteBuffer seriesTotalRatePrefix;
     private ByteBuffer seriesTotalCounterPrefix;
     private ByteBuffer messagePrefix;
     private Map<String, String> tags;
@@ -83,14 +82,6 @@ public class MessageHelper {
                     seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getCounterSuffix())).append(
                     "=");
             seriesCounterPrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
-        }
-        {
-            StringBuilder sb = new StringBuilder(SERIES_COMMAND_PREFIX).append(entity);
-            appendTags(sb);
-            sb.append(" m:").append(AtsdUtil.sanitizeName(
-                    seriesSenderConfig.getMetricPrefix() + seriesSenderConfig.getTotalSuffix() + seriesSenderConfig.getRateSuffix())).append(
-                    "=");
-            seriesTotalRatePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
         }
         {
             StringBuilder sb = new StringBuilder(SERIES_COMMAND_PREFIX).append(entity);
@@ -247,7 +238,6 @@ public class MessageHelper {
     }
 
     public void writeTotalCounter(WritableByteChannel writer,
-                                  long time,
                                   CounterWithSum counterWithSum,
                                   String levelString) throws IOException {
         StringBuilder sb = new StringBuilder(String.valueOf(counterWithSum.getSum()));
@@ -258,19 +248,6 @@ public class MessageHelper {
                 .put(seriesTotalCounterPrefix.duplicate()).put(bytes);
         byteBuffer.rewind();
         writer.write(byteBuffer);
-    }
-
-    public void writeTotalRate(WritableByteChannel writer,
-                               long time,
-                               double rate,
-                               String levelString) throws IOException {
-        StringBuilder sb = new StringBuilder(String.valueOf(rate));
-        sb.append(LEVEL_TAG).append(levelString);
-        sb.append("\n");
-        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(seriesTotalRatePrefix.remaining() + bytes.length)
-                .put(seriesTotalRatePrefix.duplicate()).put(bytes);
-        byteBuffer.rewind();
     }
 
     public void writeMessage(WritableByteChannel writer,

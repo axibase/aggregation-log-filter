@@ -15,7 +15,7 @@
 
 package com.axibase.tsd.collector;
 
-import java.lang.Long;import java.util.Map;
+import java.util.Map;
 import java.util.Set;
 
 public interface EventCounter<L> {

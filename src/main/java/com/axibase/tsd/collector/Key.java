@@ -29,12 +29,18 @@ public class Key<L> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Key key = (Key) o;
 
-        if (level != null ? !level.equals(key.level) : key.level != null) return false;
+        if (level != null ? !level.equals(key.level) : key.level != null) {
+            return false;
+        }
         return !(logger != null ? !logger.equals(key.logger) : key.logger != null);
     }
 

@@ -15,12 +15,12 @@
 
 package com.axibase.tsd.collector;
 
-import java.lang.Long;import java.lang.Override;import java.util.HashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class SimpleCounter<L> implements EventCounter<L> {
-    private Map<L, Long> map = new HashMap<L, Long>();
+    private Map<L, Long> map = new HashMap<>();
 
     @Override
     public long updateAndGetDiff(L key, long cnt) {

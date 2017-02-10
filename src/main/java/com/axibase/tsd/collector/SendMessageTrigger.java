@@ -29,7 +29,7 @@ public abstract class SendMessageTrigger<E> {
     public static final double DEFAULT_SEND_MULTIPLIER = 1.0;
     public static final long DEFAULT_RESET_INTERVAL = 600 * 1000L;
     public static final int MIN_RESET_INTERVAL_SECONDS = 1;
-    private Map<String, History> keyToHistory = new ConcurrentHashMap<String, History>();
+    private Map<String, History> keyToHistory = new ConcurrentHashMap<>();
     private int stackTraceLines = DEFAULT_STACK_TRACE_LINES;
 
     private double sendMultiplier = DEFAULT_SEND_MULTIPLIER;

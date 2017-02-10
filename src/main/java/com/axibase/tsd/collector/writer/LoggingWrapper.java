@@ -39,7 +39,7 @@ public class LoggingWrapper implements WritableByteChannel {
         bbCopy.get(b);
         AtsdUtil.logInfo("WRITING:".concat(wrapped.getClass().getName()).concat(";").concat(new String(b, StandardCharsets.UTF_8).trim()));
         final int written = wrapped.write(src);
-        AtsdUtil.logInfo(("WRITTEN:" + written + " bytes"));
+        AtsdUtil.logInfo("WRITTEN:" + written + " bytes");
         return written;
     }
 

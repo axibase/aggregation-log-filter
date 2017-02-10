@@ -17,8 +17,6 @@ package com.axibase.tsd.collector;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import java.lang.String;
-import java.lang.StringBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -49,34 +47,35 @@ public class AtsdUtil {
     }
 
     public static String escapeCSV(String s) {
+        String escaped;
         if (s == null || s.trim().length() == 0) {
-            s = EMPTY_MESSAGE;
+            escaped = EMPTY_MESSAGE;
         } else
-            s = StringEscapeUtils.escapeCsv(s.trim());
-        if (s.contains(" ") && !s.startsWith("\"")) {
+            escaped = StringEscapeUtils.escapeCsv(s.trim());
+        if (escaped.contains(" ") && !escaped.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
-            s = sb.append(s).append("\"").toString();
+            escaped = sb.append(escaped).append("\"").toString();
         }
-        return s;
+        return escaped;
     }
 
     public static String sanitizeName(String s) {
-        s = StringEscapeUtils.escapeCsv(SPACE.matcher(s.trim()).replaceAll("_"));
-        if (s.contains("=") && !s.startsWith("\"")) {
+        String sanitized = StringEscapeUtils.escapeCsv(SPACE.matcher(s.trim()).replaceAll("_"));
+        if (sanitized.contains("=") && !sanitized.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
-            s = sb.append(s).append("\"").toString();
+            sanitized = sb.append(sanitized).append("\"").toString();
         }
-        return s;
+        return sanitized;
     }
 
     public static String sanitizeValue(String s) {
-        s = escapeCSV(s);
-        if ((s.contains(" ") || s.contains("=") || s.contains("\t")) && !s.startsWith("\"")) {
+        String sanitized = escapeCSV(s);
+        if ((sanitized.contains(" ") || sanitized.contains("=") || sanitized.contains("\t")) && !sanitized.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
-            s = sb.append(s).append("\"").toString();
+            sanitized = sb.append(sanitized).append("\"").toString();
         }
 
-        return s;
+        return sanitized;
     }
 
     public static String sanitizeValue(int i) {
@@ -90,16 +89,16 @@ public class AtsdUtil {
     }
 
     public static String sanitize(String s) {
-        s = SPACE.matcher(s).replaceAll("_");
-        s = QUOTES.matcher(s).replaceAll("");
-        return s;
+        String sanitized = SPACE.matcher(s).replaceAll("_");
+        sanitized = QUOTES.matcher(sanitized).replaceAll("");
+        return sanitized;
     }
 
     public static String resolveHostname() {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            AtsdUtil.logInfo("Could not resolve hostname. " + e.getMessage());
+            AtsdUtil.logInfo("Could not resolve hostname", e);
             return DEFAULT_ENTITY;
         }
     }

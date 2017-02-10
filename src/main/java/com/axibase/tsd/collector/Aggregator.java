@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Aggregator<E, K, L> {
     private final Worker worker = new Worker();
     private final ConcurrentMap<K, SyncEventCounter<E, L>> total =
-            new ConcurrentHashMap<K, SyncEventCounter<E, L>>();
-    private CountedQueue<EventWrapper<E>> singles = new CountedQueue<EventWrapper<E>>();
+            new ConcurrentHashMap<>();
+    private CountedQueue<EventWrapper<E>> singles = new CountedQueue<>();
     private AtomicLong totalCounter = new AtomicLong(0);
     private WritableByteChannel writer;
     private final MessageWriter<E, K, L> messageWriter;
@@ -59,33 +59,35 @@ public class Aggregator<E, K, L> {
                 counter = old == null ? counter : old;
             }
             counter.increment(event);
-
             totalCounter.incrementAndGet();
 
             // try to send immediately instance of Error
             if (!messageWriter.sendErrorInstance(writer,event) && (triggers != null)) {
-                int lines = 0;
-                boolean fire = false;
-                for (SendMessageTrigger<E> trigger : triggers) {
-                    if (trigger.onEvent(event)) {
-                        fire = true;
-                        int stackTraceLines = trigger.getStackTraceLines();
-                        if (stackTraceLines < 0) {
-                            lines = Integer.MAX_VALUE;
-                        } else if (stackTraceLines > lines) {
-                            lines = stackTraceLines;
-                        }
-                    }
-                }
-                if (fire) {
-                    sendSingle(event, lines);
-                }
+                sendError(event);
             }
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw new IOException(t);
+        } catch (Exception e) {
+            AtsdUtil.logInfo("Writer failed register event", e);
         }
         return true;
+    }
+
+    private void sendError(E event) throws IOException {
+        int lines = 0;
+        boolean fire = false;
+        for (SendMessageTrigger<E> trigger : triggers) {
+            if (trigger.onEvent(event)) {
+                fire = true;
+                int stackTraceLines = trigger.getStackTraceLines();
+                if (stackTraceLines < 0) {
+                    lines = Integer.MAX_VALUE;
+                } else if (stackTraceLines > lines) {
+                    lines = stackTraceLines;
+                }
+            }
+        }
+        if (fire) {
+            sendSingle(event, lines);
+        }
     }
 
     private void sendSingle(final E event, final int lines) throws IOException {
@@ -107,7 +109,7 @@ public class Aggregator<E, K, L> {
             try {
                 worker.finish();
             } catch (Exception e) {
-                AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
+                AtsdUtil.logInfo("Could not finish worker", e);
             }
             worker.stop();
         }
@@ -127,7 +129,7 @@ public class Aggregator<E, K, L> {
             try {
                 writer.close();
             } catch (IOException e) {
-                AtsdUtil.logInfo("Could not close writer. "  + e.getMessage());
+                AtsdUtil.logInfo("Could not close writer", e);
             }
         } else {
             AtsdUtil.logInfo("Writer has already been closed");
@@ -139,7 +141,7 @@ public class Aggregator<E, K, L> {
             try {
                 messageWriter.writeSingles(writer, singles);
             } catch (IOException e) {
-                e.printStackTrace();
+                AtsdUtil.logInfo("Writer failed write single", e);
             }
         }
     }
@@ -153,7 +155,7 @@ public class Aggregator<E, K, L> {
         if (triggers == null) {
             triggers = new SendMessageTrigger[]{messageTrigger};
         } else {
-            Map<Integer, SendMessageTrigger> triggerMap = new HashMap<Integer, SendMessageTrigger>();
+            Map<Integer, SendMessageTrigger> triggerMap = new HashMap<>();
             for (SendMessageTrigger trigger : triggers) {
                 int intLevel = trigger.getIntLevel();
                 triggerMap.put(intLevel, trigger);
@@ -168,7 +170,7 @@ public class Aggregator<E, K, L> {
     }
 
     private class Worker implements Runnable {
-        private final Map<K, EventCounter<L>> lastTotal = new HashMap<K, EventCounter<L>>();
+        private final Map<K, EventCounter<L>> lastTotal = new HashMap<>();
         private long lastTotalCounter = 0;
         private long last = System.currentTimeMillis();
 
@@ -182,10 +184,10 @@ public class Aggregator<E, K, L> {
                     messageWriter.checkPropertiesSent(writer);
                     checkThresholdsAndWrite();
                 } catch (IOException e) {
-                    AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
+                    AtsdUtil.logInfo("Could not write messages", e);
                     // ignore
                 } catch (InterruptedException e) {
-                    AtsdUtil.logInfo("Interrupted. " + e.getMessage());
+                    AtsdUtil.logInfo("Interrupted", e);
                     // ignore
                     Thread.currentThread().interrupt();
                 }
@@ -193,21 +195,21 @@ public class Aggregator<E, K, L> {
         }
 
         private void checkThresholdsAndWrite() throws IOException {
-            final long total = totalCounter.get();
-            long cnt = total - lastTotalCounter;
+            final long totalCounterValue = totalCounter.get();
+            long cnt = totalCounterValue - lastTotalCounter;
             long currentTime = System.currentTimeMillis();
             long dt = currentTime - last;
             long intervalMs = seriesSenderConfig.getIntervalMs();
             if (dt > intervalMs) {
                 flush(last, currentTime);
                 cnt = 0;
-                lastTotalCounter = total;
+                lastTotalCounter = totalCounterValue;
             }
 
             int minIntervalThreshold = seriesSenderConfig.getMinIntervalThreshold();
             if (minIntervalThreshold > 0 && dt > seriesSenderConfig.getMinIntervalMs() && cnt > minIntervalThreshold) {
                 flush(last, currentTime);
-                lastTotalCounter = total;
+                lastTotalCounter = totalCounterValue;
             }
 
             writeSingles();
@@ -220,7 +222,7 @@ public class Aggregator<E, K, L> {
         protected void flush(long lastTime, long currentTime) throws IOException {
             last = currentTime;
 
-            Map<K, EventCounter<L>> diff = new HashMap<K, EventCounter<L>>();
+            Map<K, EventCounter<L>> diff = new HashMap<>();
 
             for (Map.Entry<K, SyncEventCounter<E, L>> keyAndCounter : total.entrySet()) {
                 K key = keyAndCounter.getKey();
@@ -236,7 +238,7 @@ public class Aggregator<E, K, L> {
                 }
             }
 
-            messageWriter.writeStatMessages(writer, diff, (1 + currentTime - lastTime));
+            messageWriter.writeStatMessages(writer, diff, 1 + currentTime - lastTime);
         }
 
         public void stop() {
@@ -255,7 +257,7 @@ public class Aggregator<E, K, L> {
             try {
                 worker.finish();
             } catch (Exception e) {
-                AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
+                AtsdUtil.logInfo("Could not finish worker", e);
             }
         }
     }

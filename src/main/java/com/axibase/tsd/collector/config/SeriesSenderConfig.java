@@ -52,7 +52,7 @@ public class SeriesSenderConfig {
 
     private boolean sendLoggerCounter = DEFAULT_SEND_LOGGER_COUNTER;
 
-    private Map<String, Integer> totalCountInitMap = new HashMap<String, Integer>();
+    private Map<String, Integer> totalCountInitMap = new HashMap<>();
 
     public SeriesSenderConfig() {
     }
