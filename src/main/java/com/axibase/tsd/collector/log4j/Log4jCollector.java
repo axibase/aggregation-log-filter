@@ -62,6 +62,7 @@ public class Log4jCollector extends Filter {
     private String pattern;
     private String scheme;
     private String atsdUrl;
+    private int messageLength = -1;
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -123,6 +124,10 @@ public class Log4jCollector extends Filter {
         for (String mdcTag : mdcTags) {
             log4jMessageWriter.addMdcTag(mdcTag);
         }
+        if (messageLength >= 0) {
+            log4jMessageWriter.setMessageLength(messageLength);
+        }
+
         aggregator = new Aggregator<LoggingEvent, String, String>(log4jMessageWriter, new Log4jEventProcessor());
         writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
@@ -298,6 +303,10 @@ public class Log4jCollector extends Filter {
         } catch (URISyntaxException e) {
             LogLog.error("Syntax error in atsd-url " + atsdUrl);
         }
+    }
+
+    public void setMessageLength(int messageLength) {
+        this.messageLength = messageLength;
     }
 
     @Override

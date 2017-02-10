@@ -59,6 +59,13 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
     }
 
     @Override
+    public void setStackTraceLines(int stackTraceLines) {
+        super.setStackTraceLines(stackTraceLines);
+        definedSendMultiplier = true;
+
+    }
+
+    @Override
     public void setSendMultiplier(double sendMultiplier) {
         super.setSendMultiplier(sendMultiplier);
         definedSendMultiplier = true;

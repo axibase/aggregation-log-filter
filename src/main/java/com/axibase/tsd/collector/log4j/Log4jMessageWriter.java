@@ -43,6 +43,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     private String atsdUrl;
     private PatternLayout patternLayout;
     private Set<String> mdcTags = new HashSet<>();
+    private int messageLength = -1;
 
     @Override
     public void writeStatMessages(WritableByteChannel writer,
@@ -137,6 +138,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             LoggingEvent event = wrapper.getEvent();
             StringBuilder sb = new StringBuilder();
             String message = wrapper.getMessage();
+            if (messageLength >= 0)
+                message = message.substring(0, Math.min(message.length(), messageLength));
             int lines = wrapper.getLines();
             if (lines > 0 && event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() != null) {
                 StringBuilder msb = new StringBuilder(message);
@@ -300,6 +303,10 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
 
     public void addMdcTag(String mdcTag) {
         mdcTags.add(mdcTag);
+    }
+
+    public void setMessageLength(int messageLength) {
+        this.messageLength = messageLength;
     }
 }
 
