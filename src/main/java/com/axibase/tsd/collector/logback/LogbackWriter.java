@@ -94,7 +94,7 @@ public class LogbackWriter<E extends ILoggingEvent>
                 try {
                     if (seriesSenderConfig.isSendLoggerCounter()) {
                         String levelString = level.toString();
-                        messageHelper.writeCounter(writer, time, key, levelString, counter.getSum());
+                        messageHelper.writeCounter(writer, key, levelString, counter.getSum());
                     }
                 } catch (Throwable e) {
                     addError("Could not write series " + atsdUrl);
