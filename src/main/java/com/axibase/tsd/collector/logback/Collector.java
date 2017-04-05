@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
+    private static Collector instance;
     private LogbackWriter<E> logbackWriter;
     private Aggregator<E, String, Level> aggregator;
     private Level level = Level.TRACE;
@@ -57,6 +58,14 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String atsdUrl;
     private int messageLength = -1;
     private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
+
+    public Collector() {
+        super();
+        if (instance != null){
+            instance.stop();
+        }
+        instance = this;
+    }
 
     @Override
     public FilterReply decide(E event) {
