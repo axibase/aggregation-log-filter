@@ -15,8 +15,13 @@
 
 package com.axibase.tsd.collector;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.String;
 import java.lang.StringBuilder;
 import java.net.InetAddress;
@@ -97,11 +102,27 @@ public class AtsdUtil {
 
     public static String resolveHostname() {
         try {
-            return InetAddress.getLocalHost().getHostName();
+            String hostName = InetAddress.getLocalHost().getHostName();
+            if ("localhost".equals(hostName)){
+                hostName = executeHostname();
+            }
+            return hostName;
         } catch (UnknownHostException e) {
             AtsdUtil.logInfo("Could not resolve hostname. " + e.getMessage());
             return DEFAULT_ENTITY;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return DEFAULT_ENTITY;
         }
+    }
+
+    private static String executeHostname() throws IOException {
+        CommandLine cmd = CommandLine.parse("hostname");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DefaultExecutor executor = new DefaultExecutor();
+        executor.setStreamHandler(new PumpStreamHandler(baos));
+        executor.execute(cmd);
+        return baos.toString().trim();
     }
 
     public static void logError(String message, Throwable exception) {
