@@ -42,15 +42,26 @@ Counter values are continuously incremented to protect against accidental data l
 
 ### Messages
  
-In addition to counters, the logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
+The logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
-* INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
-* WARN.  Multiplier 3. Events sent: 1, 3, 9, 27 ...   3^(n-1)
-* ERROR. Multiplier 2. Events sent: 1, 2, 4, 8 ...    2^(n-1)
+* INFO.  Multiplier 5. Events sent: 1, 5, 25, 125, ..., 5^(n-1)
+* WARN.  Multiplier 3. Events sent: 1, 3, 9, 27, ..., 3^(n-1)
+* ERROR. Multiplier 2. Events sent: 1, 2, 4, 8, ..., 2^(n-1)
 
 > ERROR events that inherit from `java.lang.Error` are sent to the database instantly, regardless of the event index.
 
 The aggregation logger sends only a small subset of events to the database and, as such, is not a replacement for specialized log search tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
+
+### Properties
+
+The following `java.log_aggregator.*` properties are stored by logger:
+
+| **Type** | **Description** |
+|:---|:---|
+|environment|Current system environment.|
+|runtime|Current system properties.|
+|settings|Aggregation logger [settings](#configuration-settings).|
+|operating_system|General information about the operating system.|
 
 ## Heartbeat
 
