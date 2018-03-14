@@ -33,7 +33,7 @@ public class MessageHelper {
     public static final String COMMAND_TAG = "command";
     private static final String LEVEL_TAG = " t:level=";
     private static final String COMMAND_KEY = " k:command=";
-    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000l;
+    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000L;
     private static final String SERIES_COMMAND_PREFIX = "series e:";
     private static final String PROPERTY_COMMAND_PREFIX = "property e:";
     private SeriesSenderConfig seriesSenderConfig;
@@ -61,7 +61,7 @@ public class MessageHelper {
 
     public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
 
-        props = new ByteBuffer[3];
+        props = new ByteBuffer[4];
 
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
@@ -71,6 +71,7 @@ public class MessageHelper {
             command = command.split(" ")[0];
         }
 
+        sendAggregatorEnvironmentProperty(writer);
         sendAggregatorSettingsProperty(writer, stringSettings);
         sendAggregatorRuntimeProperty(writer);
         sendAggregatorOSProperty(writer);
@@ -106,6 +107,29 @@ public class MessageHelper {
             unsafeAppendTag(sb, "type", "logger");
             sb.append(" m:");
             messagePrefix = ByteBuffer.wrap(sb.toString().getBytes(AtsdUtil.UTF_8));
+        }
+    }
+
+    private void sendAggregatorEnvironmentProperty(WritableByteChannel writer) {
+        StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
+        sb.append(" t:java.log_aggregator.environment");
+        sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
+
+        Map<String, String> environmentSettings = System.getenv();
+        for (Map.Entry<String, String> entry : environmentSettings.entrySet()) {
+            sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
+        }
+
+        sb.append("\n");
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+        byteBuffer.rewind();
+        props[0] = byteBuffer;
+        try {
+            writer.write(props[0]);
+            props[0].rewind();
+        } catch (IOException e) {
+            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.environment property");
         }
     }
 
@@ -154,10 +178,10 @@ public class MessageHelper {
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
-        props[0] = byteBuffer;
+        props[1] = byteBuffer;
         try {
-            writer.write(props[0]);
-            props[0].rewind();
+            writer.write(props[1]);
+            props[1].rewind();
         } catch (IOException e) {
             AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
         }
@@ -174,10 +198,10 @@ public class MessageHelper {
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
-        props[1] = byteBuffer;
+        props[2] = byteBuffer;
         try {
-            writer.write(props[1]);
-            props[1].rewind();
+            writer.write(props[2]);
+            props[2].rewind();
         } catch (IOException e) {
             AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property");
         }
@@ -207,10 +231,10 @@ public class MessageHelper {
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
-        props[2] = byteBuffer;
+        props[3] = byteBuffer;
         try {
-            writer.write(props[2]);
-            props[2].rewind();
+            writer.write(props[3]);
+            props[3].rewind();
         } catch (IOException e) {
             AtsdUtil.logInfo("Writer failed to send java.log_aggregator.operating_system property");
         }
@@ -301,14 +325,16 @@ public class MessageHelper {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
-                if (props[0] != null && props[1] != null && props[2] != null) {
+                if (props[0] != null && props[1] != null && props[2] != null && props[3] != null) {
                     lastPropertySentTime = currentTime;
                     writer.write(props[0]);
                     writer.write(props[1]);
                     writer.write(props[2]);
+                    writer.write(props[3]);
                     props[0].rewind();
                     props[1].rewind();
                     props[2].rewind();
+                    props[3].rewind();
                 }
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");
