@@ -36,7 +36,7 @@ Aggregation Logger collects the following metrics:
 | **Metric** | **Tags** | **Type** | **Description** |
 |:---|:---|---|:---|
 | `log_event_total_counter`| level | counter | Total number of log events raised by the application. |
-| `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with the `sendLoggerCounter` setting. |
+| `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with the `sendLoggerCounter` [setting](#configuration-settings). |
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on the sampling interval.
 
@@ -140,8 +140,8 @@ Dependency to the aggregator core will be imported automatically:
 ```xml
 <dependency>
             <groupId>com.axibase</groupId>
-            <artifactId>aggregation-log-filter-logback</artifactId>
-            <version>1.1.x</version>
+            <artifactId>aggregation-log-filter-{adapter}</artifactId>
+            <version>1.2.x</version>
 </dependency>
 ```
 
@@ -149,12 +149,15 @@ Dependency to the aggregator core will be imported automatically:
 
 Add core and adapter libraries to classpath:
 
-- Download `aggregation-log-filter-1.1.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Download `aggregation-log-filter-logback-1.1.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-- Adds jar files to classpath, replace `x` with appropriate number:
+- Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
+    * [logback](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+    * [log4j](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
+    * [log4j2](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
+- Add jar files to classpath, replace `x` with appropriate version:
 
 ```
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.1.x.jar:lib/aggregation-log-filter-logback-1.1.x.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.2.x.jar:lib/aggregation-log-filter-{adapter}-1.2.x.jar Main
 ```
 
 ### Option 3: lib directory 
@@ -167,7 +170,7 @@ Apache ActiveMQ example:
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
-"https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
+"https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-{adapter}&v=LATEST"
 ```
 
 ## Logback XML Configuration Example

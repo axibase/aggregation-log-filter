@@ -36,7 +36,7 @@
 			</repeat-interval>
 			<name>email</name>
 			<use-in-threshold-only>false</use-in-threshold-only>
-			<recipients>test@axibase.com</recipients>
+			<recipients>test@example.com</recipients>
 			<first-subject>Java Logger on ${entity}/${tags.command}: no events from log writer. ${status}</first-subject>
 			<repeat-subject>Java Logger on ${entity}/${tags.command}: no events from log writer. ${status}</repeat-subject>
 			<cancel-subject>Java Logger on ${entity}/${tags.command}: no events from log writer. ${status}</cancel-subject>
