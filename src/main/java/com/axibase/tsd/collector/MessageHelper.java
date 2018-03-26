@@ -128,12 +128,11 @@ public class MessageHelper {
         } else {
             sb.append("\n");
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-            byteBuffer.rewind();
-            propBuffers.setEnvironmentPropertyBuf(byteBuffer);
+            ByteBuffer environmentPropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+            environmentPropertyBuffer.rewind();
+            propBuffers.setEnvironmentPropertyBuf(environmentPropertyBuffer);
             try {
-                writer.write(propBuffers.getEnvironmentPropertyBuf());
-                propBuffers.getEnvironmentPropertyBuf().rewind();
+                propBuffers.writeEnvironmentPropertyBufTo(writer);
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator.environment property");
             }
@@ -190,12 +189,11 @@ public class MessageHelper {
         } else {
             sb.append("\n");
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-            byteBuffer.rewind();
-            propBuffers.setRuntimePropertyBuf(byteBuffer);
+            ByteBuffer runtimePropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+            runtimePropertyBuffer.rewind();
+            propBuffers.setRuntimePropertyBuf(runtimePropertyBuffer);
             try {
-                writer.write(propBuffers.getRuntimePropertyBuf());
-                propBuffers.getRuntimePropertyBuf().rewind();
+                propBuffers.writeRuntimePropertyBufTo(writer);
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
             }
@@ -213,12 +211,11 @@ public class MessageHelper {
 
         sb.append("\n");
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-        byteBuffer.rewind();
-        propBuffers.setSettingsPropertyBuf(byteBuffer);
+        ByteBuffer settingsPropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+        settingsPropertyBuffer.rewind();
+        propBuffers.setSettingsPropertyBuf(settingsPropertyBuffer);
         try {
-            writer.write(propBuffers.getSettingsPropertyBuf());
-            propBuffers.getSettingsPropertyBuf().rewind();
+            propBuffers.writeSettingsPropertyBufTo(writer);
         } catch (IOException e) {
             AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property");
         }
@@ -249,12 +246,11 @@ public class MessageHelper {
 
             sb.append("\n");
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-            byteBuffer.rewind();
-            propBuffers.setOsPropertyBuf(byteBuffer);
+            ByteBuffer osPropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+            osPropertyBuffer.rewind();
+            propBuffers.setOsPropertyBuf(osPropertyBuffer);
             try {
-                writer.write(propBuffers.getOsPropertyBuf());
-                propBuffers.getOsPropertyBuf().rewind();
+                propBuffers.writeOsPropertyBufTo(writer);
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator.operating_system property");
             }
@@ -349,16 +345,9 @@ public class MessageHelper {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
-                if (!propBuffers.hasNull()) {
+                if (propBuffers.isAllBuffersInitialized()) {
                     lastPropertySentTime = currentTime;
-                    writer.write(propBuffers.getEnvironmentPropertyBuf());
-                    writer.write(propBuffers.getRuntimePropertyBuf());
-                    writer.write(propBuffers.getSettingsPropertyBuf());
-                    writer.write(propBuffers.getOsPropertyBuf());
-                    propBuffers.getEnvironmentPropertyBuf().rewind();
-                    propBuffers.getRuntimePropertyBuf().rewind();
-                    propBuffers.getSettingsPropertyBuf().rewind();
-                    propBuffers.getOsPropertyBuf().rewind();
+                    propBuffers.writeAllTo(writer);
                 }
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");

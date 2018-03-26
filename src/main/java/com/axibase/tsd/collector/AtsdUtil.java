@@ -47,7 +47,7 @@ public class AtsdUtil {
     };
     private static final Pattern SPACE = Pattern.compile("[[\\s]]");
     private static final Pattern QUOTES = Pattern.compile("[[\'|\"]]");
-    private static final Pattern CRLF = Pattern.compile("(\\r|\\n|\\r\\n)+");
+    private static final Pattern CRLF = Pattern.compile("[\\r\\n]+");
     public static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final int TRUNCATE_SIZE = 1000;
 
