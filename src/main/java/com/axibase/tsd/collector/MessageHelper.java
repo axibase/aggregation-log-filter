@@ -16,9 +16,8 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
-import com.sun.management.UnixOperatingSystemMXBean;
-
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
@@ -41,10 +40,10 @@ public class MessageHelper {
     private ByteBuffer seriesTotalRatePrefix;
     private ByteBuffer seriesTotalCounterPrefix;
     private ByteBuffer messagePrefix;
+    private PropertyBuffers propBuffers;
     private Map<String, String> tags;
     private String entity;
     private String command;
-    private ByteBuffer[] props;
     private long lastPropertySentTime;
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
@@ -61,7 +60,7 @@ public class MessageHelper {
 
     public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
 
-        props = new ByteBuffer[4];
+        propBuffers = new PropertyBuffers();
 
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
@@ -120,11 +119,7 @@ public class MessageHelper {
         for (Map.Entry<String, String> entry : environmentSettings.entrySet()) {
             String value = entry.getValue();
             if (!value.isEmpty()) {
-                String s = value.replaceAll("(\\r|\\n|\\r\\n)+", "\\\\n");
-                if (value.length() > 1024) {
-                    s = value.substring(0, 1024);
-                }
-                sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(s));
+                sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(value));
             }
         }
 
@@ -135,10 +130,10 @@ public class MessageHelper {
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
             ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
             byteBuffer.rewind();
-            props[0] = byteBuffer;
+            propBuffers.setEnvironmentPropertyBuf(byteBuffer);
             try {
-                writer.write(props[0]);
-                props[0].rewind();
+                writer.write(propBuffers.getEnvironmentPropertyBuf());
+                propBuffers.getEnvironmentPropertyBuf().rewind();
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator.environment property");
             }
@@ -158,13 +153,12 @@ public class MessageHelper {
             String key = (String) enumeration.nextElement();
             String value = systemProperties.getProperty(key);
             if (!value.isEmpty()) {
-                String s = value.replaceAll("(\\r|\\n|\\r\\n)+", "\\\\n");
-                sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(s));
+                sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(value));
             }
         }
 
         try {
-            RuntimeMXBean runtimeMXBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
+            RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
             sb.append(" v:").append("getBootClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getBootClassPath()));
             String name = runtimeMXBean.getName();
             sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(name));
@@ -180,7 +174,7 @@ public class MessageHelper {
             sb.append(" v:").append("VmVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVendor()));
             sb.append(" v:").append("VmVersion=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVersion()));
             List<String> inputArguments = runtimeMXBean.getInputArguments();
-            if (inputArguments.isEmpty()) {
+            if (!inputArguments.isEmpty()) {
                 sb.append(" v:").append("InputArguments=\"");
                 for (String inputArgument : inputArguments) {
                     sb.append(inputArgument).append(" ");
@@ -198,10 +192,10 @@ public class MessageHelper {
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
             ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
             byteBuffer.rewind();
-            props[1] = byteBuffer;
+            propBuffers.setRuntimePropertyBuf(byteBuffer);
             try {
-                writer.write(props[1]);
-                props[1].rewind();
+                writer.write(propBuffers.getRuntimePropertyBuf());
+                propBuffers.getRuntimePropertyBuf().rewind();
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
             }
@@ -221,10 +215,10 @@ public class MessageHelper {
         byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
         byteBuffer.rewind();
-        props[2] = byteBuffer;
+        propBuffers.setSettingsPropertyBuf(byteBuffer);
         try {
-            writer.write(props[2]);
-            props[2].rewind();
+            writer.write(propBuffers.getSettingsPropertyBuf());
+            propBuffers.getSettingsPropertyBuf().rewind();
         } catch (IOException e) {
             AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property");
         }
@@ -236,17 +230,19 @@ public class MessageHelper {
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
         try {
-            OperatingSystemMXBean osMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+            OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
             sb.append(" v:").append("Arch=").append(AtsdUtil.sanitizeValue(osMXBean.getArch()));
             sb.append(" v:").append("AvailableProcessors=").append(AtsdUtil.sanitizeValue(osMXBean.getAvailableProcessors()));
             sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(osMXBean.getName()));
             sb.append(" v:").append("Version=").append(AtsdUtil.sanitizeValue(osMXBean.getVersion()));
 
             try {
-                UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
-                sb.append(" v:").append("MaxFileDescriptorCount=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getMaxFileDescriptorCount()));
-                sb.append(" v:").append("TotalPhysicalMemorySize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalPhysicalMemorySize()));
-                sb.append(" v:").append("TotalSwapSpaceSize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalSwapSpaceSize()));
+                if (osMXBean instanceof com.sun.management.UnixOperatingSystemMXBean) {
+                    com.sun.management.UnixOperatingSystemMXBean osMXBeanUnix = (com.sun.management.UnixOperatingSystemMXBean) osMXBean;
+                    sb.append(" v:").append("MaxFileDescriptorCount=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getMaxFileDescriptorCount()));
+                    sb.append(" v:").append("TotalPhysicalMemorySize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalPhysicalMemorySize()));
+                    sb.append(" v:").append("TotalSwapSpaceSize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalSwapSpaceSize()));
+                }
             } catch (Exception e) {
                 AtsdUtil.logError("Writer failed to get operating_system properties for UnixOperatingSystem. " + e.getMessage());
             }
@@ -255,10 +251,10 @@ public class MessageHelper {
             byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
             ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
             byteBuffer.rewind();
-            props[3] = byteBuffer;
+            propBuffers.setOsPropertyBuf(byteBuffer);
             try {
-                writer.write(props[3]);
-                props[3].rewind();
+                writer.write(propBuffers.getOsPropertyBuf());
+                propBuffers.getOsPropertyBuf().rewind();
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator.operating_system property");
             }
@@ -353,16 +349,16 @@ public class MessageHelper {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
-                if (props[0] != null && props[1] != null && props[2] != null && props[3] != null) {
+                if (!propBuffers.hasNull()) {
                     lastPropertySentTime = currentTime;
-                    writer.write(props[0]);
-                    writer.write(props[1]);
-                    writer.write(props[2]);
-                    writer.write(props[3]);
-                    props[0].rewind();
-                    props[1].rewind();
-                    props[2].rewind();
-                    props[3].rewind();
+                    writer.write(propBuffers.getEnvironmentPropertyBuf());
+                    writer.write(propBuffers.getRuntimePropertyBuf());
+                    writer.write(propBuffers.getSettingsPropertyBuf());
+                    writer.write(propBuffers.getOsPropertyBuf());
+                    propBuffers.getEnvironmentPropertyBuf().rewind();
+                    propBuffers.getRuntimePropertyBuf().rewind();
+                    propBuffers.getSettingsPropertyBuf().rewind();
+                    propBuffers.getOsPropertyBuf().rewind();
                 }
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");
