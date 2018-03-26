@@ -16,6 +16,7 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -127,10 +128,7 @@ public class MessageHelper {
             AtsdUtil.logInfo("Environment settings are empty. Skip environment property sending");
         } else {
             sb.append("\n");
-            byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer environmentPropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-            environmentPropertyBuffer.rewind();
-            propBuffers.setEnvironmentPropertyBuf(environmentPropertyBuffer);
+            propBuffers.initEnvironmentPropertyBuf(sb);
             try {
                 propBuffers.writeEnvironmentPropertyBufTo(writer);
             } catch (IOException e) {
@@ -188,10 +186,7 @@ public class MessageHelper {
             AtsdUtil.logInfo("Runtime settings are empty. Skip runtime property sending");
         } else {
             sb.append("\n");
-            byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer runtimePropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-            runtimePropertyBuffer.rewind();
-            propBuffers.setRuntimePropertyBuf(runtimePropertyBuffer);
+            propBuffers.initRuntimePropertyBuf(sb);
             try {
                 propBuffers.writeRuntimePropertyBufTo(writer);
             } catch (IOException e) {
@@ -210,10 +205,7 @@ public class MessageHelper {
         }
 
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        ByteBuffer settingsPropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-        settingsPropertyBuffer.rewind();
-        propBuffers.setSettingsPropertyBuf(settingsPropertyBuffer);
+        propBuffers.initSettingsPropertyBuf(sb);
         try {
             propBuffers.writeSettingsPropertyBufTo(writer);
         } catch (IOException e) {
@@ -245,10 +237,7 @@ public class MessageHelper {
             }
 
             sb.append("\n");
-            byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-            ByteBuffer osPropertyBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-            osPropertyBuffer.rewind();
-            propBuffers.setOsPropertyBuf(osPropertyBuffer);
+            propBuffers.initOsPropertyBuf(sb);
             try {
                 propBuffers.writeOsPropertyBufTo(writer);
             } catch (IOException e) {

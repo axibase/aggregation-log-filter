@@ -3,12 +3,20 @@ package com.axibase.tsd.collector;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 
-public class PropertyBuffers {
+class PropertyBuffers {
     private ByteBuffer environmentPropertyBuf;
     private ByteBuffer settingsPropertyBuf;
     private ByteBuffer runtimePropertyBuf;
     private ByteBuffer osPropertyBuf;
+
+    private ByteBuffer allocate(StringBuilder propertyCommand){
+        byte[] bytes = propertyCommand.toString().getBytes(StandardCharsets.UTF_8);
+        ByteBuffer commandBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
+        commandBuffer.rewind();
+        return commandBuffer;
+    }
 
     public boolean isAllBuffersInitialized() {
         if (environmentPropertyBuf != null && settingsPropertyBuf != null && runtimePropertyBuf != null && osPropertyBuf != null) {
@@ -17,20 +25,20 @@ public class PropertyBuffers {
         return false;
     }
 
-    public void setEnvironmentPropertyBuf(ByteBuffer environmentPropertyBuf) {
-        this.environmentPropertyBuf = environmentPropertyBuf;
+    public void initEnvironmentPropertyBuf(StringBuilder propertyCommand) {
+        this.environmentPropertyBuf = allocate(propertyCommand);
     }
 
-    public void setOsPropertyBuf(ByteBuffer osPropertyBuf) {
-        this.osPropertyBuf = osPropertyBuf;
+    public void initOsPropertyBuf(StringBuilder propertyCommand) {
+        this.osPropertyBuf = allocate(propertyCommand);
     }
 
-    public void setRuntimePropertyBuf(ByteBuffer runtimePropertyBuf) {
-        this.runtimePropertyBuf = runtimePropertyBuf;
+    public void initRuntimePropertyBuf(StringBuilder propertyCommand) {
+        this.runtimePropertyBuf = allocate(propertyCommand);
     }
 
-    public void setSettingsPropertyBuf(ByteBuffer settingsPropertyBuf) {
-        this.settingsPropertyBuf = settingsPropertyBuf;
+    public void initSettingsPropertyBuf(StringBuilder propertyCommand) {
+        this.settingsPropertyBuf = allocate(propertyCommand);
     }
 
     public void writeAllTo(WritableByteChannel writer) throws IOException{
