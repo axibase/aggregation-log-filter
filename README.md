@@ -25,7 +25,7 @@ The logger consists of the core library and adapters for **Logback**, **Log4j**,
 * [MDC Context Parameters in Messages](#mdc-context-parameters-in-messages) 
 * [Configuration Settings](#configuration-settings)
 * [Database Address](#database-address)
-* [Heartbeat](#heartbeat)
+* [Troubleshooting](#troubleshooting)
 
 ## Collected Data
 
