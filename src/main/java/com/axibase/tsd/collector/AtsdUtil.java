@@ -47,7 +47,9 @@ public class AtsdUtil {
     };
     private static final Pattern SPACE = Pattern.compile("[[\\s]]");
     private static final Pattern QUOTES = Pattern.compile("[[\'|\"]]");
+    private static final Pattern CRLF = Pattern.compile("[\\r\\n]+");
     public static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final int TRUNCATE_SIZE = 1000;
 
     public static String sanitizeEntity(String s) {
         return sanitize(s);
@@ -75,6 +77,10 @@ public class AtsdUtil {
     }
 
     public static String sanitizeValue(String s) {
+        if (s.length() > TRUNCATE_SIZE) {
+            s = s.substring(0, TRUNCATE_SIZE);
+        }
+        s = CRLF.matcher(s).replaceAll("\\\\n");
         s = escapeCSV(s);
         if ((s.contains(" ") || s.contains("=") || s.contains("\t")) && !s.startsWith("\"")) {
             StringBuilder sb = new StringBuilder("\"");
@@ -103,7 +109,7 @@ public class AtsdUtil {
     public static String resolveHostname() {
         try {
             String hostName = InetAddress.getLocalHost().getHostName();
-            if ("localhost".equals(hostName)){
+            if ("localhost".equals(hostName)) {
                 hostName = executeHostname();
             }
             return hostName;

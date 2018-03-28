@@ -16,9 +16,9 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
-import com.sun.management.UnixOperatingSystemMXBean;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
@@ -33,7 +33,7 @@ public class MessageHelper {
     public static final String COMMAND_TAG = "command";
     private static final String LEVEL_TAG = " t:level=";
     private static final String COMMAND_KEY = " k:command=";
-    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000l;
+    private static final long PROPERTY_SEND_INTERVAL = 15 * 60 * 1000L;
     private static final String SERIES_COMMAND_PREFIX = "series e:";
     private static final String PROPERTY_COMMAND_PREFIX = "property e:";
     private SeriesSenderConfig seriesSenderConfig;
@@ -41,10 +41,10 @@ public class MessageHelper {
     private ByteBuffer seriesTotalRatePrefix;
     private ByteBuffer seriesTotalCounterPrefix;
     private ByteBuffer messagePrefix;
+    private PropertyBuffers propBuffers;
     private Map<String, String> tags;
     private String entity;
     private String command;
-    private ByteBuffer[] props;
     private long lastPropertySentTime;
 
     public void setSeriesSenderConfig(SeriesSenderConfig seriesSenderConfig) {
@@ -61,7 +61,7 @@ public class MessageHelper {
 
     public void init(WritableByteChannel writer, Map<String, String> stringSettings) {
 
-        props = new ByteBuffer[3];
+        propBuffers = new PropertyBuffers();
 
         command = System.getProperty("sun.java.command");
         if (command == null || command.trim().length() == 0) {
@@ -71,6 +71,7 @@ public class MessageHelper {
             command = command.split(" ")[0];
         }
 
+        sendAggregatorEnvironmentProperty(writer);
         sendAggregatorSettingsProperty(writer, stringSettings);
         sendAggregatorRuntimeProperty(writer);
         sendAggregatorOSProperty(writer);
@@ -109,6 +110,33 @@ public class MessageHelper {
         }
     }
 
+    private void sendAggregatorEnvironmentProperty(WritableByteChannel writer) {
+        StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
+        sb.append(" t:java.log_aggregator.environment");
+        sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
+
+        Map<String, String> environmentSettings = System.getenv();
+
+        for (Map.Entry<String, String> entry : environmentSettings.entrySet()) {
+            String value = entry.getValue();
+            if (!value.isEmpty()) {
+                sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(value));
+            }
+        }
+
+        if (sb.indexOf(" v:") == -1) {
+            AtsdUtil.logInfo("Environment settings are empty. Skip environment property sending");
+        } else {
+            sb.append("\n");
+            propBuffers.initEnvironmentPropertyBuf(sb);
+            try {
+                propBuffers.writeEnvironmentPropertyBufTo(writer);
+            } catch (IOException e) {
+                AtsdUtil.logInfo("Writer failed to send java.log_aggregator.environment property");
+            }
+        }
+    }
+
     private void sendAggregatorRuntimeProperty(WritableByteChannel writer) {
         StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
         sb.append(" t:java.log_aggregator.runtime");
@@ -122,44 +150,48 @@ public class MessageHelper {
             String key = (String) enumeration.nextElement();
             String value = systemProperties.getProperty(key);
             if (!value.isEmpty()) {
-                String s = value.replaceAll("(\\r|\\n|\\r\\n)+", "\\\\n");
-                sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(s));
+                sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(value));
             }
         }
 
-        RuntimeMXBean runtimeMXBean = java.lang.management.ManagementFactory.getRuntimeMXBean();
-        sb.append(" v:").append("getBootClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getBootClassPath()));
-        String name = runtimeMXBean.getName();
-        sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(name));
-        if (name.contains("@")) {
-            sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(name.lastIndexOf('@') + 1)));
-        }
-        sb.append(" v:").append("ClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getClassPath()));
-        sb.append(" v:").append("LibraryPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getLibraryPath()));
-        sb.append(" v:").append("SpecName=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getSpecName()));
-        sb.append(" v:").append("SpecVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getSpecVendor()));
-        sb.append(" v:").append("StartTime=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getStartTime()));
-        sb.append(" v:").append("VmName=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmName()));
-        sb.append(" v:").append("VmVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVendor()));
-        sb.append(" v:").append("VmVersion=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVersion()));
-        List<String> inputArguments = runtimeMXBean.getInputArguments();
-        if (inputArguments.isEmpty()) {
-            sb.append(" v:").append("InputArguments=\"");
-            for (String inputArgument : inputArguments) {
-                sb.append(inputArgument).append(" ");
-            }
-            sb.append("\"");
-        }
-        sb.append("\n");
-        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-        byteBuffer.rewind();
-        props[0] = byteBuffer;
         try {
-            writer.write(props[0]);
-            props[0].rewind();
-        } catch (IOException e) {
-            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
+            RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+            sb.append(" v:").append("getBootClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getBootClassPath()));
+            String name = runtimeMXBean.getName();
+            sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(name));
+            if (name.contains("@")) {
+                sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(name.lastIndexOf('@') + 1)));
+            }
+            sb.append(" v:").append("ClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getClassPath()));
+            sb.append(" v:").append("LibraryPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getLibraryPath()));
+            sb.append(" v:").append("SpecName=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getSpecName()));
+            sb.append(" v:").append("SpecVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getSpecVendor()));
+            sb.append(" v:").append("StartTime=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getStartTime()));
+            sb.append(" v:").append("VmName=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmName()));
+            sb.append(" v:").append("VmVendor=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVendor()));
+            sb.append(" v:").append("VmVersion=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getVmVersion()));
+            List<String> inputArguments = runtimeMXBean.getInputArguments();
+            if (!inputArguments.isEmpty()) {
+                sb.append(" v:").append("InputArguments=\"");
+                for (String inputArgument : inputArguments) {
+                    sb.append(inputArgument).append(" ");
+                }
+                sb.append("\"");
+            }
+        } catch (Exception e) {
+            AtsdUtil.logError("Writer failed to get runtime properties from runtime MXBean. " + e.getMessage());
+        }
+
+        if (sb.indexOf(" v:") == -1) {
+            AtsdUtil.logInfo("Runtime settings are empty. Skip runtime property sending");
+        } else {
+            sb.append("\n");
+            propBuffers.initRuntimePropertyBuf(sb);
+            try {
+                propBuffers.writeRuntimePropertyBufTo(writer);
+            } catch (IOException e) {
+                AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
+            }
         }
     }
 
@@ -167,17 +199,15 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
         sb.append(" t:java.log_aggregator.settings");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
+
         for (Map.Entry<String, String> entry : stringSettings.entrySet()) {
             sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
         }
+
         sb.append("\n");
-        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-        byteBuffer.rewind();
-        props[1] = byteBuffer;
+        propBuffers.initSettingsPropertyBuf(sb);
         try {
-            writer.write(props[1]);
-            props[1].rewind();
+            propBuffers.writeSettingsPropertyBufTo(writer);
         } catch (IOException e) {
             AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property");
         }
@@ -188,31 +218,34 @@ public class MessageHelper {
         sb.append(" t:java.log_aggregator.operating_system");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
-        OperatingSystemMXBean osMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
-        sb.append(" v:").append("Arch=").append(AtsdUtil.sanitizeValue(osMXBean.getArch()));
-        sb.append(" v:").append("AvailableProcessors=").append(AtsdUtil.sanitizeValue(osMXBean.getAvailableProcessors()));
-        sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(osMXBean.getName()));
-        sb.append(" v:").append("Version=").append(AtsdUtil.sanitizeValue(osMXBean.getVersion()));
-
         try {
-            UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
-            sb.append(" v:").append("MaxFileDescriptorCount=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getMaxFileDescriptorCount()));
-            sb.append(" v:").append("TotalPhysicalMemorySize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalPhysicalMemorySize()));
-            sb.append(" v:").append("TotalSwapSpaceSize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalSwapSpaceSize()));
+            OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
+            sb.append(" v:").append("Arch=").append(AtsdUtil.sanitizeValue(osMXBean.getArch()));
+            sb.append(" v:").append("AvailableProcessors=").append(AtsdUtil.sanitizeValue(osMXBean.getAvailableProcessors()));
+            sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(osMXBean.getName()));
+            sb.append(" v:").append("Version=").append(AtsdUtil.sanitizeValue(osMXBean.getVersion()));
+
+            try {
+                if (osMXBean instanceof com.sun.management.UnixOperatingSystemMXBean) {
+                    com.sun.management.UnixOperatingSystemMXBean osMXBeanUnix = (com.sun.management.UnixOperatingSystemMXBean) osMXBean;
+                    sb.append(" v:").append("MaxFileDescriptorCount=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getMaxFileDescriptorCount()));
+                    sb.append(" v:").append("TotalPhysicalMemorySize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalPhysicalMemorySize()));
+                    sb.append(" v:").append("TotalSwapSpaceSize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalSwapSpaceSize()));
+                }
+            } catch (Exception e) {
+                AtsdUtil.logError("Writer failed to get operating_system properties for UnixOperatingSystem. " + e.getMessage());
+            }
+
+            sb.append("\n");
+            propBuffers.initOsPropertyBuf(sb);
+            try {
+                propBuffers.writeOsPropertyBufTo(writer);
+            } catch (IOException e) {
+                AtsdUtil.logInfo("Writer failed to send java.log_aggregator.operating_system property");
+            }
+
         } catch (Exception e) {
-            AtsdUtil.logError("Writer failed to get java.log_aggregator.operating_system properties for UnixOperatingSystem. " + e.getMessage());
-        }
-
-        sb.append("\n");
-        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(bytes.length).put(bytes);
-        byteBuffer.rewind();
-        props[2] = byteBuffer;
-        try {
-            writer.write(props[2]);
-            props[2].rewind();
-        } catch (IOException e) {
-            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.operating_system property");
+            AtsdUtil.logError("Writer failed to get general operating system properties. Skip operating system property sending. " + e.getMessage());
         }
     }
 
@@ -301,14 +334,9 @@ public class MessageHelper {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastPropertySentTime >= PROPERTY_SEND_INTERVAL) {
             try {
-                if (props[0] != null && props[1] != null && props[2] != null) {
+                if (propBuffers.isAllBuffersInitialized()) {
                     lastPropertySentTime = currentTime;
-                    writer.write(props[0]);
-                    writer.write(props[1]);
-                    writer.write(props[2]);
-                    props[0].rewind();
-                    props[1].rewind();
-                    props[2].rewind();
+                    propBuffers.writeAllTo(writer);
                 }
             } catch (IOException e) {
                 AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");

@@ -1,12 +1,31 @@
 # Aggregation Logger
 
-The aggregation logger tracks the total number of log events raised by a Java application with breakdown by level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL. 
+## Overview
+
+The aggregation logger plugs into a log appender and tracks the total number of log events raised by a Java application with breakdown by level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL. 
 
 The counters are sent via the TCP/UDP/HTTP(s) protocol to a time series database every 60 seconds for alerting and long-term retention.
 
 Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
 The logger consists of the core library and adapters for **Logback**, **Log4j**, and **Log4j2** logging frameworks.
+
+## Reference
+
+* [Collected Data](#collected-data)
+* [Heartbeat](#heartbeat)
+* [Sample Portal](#sample-portal)
+* [Live Examples](#live-examples)
+* [Requirements](#requirements)
+* [Supported Logging Frameworks](#supported-logging-frameworks)
+* [Supported Time Series Databases](#supported-time-series-databases)
+* [Configuration Examples](#configuration-examples)
+* [Performance](#performance)
+* [Installation](#installation)
+* [MDC Context Parameters in Messages](#mdc-context-parameters-in-messages) 
+* [Configuration Settings](#configuration-settings)
+* [Database Address](#database-address)
+* [Heartbeat](#heartbeat)
 
 ## Collected Data
 
@@ -17,29 +36,40 @@ Aggregation Logger collects the following metrics:
 | **Metric** | **Tags** | **Type** | **Description** |
 |:---|:---|---|:---|
 | `log_event_total_counter`| level | counter | Total number of log events raised by the application. |
-| `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with the `sendLoggerCounter` setting. |
+| `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with the `sendLoggerCounter` [setting](#configuration-settings). |
 
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on the sampling interval.
 
 ### Messages
  
-In addition to counters, the logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
+The logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
-* INFO.  Multiplier 5. Events sent: 1, 5, 25, 125 ... 5^(n-1)
-* WARN.  Multiplier 3. Events sent: 1, 3, 9, 27 ...   3^(n-1)
-* ERROR. Multiplier 2. Events sent: 1, 2, 4, 8 ...    2^(n-1)
+* INFO.  Multiplier 5. Events sent: 1, 5, 25, 125, ..., 5^(n-1)
+* WARN.  Multiplier 3. Events sent: 1, 3, 9, 27, ..., 3^(n-1)
+* ERROR. Multiplier 2. Events sent: 1, 2, 4, 8, ..., 2^(n-1)
 
 > ERROR events that inherit from `java.lang.Error` are sent to the database instantly, regardless of the event index.
 
 The aggregation logger sends only a small subset of events to the database and, as such, is not a replacement for specialized log search tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
 
+### Properties
+
+The following `java.log_aggregator.*` properties are stored by logger:
+
+| **Type** | **Description** |
+|:---|:---|
+|environment|Current system environment.|
+|runtime|Current system properties.|
+|settings|Aggregation logger [settings](#configuration-settings).|
+|operating_system|General information about the operating system.|
+
 ## Heartbeat
 
 Since counters are flushed to the database every 60 seconds, the incoming event stream can be used for heartbeat monitoring as an early warning of network outages, garbage collection freezes, and application crashes.
 
-![Heartbeat rule example](log_writer_heartbeat.png)
+![](log_writer_heartbeat.png)
 
-![Heartbeat rule in XML](rule_java_log_writer_heartbeat_stopped.xml)
+[Heartbeat rule in XML](rule_java_log_writer_heartbeat_stopped.xml)
 
 ## Sample Portal
 
@@ -110,8 +140,8 @@ Dependency to the aggregator core will be imported automatically:
 ```xml
 <dependency>
             <groupId>com.axibase</groupId>
-            <artifactId>aggregation-log-filter-logback</artifactId>
-            <version>1.0.9</version>
+            <artifactId>aggregation-log-filter-{adapter}</artifactId>
+            <version>1.2.x</version>
 </dependency>
 ```
 
@@ -119,12 +149,15 @@ Dependency to the aggregator core will be imported automatically:
 
 Add core and adapter libraries to classpath:
 
-- Download `aggregation-log-filter-1.0.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Download `aggregation-log-filter-logback-1.0.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-- Adds jar files to classpath
+- Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+- Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
+    * [logback](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+    * [log4j](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
+    * [log4j2](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
+- Add jar files to classpath, replace `x` with appropriate version:
 
 ```
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.0.9.jar:lib/aggregation-log-filter-logback-1.0.9.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-1.2.x.jar:lib/aggregation-log-filter-{adapter}-1.2.x.jar Main
 ```
 
 ### Option 3: lib directory 
@@ -137,7 +170,7 @@ Apache ActiveMQ example:
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
-"https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-log4j&v=LATEST"
+"https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter-{adapter}&v=LATEST"
 ```
 
 ## Logback XML Configuration Example
@@ -255,11 +288,11 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 | tag | no | - | User-defined tag(s) to be included in series and message commands, MULTIPLE. |
 | level | no | TRACE | Minimum level for processed events. |
 | intervalSeconds | no | 60 | Interval in seconds for sending collected counters. |
-| sendMessage | no | - | See the [`sendMessage`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#sendmessage) config, MULTIPLE. |
+| sendMessage | no | - | See the [`sendMessage`](#sendmessage) config, MULTIPLE. |
 | pattern | no | %m | Pattern to format logging events sent to the database. <br>The pattern should not include fields that are already included as tags such as logger name, level, etc. |
-| sendLoggerCounter | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](https://github.com/axibase/aggregation-log-filter#counters) metric is not sent. |
-| mdcTags | no | - | User-defined tag(s) to be included in message commands, value extracted from [`MDC context`](https://github.com/axibase/aggregation-log-filter#mdc-context-parameters-in-messages), MULTIPLE. |
-| debug | no | false | Enable logging to stdout debug information, see [`Troubleshooting`](https://github.com/axibase/aggregation-log-filter/blob/master/README.md#troubleshooting). |
+| sendLoggerCounter | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
+| mdcTags | no | - | User-defined tag(s) to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
+| debug | no | false | Enable logging to stdout debug information, see [`Troubleshooting`](#troubleshooting). |
 | messageLength | no | -1 | Allow to control event message size, default value to show the whole message |
 
 ## Database Address
@@ -347,7 +380,6 @@ message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initial
     t:severity=INFO t:level=INFO t:source=com.axibase.tsd.InitLogger t:thread=main 
     t:line=145 t:method=initBase
 ```
-
 
 ## Troubleshooting
 
