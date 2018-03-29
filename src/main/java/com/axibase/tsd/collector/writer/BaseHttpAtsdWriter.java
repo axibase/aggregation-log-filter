@@ -16,17 +16,18 @@
 package com.axibase.tsd.collector.writer;
 
 import com.axibase.tsd.collector.AtsdUtil;
-import sun.misc.BASE64Encoder;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
-import java.nio.charset.StandardCharsets;
 
 public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     public static final String DEFAULT_METHOD = "POST";
@@ -69,17 +70,22 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
 
     protected void initConnection(HttpURLConnection con) throws IOException {
         con.setRequestMethod(method);
-        BASE64Encoder enc = new BASE64Encoder();
-        if (credentials != null && credentials.trim().length() > 0) {
-            String encodedAuthorization = enc.encode((URLDecoder.decode(credentials, "UTF-8")).getBytes(StandardCharsets.UTF_8));
-            con.setRequestProperty("Authorization",
-                    "Basic " + encodedAuthorization);
+        if (StringUtils.isNotBlank(credentials)) {
+            final String encodedAuthorization = DatatypeConverter.printBase64Binary(urlDecode(credentials).getBytes(AtsdUtil.UTF_8));
+            con.setRequestProperty("Authorization", "Basic " + encodedAuthorization);
         }
-        con.setRequestProperty("Content-Type",
-                "text/plain; charset=\"UTF-8\"");
+        con.setRequestProperty("Content-Type", "text/plain; charset=\"UTF-8\"");
         con.setConnectTimeout(timeout);
         con.setReadTimeout(timeout);
         con.setDoOutput(true);
+    }
+
+    private static String urlDecode(String value) {
+        try {
+            return URLDecoder.decode(value, AtsdUtil.UTF_8.displayName());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected static int writeBuffer(OutputStream outputStream, ByteBuffer buffer) throws IOException {
