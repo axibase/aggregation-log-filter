@@ -16,6 +16,7 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -120,7 +121,10 @@ public class MessageHelper {
         for (Map.Entry<String, String> entry : environmentSettings.entrySet()) {
             String value = entry.getValue();
             if (!value.isEmpty()) {
-                sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(value));
+                String tag = entry.getKey();
+                if (!StringUtils.containsIgnoreCase(sb, tag)) {
+                    sb.append(" v:").append(AtsdUtil.sanitizeName(tag)).append("=").append(AtsdUtil.sanitizeValue(value));
+                }
             }
         }
 
