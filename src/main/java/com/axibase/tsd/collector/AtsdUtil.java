@@ -19,6 +19,7 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -73,9 +74,10 @@ public class AtsdUtil {
         SortedMap<String, String> tagMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            String value = (String) entry.getValue();
-            if (!value.isEmpty()) {
-                tagMap.put((String) entry.getKey(), value);
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if (key instanceof String && value != null && !StringUtils.EMPTY.equals(value)) {
+                tagMap.put(key.toString(), value.toString());
             }
         }
         return tagMap;

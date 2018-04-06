@@ -38,13 +38,15 @@ public class AtsdUtilTest {
         assertTrue(AtsdUtil.filterProperties(map).containsKey("ATSD_HOME"));
         assertEquals("v2", AtsdUtil.filterProperties(map).get("ATSD_HOME"));
 
-        Properties properties = System.getProperties();
-        properties.setProperty("ATSD_HOME", "v1");
-        properties.setProperty("atsd_home", "v2");
-        properties.setProperty("Empty", "");
-        assertFalse(AtsdUtil.filterProperties(properties).containsKey("Empty"));
-        assertTrue(AtsdUtil.filterProperties(properties).containsKey("ATSD_HOME"));
-        assertEquals("v2", AtsdUtil.filterProperties(properties).get("ATSD_HOME"));
+        Properties props = System.getProperties();
+        props.put("ATSD_HOME", "v1");
+        props.put("atsd_home", "v2");
+        props.put("Empty", "");
+        props.put("Bool", true);
+        System.setProperties(props);
+        assertFalse(AtsdUtil.filterProperties(props).containsKey("Empty"));
+        assertTrue(AtsdUtil.filterProperties(props).containsKey("ATSD_HOME"));
+        assertEquals("v2", AtsdUtil.filterProperties(props).get("ATSD_HOME"));
     }
 
     @Test
