@@ -19,6 +19,7 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.lang.StringBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
@@ -65,6 +67,20 @@ public class AtsdUtil {
             s = sb.append(s).append("\"").toString();
         }
         return s;
+    }
+
+    // discard tags with the same names with different case, discard tags with empty values
+    static SortedMap<String, String> filterProperties(Map<?, ?> map) {
+        SortedMap<String, String> tagMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            if (key instanceof String && value != null && !StringUtils.EMPTY.equals(value)) {
+                tagMap.put(key.toString(), value.toString());
+            }
+        }
+        return tagMap;
     }
 
     public static String sanitizeName(String s) {
