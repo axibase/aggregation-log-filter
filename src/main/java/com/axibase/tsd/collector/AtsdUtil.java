@@ -69,8 +69,8 @@ public class AtsdUtil {
     }
 
     // discard tags with the same names with different case, discard tags with empty values
-    public static TreeMap<String, String> filter(Map<?, ?> map) {
-        TreeMap<String, String> tagMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    static SortedMap<String, String> filterProperties(Map<?, ?> map) {
+        SortedMap<String, String> tagMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             String value = (String) entry.getValue();

@@ -112,7 +112,7 @@ public class MessageHelper {
         sb.append(" t:java.log_aggregator.environment");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
-        TreeMap<String, String> environmentSettings = AtsdUtil.filter(System.getenv());
+        SortedMap<String, String> environmentSettings = AtsdUtil.filterProperties(System.getenv());
 
         for (Map.Entry<String, String> entry : environmentSettings.entrySet()) {
             sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
@@ -136,7 +136,7 @@ public class MessageHelper {
         sb.append(" t:java.log_aggregator.runtime");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
-        TreeMap<String, String> systemProperties = AtsdUtil.filter(System.getProperties());
+        SortedMap<String, String> systemProperties = AtsdUtil.filterProperties(System.getProperties());
 
         for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
             sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
