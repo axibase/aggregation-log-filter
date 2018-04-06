@@ -16,7 +16,6 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -25,10 +24,7 @@ import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
@@ -116,16 +112,10 @@ public class MessageHelper {
         sb.append(" t:java.log_aggregator.environment");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
-        Map<String, String> environmentSettings = System.getenv();
+        TreeMap<String, String> environmentSettings = AtsdUtil.filter(System.getenv());
 
         for (Map.Entry<String, String> entry : environmentSettings.entrySet()) {
-            String value = entry.getValue();
-            if (!value.isEmpty()) {
-                String tag = entry.getKey();
-                if (!StringUtils.containsIgnoreCase(sb, tag)) {
-                    sb.append(" v:").append(AtsdUtil.sanitizeName(tag)).append("=").append(AtsdUtil.sanitizeValue(value));
-                }
-            }
+            sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
         }
 
         if (sb.indexOf(" v:") == -1) {
@@ -146,16 +136,10 @@ public class MessageHelper {
         sb.append(" t:java.log_aggregator.runtime");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
 
-        Properties systemProperties = System.getProperties();
+        TreeMap<String, String> systemProperties = AtsdUtil.filter(System.getProperties());
 
-        Enumeration enumeration = systemProperties.propertyNames();
-
-        while (enumeration.hasMoreElements()) {
-            String key = (String) enumeration.nextElement();
-            String value = systemProperties.getProperty(key);
-            if (!value.isEmpty()) {
-                sb.append(" v:").append(AtsdUtil.sanitizeName(key)).append("=").append(AtsdUtil.sanitizeValue(value));
-            }
+        for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+            sb.append(" v:").append(AtsdUtil.sanitizeName(entry.getKey())).append("=").append(AtsdUtil.sanitizeValue(entry.getValue()));
         }
 
         try {

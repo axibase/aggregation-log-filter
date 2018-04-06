@@ -18,9 +18,34 @@ package com.axibase.tsd.collector;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class AtsdUtilTest {
+
+    @Test
+    public void testFilter() {
+        Map<String, String> map = new HashMap<>();
+        map.put("ATSD_HOME", "v1");
+        map.put("atsd_home", "v2");
+        map.put("Empty", "");
+        assertFalse(AtsdUtil.filter(map).containsKey("Empty"));
+        assertTrue(AtsdUtil.filter(map).containsKey("ATSD_HOME"));
+        assertEquals("v2", AtsdUtil.filter(map).get("ATSD_HOME"));
+
+        Properties properties = System.getProperties();
+        properties.setProperty("ATSD_HOME", "v1");
+        properties.setProperty("atsd_home", "v2");
+        properties.setProperty("Empty", "");
+        assertFalse(AtsdUtil.filter(map).containsKey("Empty"));
+        assertTrue(AtsdUtil.filter(map).containsKey("ATSD_HOME"));
+        assertEquals("v2", AtsdUtil.filter(map).get("ATSD_HOME"));
+    }
 
     @Test
     public void testSanitizeEntity() {

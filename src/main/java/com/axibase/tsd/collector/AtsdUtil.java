@@ -27,6 +27,7 @@ import java.lang.StringBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
@@ -65,6 +66,19 @@ public class AtsdUtil {
             s = sb.append(s).append("\"").toString();
         }
         return s;
+    }
+
+    // discard tags with the same names with different case, discard tags with empty values
+    public static TreeMap<String, String> filter(Map<?, ?> map) {
+        TreeMap<String, String> tagMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            String value = (String) entry.getValue();
+            if (!value.isEmpty()) {
+                tagMap.put((String) entry.getKey(), value);
+            }
+        }
+        return tagMap;
     }
 
     public static String sanitizeName(String s) {
