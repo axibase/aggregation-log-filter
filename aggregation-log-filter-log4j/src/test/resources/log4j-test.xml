@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2016 Axibase Corporation or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~ https://www.axibase.com/atsd/axibase-apache-2.0.pdf
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+    <appender name="APPENDER" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
+        </layout>
+        <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
+            <param name="level" value="INFO"/>
+            <param name="url" value="tcp://atsd_server"/>
+        </filter>
+    </appender>
+    <logger name="com.axibase">
+        <level value="DEBUG"/>
+    </logger>
+    <root>
+        <level value="DEBUG"/>
+        <appender-ref ref="APPENDER"/>
+    </root>
+</log4j:configuration>
