@@ -1,0 +1,13 @@
+language: java
+sudo: false
+cache:
+  directories:
+    - $HOME/.m2
+install: true
+script:
+- mvn install -Dgpg.skip
+jdk:
+- openjdk7
+- openjdk8
+- oraclejdk8
+dist: trusty
