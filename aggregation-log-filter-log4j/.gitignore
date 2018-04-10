@@ -1,7 +1,0 @@
-.idea
-target
-deploy.config
-deploy.sh
-settings.xml
-local.*
-aggregation-log-filter-log4j.iml
