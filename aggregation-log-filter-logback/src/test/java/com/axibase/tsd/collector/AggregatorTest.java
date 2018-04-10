@@ -77,9 +77,9 @@ public class AggregatorTest extends TestCase {
         // 2 -- series fired by cnt (counter and total counter)
         // 3 -- warn message because of default warning multiplier is 3, i.e we got 1,3,9 messages
         // 2 -- series fired by time (counter and total counter)
-        // 3 -- initial properties
+        // 4 -- initial properties
         // 4 -- initial total zeros
-        assertEquals(14, mockWriter.cnt);
+        assertEquals(15, mockWriter.cnt);
     }
 
     @Test
@@ -109,7 +109,7 @@ public class AggregatorTest extends TestCase {
         final CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         for (int t = 0; t < threadCount; t++) {
-            executorService.execute(new java.lang.Runnable() {
+            executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     for (int i = 0; i < cnt; i++) {
