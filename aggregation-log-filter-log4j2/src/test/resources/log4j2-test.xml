@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2016 Axibase Corporation or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~ https://www.axibase.com/atsd/axibase-apache-2.0.pdf
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<Configuration>
+    <Appenders>
+        <Console name="APPENDER">
+            <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
+            <Filters>
+                <!--todo replace complex attributes by elements-->
+                <Collector
+                        intervalSeconds="1"
+                        level="INFO"
+                        messages="ERROR;WARN=5,1.5,60"
+                        tags="ttt=ttt;ppp=ppp;mmm=mmm"
+                        totalCountInit="INFO=-1;ERROR=0;TRACE=0"
+                        pattern="%d [%t] %-5p %c - %m [%X{myKey}]%n"
+                        url="tcp://localhost:35771"/>
+            </Filters>
+        </Console>
+        <Counter name="COUNTER"/>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.axibase" level="debug"/>
+        <Root level="debug">
+            <AppenderRef ref="APPENDER"/>
+            <AppenderRef ref="COUNTER"/>
+        </Root>
+    </Loggers>
+</Configuration>
