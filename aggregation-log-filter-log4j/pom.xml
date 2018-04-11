@@ -21,15 +21,14 @@
     <parent>
         <groupId>com.axibase</groupId>
         <artifactId>aggregation-log-filter</artifactId>
-        <version>1.2.1</version>
+        <version>${revision}</version>
         <relativePath>../../aggregation-log-filter/pom.xml</relativePath>
     </parent>
     <artifactId>aggregation-log-filter-log4j</artifactId>
-    <version>1.1.6</version>
     <packaging>jar</packaging>
 
     <prerequisites>
-        <maven>3.0.0</maven>
+        <maven>3.5.0</maven>
     </prerequisites>
 
     <name>Aggregation Log Filter - Log4j</name>
