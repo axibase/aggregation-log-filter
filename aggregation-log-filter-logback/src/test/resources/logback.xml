@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>../logs/app.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
+        </encoder>
+        <filter class="com.axibase.tsd.collector.logback.Collector">
+            <url>tcp://atsd_host:tcp_port</url>
+        </filter>
+    </appender>
+    <root level="TRACE">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
+
