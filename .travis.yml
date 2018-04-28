@@ -3,11 +3,16 @@ sudo: false
 cache:
   directories:
     - $HOME/.m2
-install: true
+install:
+  - wget https://raw.githubusercontent.com/axibase/atsd/master/.travis-functions.sh && source .travis-functions.sh
+  - install_checkers_in_non_doc_project
 script:
-- mvn install -Dgpg.skip
+  - mvn install -Dgpg.skip
+  - spellcheck
+  - linkcheck
+  - stylecheck
 jdk:
-- openjdk7
-- openjdk8
-- oraclejdk8
+  - openjdk7
+  - openjdk8
+  - oraclejdk8
 dist: trusty
