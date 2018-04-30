@@ -21,8 +21,9 @@
     <parent>
         <groupId>com.axibase</groupId>
         <artifactId>aggregation-log-filter</artifactId>
+        <!--suppress MavenPropertyInParent -->
         <version>${revision}</version>
-        <relativePath>../../aggregation-log-filter/pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>aggregation-log-filter-logback</artifactId>
     <packaging>jar</packaging>
