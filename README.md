@@ -2,7 +2,7 @@
 
 ## Overview
 
-The aggregation logger plugs into a log appender and tracks the total number of log events raised by a Java application with breakdown by level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL. 
+The aggregation logger plugs into a log appender and tracks the total number of log events raised by a Java application with breakdown by level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL.
 
 The counters are sent via the TCP/UDP/HTTP(s) protocol to a time series database every 60 seconds for alerting and long-term retention.
 
@@ -22,7 +22,7 @@ The logger consists of the core library and adapters for **Logback**, **Log4j**,
 * [Configuration Examples](#configuration-examples)
 * [Performance](#performance)
 * [Installation](#installation)
-* [MDC Context Parameters in Messages](#mdc-context-parameters-in-messages) 
+* [MDC Context Parameters in Messages](#mdc-context-parameters-in-messages)
 * [Configuration Settings](#configuration-settings)
 * [Database Address](#database-address)
 * [Troubleshooting](#troubleshooting)
@@ -41,7 +41,7 @@ Aggregation Logger collects the following metrics:
 Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on the sampling interval.
 
 ### Messages
- 
+
 The logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
 * INFO.  Multiplier 5. Events sent: 1, 5, 25, 125, ..., 5^(n-1)
@@ -77,29 +77,29 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 
 ## Live Examples
 
-- [Standalone](https://apps.axibase.com/chartlab/2f607d1b/7)
-- [Distributed](https://apps.axibase.com/chartlab/007721aa)
+* [Standalone](https://apps.axibase.com/chartlab/2f607d1b/7)
+* [Distributed](https://apps.axibase.com/chartlab/007721aa)
 
 ## Requirements
 
-- Java 1.7 and later
+* Java 1.7 and later
 
 ## Supported Logging Frameworks
 
-- [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
-- [Log4j](http://logging.apache.org/log4j) 1.2.13+ - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j). 
-- [Log4j2](http://logging.apache.org/log4j/2.0/) 2.5+ - [aggregation-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2). 
+* [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
+* [Log4j](http://logging.apache.org/log4j) 1.2.13+ - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j).
+* [Log4j2](http://logging.apache.org/log4j/2.0/) 2.5+ - [aggregation-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2).
 
 ## Supported Time Series Databases
 
-- [Axibase Time Series Database](https://axibase.com/products/axibase-time-series-database/)
+* [Axibase Time Series Database](https://axibase.com/products/axibase-time-series-database/)
 
 ## Configuration Examples
 
-- [Logback XML](#logback-xml-configuration-example)
-- [log4j Properties](#log4j-properties-example)
-- [log4j XML](#log4j-xml-example)
-- [log4j2 XML](#log4j2-xml-example)
+* [Logback XML](#logback-xml-configuration-example)
+* [log4j Properties](#log4j-properties-example)
+* [log4j XML](#log4j-xml-example)
+* [log4j2 XML](#log4j2-xml-example)
 
 ## Performance
 
@@ -111,9 +111,9 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
     long end = System.currentTimeMillis();
 ```
 
-#### Filter Disabled
+### Filter Disabled
 
-```
+```sh
 #log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 #log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
@@ -122,7 +122,7 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 
 #### Filter Enabled
 
-```
+```sh
 log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
@@ -133,7 +133,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 
 ### Option 1: Maven
 
-Add the Maven dependency to one of supported logging adapters: logback, log4j, or log4j2. 
+Add the Maven dependency to one of supported logging adapters: logback, log4j, or log4j2.
 
 Dependency to the aggregator core will be imported automatically:
 
@@ -149,24 +149,24 @@ Dependency to the aggregator core will be imported automatically:
 
 Add core and adapter libraries to classpath:
 
-- Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-- Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
-    * [logback](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-    * [log4j](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
-    * [log4j2](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
-- Add jar files to classpath, replace `x` with appropriate version:
+* Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+* Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
+  * [logback](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+  * [log4j](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
+  * [log4j2](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
+* Add jar files to classpath, replace `x` with appropriate version:
 
-```
+```sh
 java -classpath lib/app.jar:lib/aggregation-log-filter-1.2.x.jar:lib/aggregation-log-filter-{adapter}-1.2.x.jar Main
 ```
 
-### Option 3: lib directory 
+### Option 3: lib directory
 
 Copy core and adapter libraries to the application lib directory.
 
 Apache ActiveMQ example:
 
-```
+```sh
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 "https://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.axibase&a=aggregation-log-filter&v=LATEST"
 wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
@@ -175,7 +175,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 
 ## Logback XML Configuration Example
 
-```xml 
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
@@ -187,7 +187,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
             <pattern>%date{ISO8601};%level;%thread;%logger;%message%n</pattern>
         </encoder>
 
-        <!-- attach log aggregator to 'FILE' appender --> 
+        <!-- attach log aggregator to 'FILE' appender -->
         <filter class="com.axibase.tsd.collector.logback.Collector">
             <url>tcp://atsd_host:tcp_port</url>
         </filter>
@@ -199,18 +199,18 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 </configuration>
 ```
 
-  - [View logback.xml example with RollingFileAppender.](https://github.com/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml)
+* [View logback.xml example with RollingFileAppender.](https://github.com/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml)
 
-## Log4j Properties Example 
+## Log4j Properties Example
 
 ```properties
-#attach log aggregator to 'logfile' appender --> 
+#attach log aggregator to 'logfile' appender -->
 log4j.appender.logfile.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
 log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 ```
 
-  - [View log4j.properties example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
- 
+* [View log4j.properties example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
+
 ## Log4j XML Example
 
 ```xml
@@ -224,7 +224,7 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
     </appender>
 ```
 
-  - [View complete log4j.xml example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml)
+* [View complete log4j.xml example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml)
 
 ## Log4j2 XML Example
 
@@ -252,7 +252,7 @@ MDC context parameters can be included in message command as tags such as `job_n
 
 ```ls
 message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching error java.io.IOException:
-   No files found: file:///opt/files" t:severity=ERROR t:level=ERROR t:source=com.collector.FileService 
+   No files found: file:///opt/files" t:severity=ERROR t:level=ERROR t:source=com.collector.FileService
    t:job_name=snmp-prd-router t:task_id=2 t:thread=taskExecutor-1
 ```
 
@@ -266,7 +266,7 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 
 ### Log4j
 
-```
+```sh
    log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_name;task_id
 ```
 
@@ -277,7 +277,7 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
    <mdcTag>task_id</mdcTag>
 ```
 
-  - See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
+* See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
 
 ## Configuration Settings
 
@@ -306,7 +306,7 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 ```
 
 | Name | Required | Default | Description |
-|---|---|---|---| 
+|---|---|---|---|
 | host | yes | - | database hostname or IP address, string |
 | port | no | 8081 | database TCP port, integer |
 
@@ -376,8 +376,8 @@ If the appender pattern contains location fields, such as `%L` (line) and `%M` (
 Message command example with location fields:
 
 ```ls
-message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initialization complete" 
-    t:severity=INFO t:level=INFO t:source=com.axibase.tsd.InitLogger t:thread=main 
+message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initialization complete"
+    t:severity=INFO t:level=INFO t:source=com.axibase.tsd.InitLogger t:thread=main
     t:line=145 t:method=initBase
 ```
 
@@ -387,19 +387,19 @@ Add the `debug = true` parameter to display logger errors and commands.
 
 Logback: add under `<filter>`.
 
-```xml 
+```xml
 <debug>true</debug>
 ```
 
 Log4j: add the JVM setting `-Dlog4j.debug` and add the `DEBUG` setting to the `log4j.properties` file.
 
-```
+```sh
 log4j.appender.APPENDER.filter.COLLECTOR.debug=true
 ```
 
 Log4j2: add debug under `<Collector>` and set `status="DEBUG"` under `Configuration`:
 
-```xml 
+```xml
 <Configuration status="DEBUG">
     <Appenders>
         <Console name="APPENDER">
