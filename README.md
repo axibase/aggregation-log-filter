@@ -6,7 +6,7 @@ The aggregation logger plugs into a log appender and tracks the total number of 
 
 The counters are sent via the TCP/UDP/HTTP(s) protocol to a time series database every 60 seconds for alerting and long-term retention.
 
-Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
+Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
 The logger consists of the core library and adapters for **Logback**, **Log4j**, and **Log4j2** logging frameworks.
 
@@ -87,8 +87,8 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 ## Supported Logging Frameworks
 
 * [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
-* [Log4j](http://logging.apache.org/log4j) 1.2.13+ - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j).
-* [Log4j2](http://logging.apache.org/log4j/2.0/) 2.5+ - [aggregation-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2).
+* [Log4j](http://logging.apache.org/log4j/1.2/) 1.2.13+ - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j).
+* [Log4j2](https://logging.apache.org/log4j/2.x/) 2.5+ - [aggregation-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2).
 
 ## Supported Time Series Databases
 
