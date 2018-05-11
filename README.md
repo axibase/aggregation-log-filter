@@ -141,7 +141,7 @@ Dependency to the aggregator core will be imported automatically:
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-{adapter}</artifactId>
-            <version>1.2.x</version>
+            <version>2.x.y</version>
 </dependency>
 ```
 
@@ -149,15 +149,15 @@ Dependency to the aggregator core will be imported automatically:
 
 Add core and adapter libraries to classpath:
 
-* Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-* Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
+* Download `aggregation-log-filter-2.x.y.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+* Download `aggregation-log-filter-{adapter}-2.x.y.jar` from Maven Central
   * [logback](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
   * [log4j](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
   * [log4j2](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
-* Add jar files to classpath, replace `x` with appropriate version:
+* Add jar files to classpath, replace `x`, `y` with appropriate version:
 
 ```sh
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.2.x.jar:lib/aggregation-log-filter-{adapter}-1.2.x.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-2.x.y.jar:lib/aggregation-log-filter-{adapter}-2.x.y.jar Main
 ```
 
 ### Option 3: lib directory
