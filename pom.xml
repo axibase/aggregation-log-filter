@@ -13,6 +13,7 @@
         <module>aggregation-log-filter-logback</module>
         <module>aggregation-log-filter-log4j</module>
         <module>aggregation-log-filter-log4j2</module>
+        <module>aggregation-log-filter-test</module>
     </modules>
 
     <name>Aggregation Log Filter</name>
@@ -50,7 +51,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>2.0.0</revision>
+        <revision>2.0.1</revision>
     </properties>
 
     <dependencies>

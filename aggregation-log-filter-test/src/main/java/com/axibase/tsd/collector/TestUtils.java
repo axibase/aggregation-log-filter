@@ -15,10 +15,15 @@
 
 package com.axibase.tsd.collector;
 
-public class TestUtils {
+import java.nio.charset.Charset;
+
+public final class TestUtils {
     public static final int TEST_TCP_PORT_LOG4J = 35771;
     public static final int TEST_TCP_PORT_LOGBACK = 35791;
     public static final int TEST_UDP_PORT = 35793;
     public static final int BUFFER_SIZE = 16 * 1024;
-    public static final String UTF_8 = "UTF-8";
+    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
+    private TestUtils() {
+    }
 }
