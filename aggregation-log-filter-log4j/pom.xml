@@ -39,13 +39,6 @@
         Database to facilitate root-cause analysis.
     </description>
 
-    <distributionManagement>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
-
     <properties>
         <log4j.version>1.2.16</log4j.version>
     </properties>
