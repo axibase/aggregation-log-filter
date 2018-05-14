@@ -19,10 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -55,13 +53,10 @@ public class TcpReceiver {
                         SocketChannel socketChannel = serverSocketChannel.accept();
                         while (socketChannel.read(bb) > 0) {
                             bb.flip();
-                            CharBuffer cb = Charset.forName(TestUtils.UTF_8).decode(bb);
+                            CharBuffer cb = TestUtils.UTF8_CHARSET.decode(bb);
                             sb.append(cb);
                             bb.clear();
                         }
-                    } catch (AsynchronousCloseException e) {
-                        // ok
-                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

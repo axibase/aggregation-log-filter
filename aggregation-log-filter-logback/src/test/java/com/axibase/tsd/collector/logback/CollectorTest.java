@@ -15,7 +15,8 @@
 
 package com.axibase.tsd.collector.logback;
 
-import com.axibase.tsd.collector.*;
+import com.axibase.tsd.collector.TcpReceiver;
+import com.axibase.tsd.collector.TestUtils;
 import junit.framework.TestCase;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,9 +28,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.DatagramChannel;
-import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -210,12 +209,9 @@ public class CollectorTest extends TestCase {
                             ByteBuffer bb = ByteBuffer.allocate(TestUtils.BUFFER_SIZE);
                             datagramChannel.receive(bb);
                             bb.flip();
-                            CharBuffer cb = Charset.forName(TestUtils.UTF_8).decode(bb);
+                            CharBuffer cb = TestUtils.UTF8_CHARSET.decode(bb);
                             sb.append(cb);
                             bb.clear();
-                        } catch (AsynchronousCloseException e) {
-                            e.printStackTrace();
-                            // ok
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
