@@ -35,7 +35,7 @@ import java.util.*;
 public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<String>, CounterWithSum> story = new HashMap<Key<String>, CounterWithSum>();
+    private final Map<Key<String>, CounterWithSum> loggers = new HashMap<Key<String>, CounterWithSum>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -46,16 +46,16 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     private int messageLength = -1;
 
     @Override
-    public void writeStatMessages(WritableByteChannel writer,
-                                  Map<String, EventCounter<String>> diff,
-                                  long deltaTime) throws IOException {
+    public synchronized void writeStatMessages(WritableByteChannel writer,
+                                               Map<String, EventCounter<String>> diff,
+                                               long deltaTime) throws IOException {
         if (deltaTime < 1) {
             throw new IllegalArgumentException("Illegal delta time value: " + deltaTime);
         }
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : story.values()) {
+        for (Counter counter : loggers.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -65,9 +65,9 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             for (Map.Entry<String, Long> levelAndCnt : extCounter.values()) {
                 Key<String> key = new Key<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = story.get(key);
+                CounterWithSum counter = loggers.get(key);
                 if (counter == null) {
-                    story.put(key, new CounterWithSum(v, repeatCount));
+                    loggers.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -78,7 +78,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = loggers.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Key<String>, CounterWithSum> entry = iterator.next();
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
@@ -130,7 +130,6 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
         while ((wrapper = singles.poll()) != null) {
             writeSingle(writer, wrapper);
         }
-        singles.clearCount();
     }
 
     private void writeSingle(WritableByteChannel writer, EventWrapper<LoggingEvent> wrapper) {
@@ -215,10 +214,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             patternLayout = new PatternLayout(pattern);
             patternLayout.activateOptions();
         }
-        int[] levels = new int[]{
-                Level.TRACE_INT, Level.DEBUG_INT,
-                Level.FATAL_INT, Level.INFO_INT,
-                Level.WARN_INT, Level.ERROR_INT};
+        int[] levels = {Level.TRACE_INT, Level.DEBUG_INT, Level.FATAL_INT, Level.INFO_INT, Level.WARN_INT, Level.ERROR_INT};
         for (int l : levels) {
             if (l < level) {
                 continue;

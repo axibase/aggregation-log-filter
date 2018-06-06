@@ -36,29 +36,29 @@ import java.util.*;
 public class LogbackWriter<E extends ILoggingEvent>
         extends ContextAwareBase
         implements MessageWriter<E, String, Level> {
-    private Map<String, String> tags = new LinkedHashMap<String, String>();
+    private Map<String, String> tags = new LinkedHashMap<>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<Level>, CounterWithSum> story = new HashMap<Key<Level>, CounterWithSum>();
+    private final Map<Key<Level>, CounterWithSum> loggers = new HashMap<>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
-    private final Map<Level, CounterWithSum> totals = new HashMap<Level, CounterWithSum>();
+    private final Map<Level, CounterWithSum> totals = new HashMap<>();
     private MessageHelper messageHelper = new MessageHelper();
-    private PatternLayout patternLayout = null;
+    private PatternLayout patternLayout;
     private String pattern;
     private String atsdUrl;
     private Set<String> mdcTags = new HashSet<>();
     private int messageLength = -1;
 
     @Override
-    public void writeStatMessages(WritableByteChannel writer,
-                                  Map<String, EventCounter<Level>> diff,
-                                  long deltaTime) throws IOException {
+    public synchronized void writeStatMessages(WritableByteChannel writer,
+                                               Map<String, EventCounter<Level>> diff,
+                                               long deltaTime) throws IOException {
         if (deltaTime < 1) {
             throw new IllegalArgumentException("Illegal delta tie value: " + deltaTime);
         }
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : story.values()) {
+        for (Counter counter : loggers.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -68,9 +68,9 @@ public class LogbackWriter<E extends ILoggingEvent>
             for (Map.Entry<Level, Long> levelAndCnt : extCounter.values()) {
                 Key<Level> key = new Key<Level>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = story.get(key);
+                CounterWithSum counter = loggers.get(key);
                 if (counter == null) {
-                    story.put(key, new CounterWithSum(v, repeatCount));
+                    loggers.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -81,7 +81,7 @@ public class LogbackWriter<E extends ILoggingEvent>
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<Level>, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<Key<Level>, CounterWithSum>> iterator = loggers.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Key<Level>, CounterWithSum> entry = iterator.next();
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
@@ -136,7 +136,6 @@ public class LogbackWriter<E extends ILoggingEvent>
         while ((wrapper = singles.poll()) != null) {
             writeSingle(writer, wrapper);
         }
-        singles.clearCount();
     }
 
     private void writeSingle(WritableByteChannel writer, EventWrapper<E> wrapper) {
@@ -226,9 +225,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             patternLayout.setPattern(pattern);
             patternLayout.start();
         }
-        int[] levels = new int[]{
-                Level.TRACE_INT, Level.DEBUG_INT,
-                Level.INFO_INT, Level.WARN_INT, Level.ERROR_INT};
+        int[] levels = {Level.TRACE_INT, Level.DEBUG_INT, Level.INFO_INT, Level.WARN_INT, Level.ERROR_INT};
         for (int l : levels) {
             if (l < level) {
                 continue;
@@ -255,8 +252,8 @@ public class LogbackWriter<E extends ILoggingEvent>
                 else if (writerToCheck instanceof BaseHttpAtsdWriter) {
                     addInfo("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
-            } catch (Exception e) {
-                addInfo("Aggregation log filter: failed to connect to ATSD.");
+            } catch (IOException e) {
+                addInfo("Aggregation log filter: failed to connect to ATSD. " + e);
                 addError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }

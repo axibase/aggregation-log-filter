@@ -68,9 +68,9 @@ public class Log4j2Collector extends AbstractFilter {
     private String atsdUrl;
     private String messageLength;
 
-    private final static int DEFAULT_INTERVAL = 60;
-    private final static String DEFAULT_PATTERN = "%m";
-    private final static String DEFAULT_MESSAGE_LENGTH = "-1";
+    private static final int DEFAULT_INTERVAL = 60;
+    private static final String DEFAULT_PATTERN = "%m";
+    private static final String DEFAULT_MESSAGE_LENGTH = "-1";
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -217,75 +217,46 @@ public class Log4j2Collector extends AbstractFilter {
     }
 
     private void initWriter() {
-        try {
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, " + e.getMessage();
-            AtsdUtil.logError(msg);
-        } catch (Exception e) {
-            AtsdUtil.logError("Could not instantiate writerType. " + e.getMessage());
+        if (writerPort <= 0) {
+            switch (scheme) {
+                case "tcp":
+                    writerPort = 8081;
+                    break;
+                case "udp":
+                    writerPort = 8082;
+                    break;
+                case "http":
+                    writerPort = 80;
+                    break;
+                case "https":
+                    writerPort = 443;
+                    break;
+                default:
+                    AtsdUtil.logError("Invalid scheme " + scheme);
+            }
         }
-
-        if (writer instanceof AbstractAtsdWriter) {
-            final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
-            checkWriterProperty(writerHost == null, "writerHost", writerHost);
-            if (writerPort <= 0)
-                switch (scheme.toLowerCase()) {
-                    case "tcp":
-                        writerPort = 8081;
-                        break;
-                    case "udp":
-                        writerPort = 8082;
-                        break;
-                    default:
-                        AtsdUtil.logError("Invalid scheme " + scheme);
-                }
-            atsdWriter.setHost(writerHost);
-            atsdWriter.setPort(writerPort);
-            writer = atsdWriter;
-        } else if (writer instanceof HttpAtsdWriter) {
-            final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
-            simpleHttpAtsdWriter.setUrl(writerUrl);
-            writer = simpleHttpAtsdWriter;
-            if (writerPort <= 0)
-                writerPort = 80;
-        } else if (writer instanceof HttpsAtsdWriter) {
-            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
-            simpleHttpsAtsdWriter.setUrl(writerUrl);
-            writer = simpleHttpsAtsdWriter;
-            if (writerPort <= 0)
-                writerPort = 443;
-        } else {
-            final String msg = "Undefined writer for Log4jCollector: " + writer;
-            StatusLogger.getLogger().error(msg);
-            throw new IllegalStateException(msg);
+        try {
+            writer = AtsdWriterFactory.getWriter(writerUrl, scheme, writerHost, writerPort);
+        } catch (IllegalStateException e) {
+            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
         }
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(scheme).append("://").append(writerHost).append(":").append(writerPort);
         atsdUrl = stringBuilder.toString();
     }
 
-    private void checkWriterProperty(boolean check, String propName, String propValue) {
-        if (check) {
-            final String msg = "Illegal writer property (" +
-                    propName + "): " + propValue;
-            StatusLogger.getLogger().error(msg);
-            throw new IllegalStateException(msg);
-        }
-    }
 
     public void setUrl(String atsdUrl) {
         try {
             URI uri = new URI(atsdUrl);
-            this.scheme = uri.getScheme();
+            scheme = uri.getScheme();
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
                     atsdUrl = atsdUrl.concat("/api/v1/command");
-                this.writerUrl = atsdUrl;
+                writerUrl = atsdUrl;
             }
-            this.writerHost = uri.getHost();
-            this.writerPort = uri.getPort();
+            writerHost = uri.getHost();
+            writerPort = uri.getPort();
         } catch (URISyntaxException e) {
             AtsdUtil.logError("Could not parse generic url " + atsdUrl + ". " + e.getMessage());
         }

@@ -46,7 +46,7 @@ public abstract class AbstractAtsdWriter implements WritableByteChannel {
 
     @Override
     public String toString() {
-        return "AbstractAtsdSender{" +
+        return "AbstractAtsdWriter{" +
                 "host='" + host + '\'' +
                 ", port=" + port +
                 '}';

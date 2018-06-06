@@ -172,9 +172,9 @@ public class Aggregator<E, K, L> {
         private long lastTotalCounter = 0;
         private long last = System.currentTimeMillis();
 
-        private volatile boolean stopped = false;
+        private volatile boolean stopped;
 
-        @java.lang.Override
+        @Override
         public void run() {
             while (!stopped) {
                 try {

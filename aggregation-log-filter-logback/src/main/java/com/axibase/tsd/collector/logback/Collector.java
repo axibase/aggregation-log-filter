@@ -82,6 +82,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     @Override
     public void start() {
         super.start();
+        //context.register(this); // Issue 4066
         initSeriesSenderConfig();
         logbackWriter = new LogbackWriter<E>();
         if (entity != null) {
@@ -105,7 +106,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         if (messageLength >= 0) {
             logbackWriter.setMessageLength(messageLength);
         }
-        aggregator = new Aggregator<E, String, Level>(logbackWriter, new LogbackEventProcessor<E>());
+        aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
         initWriter();
         logbackWriter.setAtsdUrl(atsdUrl);
         if (debug != null) {
@@ -142,47 +143,28 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     private void initWriter() {
-        try {
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, "
-                    + e.getMessage();
-            AtsdUtil.logError(msg);
-        } catch (Exception e) {
-            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
+        if (port <= 0) {
+            switch (scheme) {
+                case "tcp":
+                    port = 8081;
+                    break;
+                case "udp":
+                    port = 8082;
+                    break;
+                case "http":
+                    port = 80;
+                    break;
+                case "https":
+                    port = 443;
+                    break;
+                default:
+                    AtsdUtil.logError("Invalid scheme " + scheme);
+            }
         }
-        if (writer instanceof AbstractAtsdWriter) {
-            final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
-            if (port <= 0)
-                switch (scheme.toLowerCase()) {
-                    case "tcp":
-                        port = 8081;
-                        break;
-                    case "udp":
-                        port = 8082;
-                        break;
-                    default:
-                        AtsdUtil.logError("Invalid scheme " + scheme);
-                }
-            atsdWriter.setHost(host);
-            atsdWriter.setPort(port);
-            writer = atsdWriter;
-        } else if (writer instanceof HttpAtsdWriter) {
-            final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
-            simpleHttpAtsdWriter.setUrl(url);
-            writer = simpleHttpAtsdWriter;
-            if (port <= 0)
-                port = 80;
-        } else if (writer instanceof HttpsAtsdWriter) {
-            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
-            simpleHttpsAtsdWriter.setUrl(url);
-            writer = simpleHttpsAtsdWriter;
-            if (port <= 0)
-                port = 443;
-        } else {
-            final String msg = "Undefined writer for Collector: " + writer;
-            throw new IllegalStateException(msg);
+        try {
+            writer = AtsdWriterFactory.getWriter(url, scheme, host, port);
+        } catch (IllegalStateException e) {
+            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
         }
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(scheme).append("://").append(host).append(":").append(port);
@@ -241,15 +223,15 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public void setUrl(String atsdUrl) {
         try {
             URI uri = new URI(atsdUrl);
-            this.scheme = uri.getScheme();
+            scheme = uri.getScheme();
 
             if (scheme.equals("http") || scheme.equals("https")) {
                 if (uri.getPath().isEmpty())
                     atsdUrl = atsdUrl.concat("/api/v1/command");
                 url = atsdUrl;
             }
-            this.host = uri.getHost();
-            this.port = uri.getPort();
+            host = uri.getHost();
+            port = uri.getPort();
         } catch (URISyntaxException e) {
             AtsdUtil.logError("Syntax error in atsd-url " + atsdUrl);
         }

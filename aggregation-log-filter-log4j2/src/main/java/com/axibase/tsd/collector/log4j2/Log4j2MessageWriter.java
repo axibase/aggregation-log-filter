@@ -48,9 +48,9 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     private int messageLength = -1;
 
     @Override
-    public void writeStatMessages(WritableByteChannel writer,
-                                  Map<String, EventCounter<String>> diff,
-                                  long deltaTime) throws IOException {
+    public synchronized void writeStatMessages(WritableByteChannel writer,
+                                               Map<String, EventCounter<String>> diff,
+                                               long deltaTime) throws IOException {
         if (deltaTime < 1) {
             throw new IllegalArgumentException("Illegal delta time value: " + deltaTime);
         }
@@ -133,7 +133,6 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         while ((wrapper = singles.poll()) != null) {
             writeSingle(writer, wrapper);
         }
-        singles.clearCount();
     }
 
     private void writeSingle(WritableByteChannel writer, EventWrapper<LogEvent> wrapper) {
@@ -213,10 +212,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         }
 
         Level curLevel = Level.TRACE;
-        Level[] levels = new Level[]{
-                Level.FATAL, Level.ERROR,
-                Level.WARN, Level.INFO,
-                Level.DEBUG, Level.TRACE};
+        Level[] levels = {Level.FATAL, Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE};
 
         for (Level l : levels) {
             if (l.intLevel() == level) {
