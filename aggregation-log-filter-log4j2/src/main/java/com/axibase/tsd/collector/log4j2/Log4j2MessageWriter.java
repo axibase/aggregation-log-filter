@@ -37,7 +37,7 @@ import java.util.*;
 public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<String>, CounterWithSum> story = new HashMap<Key<String>, CounterWithSum>();
+    private final Map<Key<String>, CounterWithSum> loggers = new HashMap<Key<String>, CounterWithSum>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -57,7 +57,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : story.values()) {
+        for (Counter counter : loggers.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -67,9 +67,9 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             for (Map.Entry<String, Long> levelAndCnt : extCounter.values()) {
                 Key<String> key = new Key<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = story.get(key);
+                CounterWithSum counter = loggers.get(key);
                 if (counter == null) {
-                    story.put(key, new CounterWithSum(v, repeatCount));
+                    loggers.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -80,7 +80,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = loggers.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Key<String>, CounterWithSum> entry = iterator.next();
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
