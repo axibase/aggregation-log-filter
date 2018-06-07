@@ -22,10 +22,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -34,18 +31,17 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
     public static final int DEFAULT_CHUNK_SIZE = 1024;
     private static final int DEFAULT_TIMEOUT_MS = 5000;
     protected String method = DEFAULT_METHOD;
-    protected String url;
+    protected URI uri;
     protected String credentials;
     protected int timeout = DEFAULT_TIMEOUT_MS;
 
-    public void setUrl(String url) {
-        this.url = url;
-        try {
-            URL var0 = new URL(url);
-            credentials = var0.getUserInfo();
-            AtsdUtil.logInfo("Connecting to /" + var0.getHost() + ":" + var0.getPort());
-        } catch (MalformedURLException e) {
-            AtsdUtil.logInfo("Could not get credentials from url. " + e.getMessage());
+    public BaseHttpAtsdWriter(URI uri) {
+        this.uri = uri.getPath().isEmpty() ? uri.resolve("/api/v1/command") : uri;
+        credentials = uri.getUserInfo();
+        if (StringUtils.isNotBlank(credentials)) {
+            AtsdUtil.logInfo("Connecting to /" + uri.getHost() + ":" + uri.getPort());
+        }else{
+            AtsdUtil.logError("Credentials are blank.");
         }
     }
 

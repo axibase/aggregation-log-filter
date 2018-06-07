@@ -38,7 +38,7 @@ public class LogbackWriter<E extends ILoggingEvent>
         implements MessageWriter<E, String, Level> {
     private Map<String, String> tags = new LinkedHashMap<>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<LoggerAndLevel<Level>, CounterWithSum> loggersEventHistory = new HashMap<>();
+    private final Map<LoggerAndLevel<Level>, CounterWithSum> loggerEventHistory = new HashMap<>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<Level, CounterWithSum> totals = new HashMap<>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -58,7 +58,7 @@ public class LogbackWriter<E extends ILoggingEvent>
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : loggersEventHistory.values()) {
+        for (Counter counter : loggerEventHistory.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -68,9 +68,9 @@ public class LogbackWriter<E extends ILoggingEvent>
             for (Map.Entry<Level, Long> levelAndCnt : extCounter.values()) {
                 LoggerAndLevel<Level> key = new LoggerAndLevel<Level>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = loggersEventHistory.get(key);
+                CounterWithSum counter = loggerEventHistory.get(key);
                 if (counter == null) {
-                    loggersEventHistory.put(key, new CounterWithSum(v, repeatCount));
+                    loggerEventHistory.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -81,7 +81,7 @@ public class LogbackWriter<E extends ILoggingEvent>
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Map.Entry<LoggerAndLevel<Level>, CounterWithSum> entry : loggersEventHistory.entrySet()) {
+        for (Map.Entry<LoggerAndLevel<Level>, CounterWithSum> entry : loggerEventHistory.entrySet()) {
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
                 // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount

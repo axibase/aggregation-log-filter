@@ -33,12 +33,12 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
     private WritableByteChannel channel;
 
     public TcpAtsdWriter(String host, int port) {
-        super(host, checkPort(port));
+        super(host, port);
     }
 
-    private static int checkPort(int port) {
-        int atsdPort = (port <= 0) ? 8081 : port;
-        return atsdPort;
+    @Override
+    protected int getDefaultPort() {
+        return 8081;
     }
 
     private void connect() throws IllegalStateException, IOException {

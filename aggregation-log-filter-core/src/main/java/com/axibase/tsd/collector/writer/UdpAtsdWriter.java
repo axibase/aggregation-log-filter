@@ -29,12 +29,12 @@ public class UdpAtsdWriter extends AbstractAtsdWriter {
     private DatagramChannel datagramChannel;
 
     public UdpAtsdWriter(String host, int port) {
-        super(host, checkPort(port));
+        super(host, port);
     }
 
-    private static int checkPort(int port) {
-        int atsdPort = (port <= 0) ? 8082 : port;
-        return atsdPort;
+    @Override
+    protected int getDefaultPort() {
+        return 8082;
     }
 
     public void connect() throws IllegalStateException, IOException {

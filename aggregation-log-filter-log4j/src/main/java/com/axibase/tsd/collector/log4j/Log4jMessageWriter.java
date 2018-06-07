@@ -35,7 +35,7 @@ import java.util.*;
 public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<LoggerAndLevel<String>, CounterWithSum> loggersEventHistory = new HashMap<LoggerAndLevel<String>, CounterWithSum>();
+    private final Map<LoggerAndLevel<String>, CounterWithSum> loggerEventHistory = new HashMap<LoggerAndLevel<String>, CounterWithSum>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -55,7 +55,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : loggersEventHistory.values()) {
+        for (Counter counter : loggerEventHistory.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -65,9 +65,9 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             for (Map.Entry<String, Long> levelAndCnt : extCounter.values()) {
                 LoggerAndLevel<String> key = new LoggerAndLevel<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = loggersEventHistory.get(key);
+                CounterWithSum counter = loggerEventHistory.get(key);
                 if (counter == null) {
-                    loggersEventHistory.put(key, new CounterWithSum(v, repeatCount));
+                    loggerEventHistory.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -78,7 +78,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Map.Entry<LoggerAndLevel<String>, CounterWithSum> entry : loggersEventHistory.entrySet()) {
+        for (Map.Entry<LoggerAndLevel<String>, CounterWithSum> entry : loggerEventHistory.entrySet()) {
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
                 // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount

@@ -15,16 +15,10 @@
 
 package com.axibase.tsd.collector.writer;
 
-import com.axibase.tsd.collector.AtsdUtil;
-
-import javax.net.SocketFactory;
 import java.net.InetSocketAddress;
 import java.nio.channels.WritableByteChannel;
-import java.nio.charset.Charset;
 
 public abstract class AbstractAtsdWriter implements WritableByteChannel {
-    protected final SocketFactory socketFactory = SocketFactory.getDefault();
-    protected final Charset charset = AtsdUtil.UTF_8;
     private InetSocketAddress address;
     private final String host;
     private final int port;
@@ -32,7 +26,7 @@ public abstract class AbstractAtsdWriter implements WritableByteChannel {
     public AbstractAtsdWriter(String host, int port) {
         if (host == null) throw new IllegalStateException("Host can not be null.");
         this.host = host;
-        this.port = port;
+        this.port = (port > 0) ? port : getDefaultPort();
     }
 
     public InetSocketAddress getAddress() {
@@ -41,6 +35,8 @@ public abstract class AbstractAtsdWriter implements WritableByteChannel {
         }
         return address;
     }
+
+    protected abstract int getDefaultPort();
 
     @Override
     public String toString() {

@@ -10,42 +10,26 @@ import java.nio.channels.WritableByteChannel;
 public class AtsdWriterFactory {
 
     public static WritableByteChannel getWriter(String url) throws URISyntaxException {
-
-        WritableByteChannel writer;
-
-        URI atsdURL = new URI(url);
+        URI atsdURL = new URI(url.trim());
         String scheme = atsdURL.getScheme().toLowerCase();
+        if (scheme == null) throw new IllegalStateException("Scheme can not be null.");
         String host = atsdURL.getHost();
         int port = atsdURL.getPort();
-
-        if (atsdURL.getPath().isEmpty())
-            url = url + "/api/v1/command";
 
         switch (scheme) {
 
             case "udp":
-                AbstractAtsdWriter udpWriter = new UdpAtsdWriter(host, port);
-                writer = udpWriter;
-                break;
+                return new UdpAtsdWriter(host, port);
             case "tcp":
-                AbstractAtsdWriter tcpWriter = new TcpAtsdWriter(host, port);
-                writer = tcpWriter;
-                break;
+                return new TcpAtsdWriter(host, port);
             case "http":
-                HttpAtsdWriter httpWriter = new HttpAtsdWriter();
-                httpWriter.setUrl(url);
-                writer = httpWriter;
-                break;
+                return new HttpAtsdWriter(atsdURL);
             case "https":
-                HttpsAtsdWriter httpsWriter = new HttpsAtsdWriter();
-                httpsWriter.setUrl(url);
-                writer = httpsWriter;
-                break;
+                return new HttpsAtsdWriter(atsdURL);
             default:
                 String msg = "Can not create writer for collector.";
                 throw new IllegalStateException(msg);
         }
 
-        return writer;
     }
 }
