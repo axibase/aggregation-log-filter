@@ -15,11 +15,11 @@
 
 package com.axibase.tsd.collector;
 
-public class Key<L> {
+public class LoggerAndLevel<L> {
     private final L level;
     private final String logger;
 
-    public Key(L level, String logger) {
+    public LoggerAndLevel(L level, String logger) {
         if (level == null) {
             throw new IllegalArgumentException("Level is null");
         }
@@ -32,7 +32,7 @@ public class Key<L> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Key key = (Key) o;
+        LoggerAndLevel key = (LoggerAndLevel) o;
 
         if (level != null ? !level.equals(key.level) : key.level != null) return false;
         return !(logger != null ? !logger.equals(key.logger) : key.logger != null);

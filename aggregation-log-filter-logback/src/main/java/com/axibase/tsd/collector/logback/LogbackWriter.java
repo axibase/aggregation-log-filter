@@ -38,7 +38,7 @@ public class LogbackWriter<E extends ILoggingEvent>
         implements MessageWriter<E, String, Level> {
     private Map<String, String> tags = new LinkedHashMap<>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<Level>, CounterWithSum> loggers = new HashMap<>();
+    private final Map<LoggerAndLevel<Level>, CounterWithSum> loggersEventHistory = new HashMap<>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<Level, CounterWithSum> totals = new HashMap<>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -58,7 +58,7 @@ public class LogbackWriter<E extends ILoggingEvent>
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : loggers.values()) {
+        for (Counter counter : loggersEventHistory.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -66,11 +66,11 @@ public class LogbackWriter<E extends ILoggingEvent>
         for (Map.Entry<String, EventCounter<Level>> loggerAndCounter : diff.entrySet()) {
             EventCounter<Level> extCounter = loggerAndCounter.getValue();
             for (Map.Entry<Level, Long> levelAndCnt : extCounter.values()) {
-                Key<Level> key = new Key<Level>(levelAndCnt.getKey(), loggerAndCounter.getKey());
+                LoggerAndLevel<Level> key = new LoggerAndLevel<Level>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = loggers.get(key);
+                CounterWithSum counter = loggersEventHistory.get(key);
                 if (counter == null) {
-                    loggers.put(key, new CounterWithSum(v, repeatCount));
+                    loggersEventHistory.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -81,13 +81,12 @@ public class LogbackWriter<E extends ILoggingEvent>
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<Level>, CounterWithSum>> iterator = loggers.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Key<Level>, CounterWithSum> entry = iterator.next();
+        for (Map.Entry<LoggerAndLevel<Level>, CounterWithSum> entry : loggersEventHistory.entrySet()) {
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
                 // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount
             } else {
-                Key<Level> key = entry.getKey();
+                LoggerAndLevel<Level> key = entry.getKey();
                 Level level = key.getLevel();
                 long value = counter.getValue();
                 counter.clean();

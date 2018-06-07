@@ -37,7 +37,7 @@ import java.util.*;
 public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<String>, CounterWithSum> loggers = new HashMap<Key<String>, CounterWithSum>();
+    private final Map<LoggerAndLevel<String>, CounterWithSum> loggersEventHistory = new HashMap<LoggerAndLevel<String>, CounterWithSum>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -57,7 +57,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : loggers.values()) {
+        for (Counter counter : loggersEventHistory.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -65,11 +65,11 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         for (Map.Entry<String, EventCounter<String>> loggerAndCounter : diff.entrySet()) {
             EventCounter<String> extCounter = loggerAndCounter.getValue();
             for (Map.Entry<String, Long> levelAndCnt : extCounter.values()) {
-                Key<String> key = new Key<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
+                LoggerAndLevel<String> key = new LoggerAndLevel<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = loggers.get(key);
+                CounterWithSum counter = loggersEventHistory.get(key);
                 if (counter == null) {
-                    loggers.put(key, new CounterWithSum(v, repeatCount));
+                    loggersEventHistory.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -80,13 +80,12 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = loggers.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Key<String>, CounterWithSum> entry = iterator.next();
+        for (Map.Entry<LoggerAndLevel<String>, CounterWithSum> entry : loggersEventHistory.entrySet()) {
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
                 // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount
             } else {
-                Key<String> key = entry.getKey();
+                LoggerAndLevel<String> key = entry.getKey();
                 String level = key.getLevel();
                 long value = counter.getValue();
                 counter.clean();

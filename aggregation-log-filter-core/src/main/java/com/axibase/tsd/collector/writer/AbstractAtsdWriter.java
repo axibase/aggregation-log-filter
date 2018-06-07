@@ -24,24 +24,22 @@ import java.nio.charset.Charset;
 
 public abstract class AbstractAtsdWriter implements WritableByteChannel {
     protected final SocketFactory socketFactory = SocketFactory.getDefault();
-    protected final Charset charset= AtsdUtil.UTF_8;
+    protected final Charset charset = AtsdUtil.UTF_8;
     private InetSocketAddress address;
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
+
+    public AbstractAtsdWriter(String host, int port) {
+        if (host == null) throw new IllegalStateException("Host can not be null.");
+        this.host = host;
+        this.port = port;
+    }
 
     public InetSocketAddress getAddress() {
         if (address == null) {
             address = new InetSocketAddress(host, port);
         }
         return address;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     @Override

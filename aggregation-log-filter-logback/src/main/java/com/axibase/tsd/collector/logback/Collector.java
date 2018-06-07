@@ -28,7 +28,6 @@ import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
@@ -40,28 +39,30 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private static Collector instance;
     private LogbackWriter<E> logbackWriter;
     private Aggregator<E, String, Level> aggregator;
-    private Level level = Level.TRACE;
     private SeriesSenderConfig seriesSenderConfig;
-    private Integer intervalSeconds;
-    private Boolean sendLoggerCounter;
-    private String entity;
+    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
-    private final List<Tag> tags = new ArrayList<Tag>();
-    private final List<String> mdcTags = new ArrayList<String>();
     private WritableByteChannel writer;
-    private String host;
-    private int port;
+    /**
+     * Settings from logback file.
+     */
+    // common
+    private String entity;
+    private Level level = Level.TRACE;
     private String url;
+    // series sender
     private String debug;
     private String pattern;
-    private String scheme;
-    private String atsdUrl;
+    private Integer intervalSeconds;
+    private Boolean sendLoggerCounter;
     private int messageLength = -1;
-    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
+    // tags
+    private final List<Tag> tags = new ArrayList<>();
+    private final List<String> mdcTags = new ArrayList<String>();
 
     public Collector() {
         super();
-        if (instance != null){
+        if (instance != null) {
             instance.stop();
         }
         instance = this;
@@ -108,7 +109,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
         initWriter();
-        logbackWriter.setAtsdUrl(atsdUrl);
+        logbackWriter.setAtsdUrl(url);
         if (debug != null) {
             writer = new LoggingWrapper(writer);
         } else {
@@ -128,7 +129,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         Map<String, String> stringSettings = new HashMap<>();
         stringSettings.put("debug", debug);
         stringSettings.put("pattern", pattern);
-        stringSettings.put("scheme", scheme);
+        stringSettings.put("url", url);
         logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
@@ -143,32 +144,11 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     }
 
     private void initWriter() {
-        if (port <= 0) {
-            switch (scheme) {
-                case "tcp":
-                    port = 8081;
-                    break;
-                case "udp":
-                    port = 8082;
-                    break;
-                case "http":
-                    port = 80;
-                    break;
-                case "https":
-                    port = 443;
-                    break;
-                default:
-                    AtsdUtil.logError("Invalid scheme " + scheme);
-            }
-        }
         try {
-            writer = AtsdWriterFactory.getWriter(url, scheme, host, port);
-        } catch (IllegalStateException e) {
-            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
+            writer = AtsdWriterFactory.getWriter(url);
+        } catch (IllegalStateException | URISyntaxException e) {
+            AtsdUtil.logError("Could not get writer class, " + e);
         }
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(scheme).append("://").append(host).append(":").append(port);
-        atsdUrl = stringBuilder.toString();
     }
 
     @Override
@@ -216,25 +196,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.level = level;
     }
 
-    public void setWriter(WritableByteChannel writer) {
-        this.writer = writer;
-    }
-
     public void setUrl(String atsdUrl) {
-        try {
-            URI uri = new URI(atsdUrl);
-            scheme = uri.getScheme();
-
-            if (scheme.equals("http") || scheme.equals("https")) {
-                if (uri.getPath().isEmpty())
-                    atsdUrl = atsdUrl.concat("/api/v1/command");
-                url = atsdUrl;
-            }
-            host = uri.getHost();
-            port = uri.getPort();
-        } catch (URISyntaxException e) {
-            AtsdUtil.logError("Syntax error in atsd-url " + atsdUrl);
-        }
+        url = atsdUrl;
     }
 
     public void setEntity(String entity) {
