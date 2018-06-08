@@ -1,7 +1,8 @@
 package com.axibase.tsd.collector.writer;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -9,10 +10,10 @@ import java.nio.channels.WritableByteChannel;
  */
 public class AtsdWriterFactory {
 
-    public static WritableByteChannel getWriter(String url) throws URISyntaxException {
-        URI atsdURL = new URI(url.trim());
-        String scheme = atsdURL.getScheme().toLowerCase();
-        if (scheme == null) throw new IllegalStateException("Scheme can not be null.");
+    public static WritableByteChannel getWriter(String url) throws Exception {
+        URI atsdURL = new URI(url);
+        String scheme = StringUtils.lowerCase(atsdURL.getScheme());
+        if (scheme == null) throw new IllegalStateException("Scheme cannot be empty.");
         String host = atsdURL.getHost();
         int port = atsdURL.getPort();
 
@@ -27,7 +28,7 @@ public class AtsdWriterFactory {
             case "https":
                 return new HttpsAtsdWriter(atsdURL);
             default:
-                String msg = "Can not create writer for collector.";
+                String msg = "Cannot create writer for collector.";
                 throw new IllegalStateException(msg);
         }
 

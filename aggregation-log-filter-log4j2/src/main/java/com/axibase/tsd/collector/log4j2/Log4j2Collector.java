@@ -21,6 +21,7 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
@@ -30,7 +31,6 @@ import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.logging.log4j.status.StatusLogger;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -147,7 +147,7 @@ public class Log4j2Collector extends AbstractFilter {
         Map<String, String> stringSettings = new HashMap<>();
         stringSettings.put("debug", debug);
         stringSettings.put("pattern", pattern);
-        stringSettings.put(url, url);
+        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
         messageBuilder.start(writer, level.intLevel(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
 
     }
@@ -212,7 +212,7 @@ public class Log4j2Collector extends AbstractFilter {
     private void initWriter() {
         try {
             writer = AtsdWriterFactory.getWriter(url);
-        } catch (IllegalStateException | URISyntaxException e) {
+        } catch (Exception e) {
             AtsdUtil.logError("Could not get writer class, " + e);
         }
     }

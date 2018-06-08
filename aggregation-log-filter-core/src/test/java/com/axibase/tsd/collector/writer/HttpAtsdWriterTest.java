@@ -28,15 +28,12 @@ public class HttpAtsdWriterTest {
     public static final long M = 1000 * 1000L;
 
     @Test
-    public void testBadAddress() throws Exception {
-        HttpAtsdWriter writer = new HttpAtsdWriter(new URI("http:/localhost:0"));
+    public void testEmptyCredentials() throws Exception {
         try {
-            writer.setTimeout(300);
-            writer.write(ByteBuffer.wrap("test\n".getBytes(AtsdUtil.UTF_8)));
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals("protocol = http host = null", e.getMessage());
-            // ok
+            new HttpAtsdWriter(new URI("http://localhost:8088"));
+            fail("IllegalStateException hasn't been thrown.");
+        } catch (IllegalStateException e) {
+            assertEquals("Credentials cannot be empty.", e.getMessage());
         }
     }
 

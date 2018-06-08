@@ -26,9 +26,9 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,7 +129,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         Map<String, String> stringSettings = new HashMap<>();
         stringSettings.put("debug", debug);
         stringSettings.put("pattern", pattern);
-        stringSettings.put("url", url);
+        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
         logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
@@ -146,7 +146,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private void initWriter() {
         try {
             writer = AtsdWriterFactory.getWriter(url);
-        } catch (IllegalStateException | URISyntaxException e) {
+        } catch (Exception e) {
             AtsdUtil.logError("Could not get writer class, " + e);
         }
     }

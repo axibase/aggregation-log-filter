@@ -21,13 +21,13 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -138,7 +138,7 @@ public class Log4jCollector extends Filter {
         Map<String, String> stringSettings = new HashMap<>();
         stringSettings.put("debug", debug);
         stringSettings.put("pattern", pattern);
-        stringSettings.put("url", url);
+        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
         log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
@@ -155,8 +155,8 @@ public class Log4jCollector extends Filter {
     private void initWriter() {
         try {
             writer = AtsdWriterFactory.getWriter(url);
-        } catch (IllegalStateException | URISyntaxException e) {
-            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
+        } catch (Exception e) {
+            AtsdUtil.logError("Could not get writer class, " + e);
         }
     }
 
