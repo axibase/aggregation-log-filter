@@ -28,7 +28,7 @@ public class AtsdWriterFactory {
             case "https":
                 return new HttpsAtsdWriter(atsdURL);
             default:
-                String msg = "Cannot create writer for collector.";
+                String msg = "Unsupported scheme.";
                 throw new IllegalStateException(msg);
         }
 

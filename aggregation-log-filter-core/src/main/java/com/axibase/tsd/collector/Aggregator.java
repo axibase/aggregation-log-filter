@@ -182,7 +182,7 @@ public class Aggregator<E, K, L> {
                     messageWriter.checkPropertiesSent(writer);
                     checkThresholdsAndWrite();
                 } catch (IOException e) {
-                    AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
+                    AtsdUtil.logInfo("Could not write messages before finish. " + e.getMessage());
                     // ignore
                 } catch (InterruptedException e) {
                     AtsdUtil.logInfo("Interrupted. " + e.getMessage());

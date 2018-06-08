@@ -194,7 +194,7 @@ public class Log4j2Collector extends AbstractFilter {
         try {
             collector.init();
         } catch (Exception e) {
-            AtsdUtil.logError("Could not initialize collector. " + e.getMessage());
+            AtsdUtil.logError("Could not initialize collector. " + e);
         }
         return collector;
     }
@@ -299,7 +299,7 @@ public class Log4j2Collector extends AbstractFilter {
     @Override
     public Result filter(LogEvent event) {
         try {
-            if (event.getLevel().intLevel() <= this.level.intLevel()) {
+            if (event.getLevel().intLevel() <= level.intLevel()) {
                 aggregator.register(event);
             }
         } catch (IOException e) {

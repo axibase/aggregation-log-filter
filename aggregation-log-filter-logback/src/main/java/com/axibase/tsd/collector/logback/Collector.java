@@ -85,52 +85,55 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         super.start();
         //context.register(this); // Issue 4066
         initSeriesSenderConfig();
-        logbackWriter = new LogbackWriter<E>();
-        if (entity != null) {
-            logbackWriter.setEntity(entity);
-        }
+        try {
+            writer = AtsdWriterFactory.getWriter(url);
+            logbackWriter = new LogbackWriter<>();
+            if (entity != null) {
+                logbackWriter.setEntity(entity);
+            }
 
-        logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
-        if (pattern == null) {
-            pattern = "%m";
-        }
-        logbackWriter.setPattern(pattern.concat(MESSAGE_WITHOUT_STACKTRACE));
+            logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
+            if (pattern == null) {
+                pattern = "%m";
+            }
+            logbackWriter.setPattern(pattern.concat(MESSAGE_WITHOUT_STACKTRACE));
+            logbackWriter.setContext(getContext());
+            for (Tag tag : tags) {
+                logbackWriter.addTag(tag);
+            }
+            for (String mdcTag : mdcTags) {
+                logbackWriter.addMdcTag(mdcTag);
+            }
+            if (messageLength >= 0) {
+                logbackWriter.setMessageLength(messageLength);
+            }
+            logbackWriter.setAtsdUrl(url);
+            if (debug != null) {
+                writer = new LoggingWrapper(writer);
+            } else {
+                debug = "false";
+            }
 
-        logbackWriter.setContext(getContext());
-        for (Tag tag : tags) {
-            logbackWriter.addTag(tag);
-        }
-        for (String mdcTag : mdcTags) {
-            logbackWriter.addMdcTag(mdcTag);
-        }
+            aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
+            aggregator.setWriter(writer);
+            aggregator.setSeriesSenderConfig(seriesSenderConfig);
 
-        if (messageLength >= 0) {
-            logbackWriter.setMessageLength(messageLength);
-        }
-        aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
-        initWriter();
-        logbackWriter.setAtsdUrl(url);
-        if (debug != null) {
-            writer = new LoggingWrapper(writer);
-        } else {
-            debug = "false";
-        }
-        aggregator.setWriter(writer);
-        aggregator.setSeriesSenderConfig(seriesSenderConfig);
+            aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
+            aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
+            aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.INFO));
 
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.INFO));
-
-        for (LogbackEventTrigger<E> trigger : triggers) {
-            aggregator.addSendMessageTrigger(trigger);
+            for (LogbackEventTrigger<E> trigger : triggers) {
+                aggregator.addSendMessageTrigger(trigger);
+            }
+            aggregator.start();
+            Map<String, String> stringSettings = new HashMap<>();
+            stringSettings.put("debug", debug);
+            stringSettings.put("pattern", pattern);
+            stringSettings.put("scheme", StringUtils.substringBefore(url, ":"));
+            logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
+        } catch (Exception e) {
+            AtsdUtil.logError("Writer is not initialized - " + e);
         }
-        aggregator.start();
-        Map<String, String> stringSettings = new HashMap<>();
-        stringSettings.put("debug", debug);
-        stringSettings.put("pattern", pattern);
-        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
-        logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
     private void initSeriesSenderConfig() {
@@ -140,14 +143,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         }
         if (sendLoggerCounter != null) {
             seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
-        }
-    }
-
-    private void initWriter() {
-        try {
-            writer = AtsdWriterFactory.getWriter(url);
-        } catch (Exception e) {
-            AtsdUtil.logError("Could not get writer class, " + e);
         }
     }
 
@@ -180,8 +175,10 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             }
         });
         super.stop();
-        aggregator.stop();
-        logbackWriter.stop();
+        if (writer != null) {
+            aggregator.stop();
+            logbackWriter.stop();
+        }
     }
 
     public void setTag(Tag tag) {

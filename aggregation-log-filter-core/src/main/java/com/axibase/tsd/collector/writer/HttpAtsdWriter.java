@@ -54,7 +54,7 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
             outputStream = connection.getOutputStream();
 
         } catch (Throwable e) {
-            AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
+            AtsdUtil.logInfo("Could not write messages. " + e);
             close();
         }
     }
