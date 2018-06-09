@@ -33,14 +33,10 @@ public class CountedQueue<E> extends ConcurrentLinkedQueue<E> {
     @Override
     public E poll() {
         E value = super.poll();
-        if (count.get() > 0) {
+        if (value != null) {
             count.decrementAndGet();
         }
         return value;
-    }
-
-    public void clearCount() {
-        count.set(0);
     }
 
     public int getCount() {

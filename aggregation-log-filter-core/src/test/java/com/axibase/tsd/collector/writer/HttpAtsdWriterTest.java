@@ -19,6 +19,7 @@ import com.axibase.tsd.collector.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 
 import static org.junit.Assert.*;
@@ -27,16 +28,12 @@ public class HttpAtsdWriterTest {
     public static final long M = 1000 * 1000L;
 
     @Test
-    public void testBadAddress() throws Exception {
-        HttpAtsdWriter writer = new HttpAtsdWriter();
+    public void testEmptyCredentials() throws Exception {
         try {
-            writer.setUrl("http:/localhost:0");
-            writer.setTimeout(300);
-            writer.write(ByteBuffer.wrap("test\n".getBytes(AtsdUtil.UTF_8)));
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals("protocol = http host = null", e.getMessage());
-            // ok
+            new HttpAtsdWriter(new URI("http://localhost:8088"));
+            fail("IllegalStateException hasn't been thrown.");
+        } catch (IllegalStateException e) {
+            assertEquals("Credentials cannot be empty.", e.getMessage());
         }
     }
 
@@ -44,8 +41,7 @@ public class HttpAtsdWriterTest {
     @Test
     public void ping() throws Exception {
         long st = System.currentTimeMillis();
-        HttpAtsdWriter writer = new HttpAtsdWriter();
-        writer.setUrl("http://axibase:11111@localhost:8088/api/v1/command/");
+        HttpAtsdWriter writer = new HttpAtsdWriter(new URI("http://axibase:11111@localhost:8088/api/v1/command/"));
         writer.setTimeout(1000);
         for (long i = 0; i < 1E7; i++) {
             final String cmd = "ping\n";
@@ -60,8 +56,7 @@ public class HttpAtsdWriterTest {
     @Test
     public void uploadMetrics() throws Exception {
         long st = System.currentTimeMillis();
-        HttpAtsdWriter writer = new HttpAtsdWriter();
-        writer.setUrl("http://axibase:11111@localhost:8088/api/v1/command/");
+        HttpAtsdWriter writer = new HttpAtsdWriter(new URI("http://axibase:11111@localhost:8088/api/v1/command/"));
         writer.setTimeout(30000);
         long cnt = M / 10;
         for (long i = 0; i < cnt; i++) {
@@ -78,8 +73,7 @@ public class HttpAtsdWriterTest {
     @Test
     public void uploadMetricsSsl() throws Exception {
         long st = System.currentTimeMillis();
-        HttpAtsdWriter writer = new HttpAtsdWriter();
-        writer.setUrl("https://axibase:11111@localhost:8443/api/v1/command/");
+        HttpAtsdWriter writer = new HttpAtsdWriter(new URI("https://axibase:11111@localhost:8443/api/v1/command/"));
         writer.setTimeout(10000);
         long cnt = M / 10;
         for (long i = 0; i < cnt; i++) {

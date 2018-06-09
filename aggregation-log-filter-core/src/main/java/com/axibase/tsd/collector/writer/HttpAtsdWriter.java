@@ -20,12 +20,16 @@ import com.axibase.tsd.collector.AtsdUtil;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.ByteBuffer;
 
 public class HttpAtsdWriter extends BaseHttpAtsdWriter {
     private HttpURLConnection connection;
     private OutputStream outputStream;
+
+    public HttpAtsdWriter(URI uri){
+        super(uri);
+    }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
@@ -42,7 +46,7 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
         outputStream = null;
 
         try {
-            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection = (HttpURLConnection) uri.toURL().openConnection();
             initConnection(connection);
             connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
             connection.setUseCaches(false);
@@ -50,7 +54,7 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
             outputStream = connection.getOutputStream();
 
         } catch (Throwable e) {
-            AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
+            AtsdUtil.logInfo("Could not write messages. " + e);
             close();
         }
     }
@@ -94,11 +98,5 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
         }
         init();
         return responseCode;
-    }
-
-    @Override
-    public void setUrl(String url) {
-        url = url.trim();
-        super.setUrl(url);
     }
 }
