@@ -94,9 +94,7 @@ public class AggregatorTest extends TestCase {
         seriesSenderConfig.setMessageSkipThreshold(1000);
         LogbackWriter messageWriter = new LogbackWriter();
         messageWriter.setSeriesSenderConfig(seriesSenderConfig);
-        UdpAtsdWriter writer = new UdpAtsdWriter();
-        writer.setHost("localhost");
-        writer.setPort(55555);
+        UdpAtsdWriter writer = new UdpAtsdWriter("localhost",55555);
         messageWriter.start(writer, Level.TRACE_INT, 60, new HashMap<String, String>());
         final Aggregator aggregator = new Aggregator(messageWriter, new LogbackEventProcessor());
         aggregator.setWriter(writer);

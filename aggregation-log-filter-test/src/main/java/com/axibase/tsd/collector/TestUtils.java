@@ -13,21 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package com.axibase.tsd.collector.writer;
+package com.axibase.tsd.collector;
 
-public enum WriterType {
-    UDP(UdpAtsdWriter.class),
-    TCP(TcpAtsdWriter.class),
-    HTTP(HttpAtsdWriter.class),
-    HTTPS(HttpsAtsdWriter.class);
+import java.nio.charset.Charset;
 
-    private Class writerClass;
+public final class TestUtils {
+    public static final int TEST_TCP_PORT_LOG4J = 35771;
+    public static final int TEST_TCP_PORT_LOGBACK = 35791;
+    public static final int TEST_UDP_PORT = 35793;
+    public static final int BUFFER_SIZE = 16 * 1024;
+    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
-    WriterType(Class writerClass) {
-        this.writerClass = writerClass;
-    }
-
-    public Class getWriterClass() {
-        return writerClass;
+    private TestUtils() {
     }
 }

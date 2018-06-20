@@ -253,7 +253,7 @@ public class MessageHelper {
     }
 
     public void writeCounter(WritableByteChannel writer,
-                             Key key,
+                             LoggerAndLevel key,
                              String levelString,
                              long value) throws IOException {
         StringBuilder sb = new StringBuilder(String.valueOf(value));

@@ -6,7 +6,7 @@ The aggregation logger plugs into a log appender and tracks the total number of 
 
 The counters are sent via the TCP/UDP/HTTP/HTTPS protocol to a time series database every 60 seconds for alerting and long-term retention.
 
-Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
+Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
 The logger consists of the core library and adapters for **`Logback`**, **`Log4j`**, and **`Log4j2`** logging frameworks.
 
@@ -141,7 +141,7 @@ Dependency to the aggregator core is imported automatically:
 <dependency>
             <groupId>com.axibase</groupId>
             <artifactId>aggregation-log-filter-{adapter}</artifactId>
-            <version>1.2.x</version>
+            <version>2.x.y</version>
 </dependency>
 ```
 
@@ -157,7 +157,7 @@ Add core and adapter libraries to `classpath`:
 * Add `.jar` files to `classpath`, replace `x` with appropriate version:
 
 ```sh
-java -classpath lib/app.jar:lib/aggregation-log-filter-1.2.x.jar:lib/aggregation-log-filter-{adapter}-1.2.x.jar Main
+java -classpath lib/app.jar:lib/aggregation-log-filter-2.x.y.jar:lib/aggregation-log-filter-{adapter}-2.x.y.jar Main
 ```
 
 ### Option 3: lib directory
