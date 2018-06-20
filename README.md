@@ -67,7 +67,7 @@ The following `java.log_aggregator.*` properties are stored by logger:
 
 Since counters are flushed to the database every 60 seconds, the incoming event stream can be used for heartbeat monitoring as an early warning of network outages, garbage collection freezes, and application crashes.
 
-![](log_writer_heartbeat.png)
+![](./log_writer_heartbeat.png)
 
 [Heartbeat rule in XML](./rule_java_log_writer_heartbeat_stopped.xml)
 
@@ -292,7 +292,7 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 | `pattern` | no | `%m` | Pattern to format logging events sent to the database. <br>The pattern cannot include fields that are already included as tags such as logger name, level, etc. |
 | `sendLoggerCounter` | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
 | `mdcTags` | no | - | User-defined tags to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
-| `debug` | no | false | Enable logging to stdout debug information, see [**Troubleshooting**](#troubleshooting). |
+| `debug` | no | false | Enable logging to `stdout` debug information, see [**Troubleshooting**](#troubleshooting). |
 | `messageLength` | no | `-1` | Allow to control event message size, default value to show the whole message |
 
 ## Database Address
@@ -360,7 +360,7 @@ Configures which log events are sent to the database.
 | Name | Required | Default Value | Description |
 |---|---|---|---|
 | `level` | no | `WARN` | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
-| `stackTraceLines` | no | `0; ERROR: -1` | Number of stacktrace lines included in the message, `-1 -- all lines`. |
+| `stackTraceLines` | no | `0; ERROR: -1` | Number of `stacktrace` lines included in the message, `-1 -- all lines`. |
 | `sendMultiplier` | no | `INFO-: 5; WARN: 3; ERROR: 2`   | Determines index of events sent each period (10 minutes). Determined as `sendMultiplier^(n-1)`. |
 
 ### Location Fields
