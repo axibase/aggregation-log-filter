@@ -26,10 +26,9 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,28 +39,30 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private static Collector instance;
     private LogbackWriter<E> logbackWriter;
     private Aggregator<E, String, Level> aggregator;
-    private Level level = Level.TRACE;
     private SeriesSenderConfig seriesSenderConfig;
-    private Integer intervalSeconds;
-    private Boolean sendLoggerCounter;
-    private String entity;
+    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
     private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
-    private final List<Tag> tags = new ArrayList<Tag>();
-    private final List<String> mdcTags = new ArrayList<String>();
     private WritableByteChannel writer;
-    private String host;
-    private int port;
+    /**
+     * Settings from logback file.
+     */
+    // common
+    private String entity;
+    private Level level = Level.TRACE;
     private String url;
+    // series sender
     private String debug;
     private String pattern;
-    private String scheme;
-    private String atsdUrl;
+    private Integer intervalSeconds;
+    private Boolean sendLoggerCounter;
     private int messageLength = -1;
-    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
+    // tags
+    private final List<Tag> tags = new ArrayList<>();
+    private final List<String> mdcTags = new ArrayList<String>();
 
     public Collector() {
         super();
-        if (instance != null){
+        if (instance != null) {
             instance.stop();
         }
         instance = this;
@@ -82,53 +83,57 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     @Override
     public void start() {
         super.start();
+        //context.register(this); // Issue 4066
         initSeriesSenderConfig();
-        logbackWriter = new LogbackWriter<E>();
-        if (entity != null) {
-            logbackWriter.setEntity(entity);
-        }
+        try {
+            writer = AtsdWriterFactory.getWriter(url);
+            logbackWriter = new LogbackWriter<>();
+            if (entity != null) {
+                logbackWriter.setEntity(entity);
+            }
 
-        logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
-        if (pattern == null) {
-            pattern = "%m";
-        }
-        logbackWriter.setPattern(pattern.concat(MESSAGE_WITHOUT_STACKTRACE));
+            logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
+            if (pattern == null) {
+                pattern = "%m";
+            }
+            logbackWriter.setPattern(pattern.concat(MESSAGE_WITHOUT_STACKTRACE));
+            logbackWriter.setContext(getContext());
+            for (Tag tag : tags) {
+                logbackWriter.addTag(tag);
+            }
+            for (String mdcTag : mdcTags) {
+                logbackWriter.addMdcTag(mdcTag);
+            }
+            if (messageLength >= 0) {
+                logbackWriter.setMessageLength(messageLength);
+            }
+            logbackWriter.setAtsdUrl(url);
+            if (debug != null) {
+                writer = new LoggingWrapper(writer);
+            } else {
+                debug = "false";
+            }
 
-        logbackWriter.setContext(getContext());
-        for (Tag tag : tags) {
-            logbackWriter.addTag(tag);
-        }
-        for (String mdcTag : mdcTags) {
-            logbackWriter.addMdcTag(mdcTag);
-        }
+            aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
+            aggregator.setWriter(writer);
+            aggregator.setSeriesSenderConfig(seriesSenderConfig);
 
-        if (messageLength >= 0) {
-            logbackWriter.setMessageLength(messageLength);
-        }
-        aggregator = new Aggregator<E, String, Level>(logbackWriter, new LogbackEventProcessor<E>());
-        initWriter();
-        logbackWriter.setAtsdUrl(atsdUrl);
-        if (debug != null) {
-            writer = new LoggingWrapper(writer);
-        } else {
-            debug = "false";
-        }
-        aggregator.setWriter(writer);
-        aggregator.setSeriesSenderConfig(seriesSenderConfig);
+            aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
+            aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
+            aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.INFO));
 
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
-        aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.INFO));
-
-        for (LogbackEventTrigger<E> trigger : triggers) {
-            aggregator.addSendMessageTrigger(trigger);
+            for (LogbackEventTrigger<E> trigger : triggers) {
+                aggregator.addSendMessageTrigger(trigger);
+            }
+            aggregator.start();
+            Map<String, String> stringSettings = new HashMap<>();
+            stringSettings.put("debug", debug);
+            stringSettings.put("pattern", pattern);
+            stringSettings.put("scheme", StringUtils.substringBefore(url, ":"));
+            logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
+        } catch (Exception e) {
+            AtsdUtil.logError("Writer is not initialized - " + e);
         }
-        aggregator.start();
-        Map<String, String> stringSettings = new HashMap<>();
-        stringSettings.put("debug", debug);
-        stringSettings.put("pattern", pattern);
-        stringSettings.put("scheme", scheme);
-        logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
     private void initSeriesSenderConfig() {
@@ -139,54 +144,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         if (sendLoggerCounter != null) {
             seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
         }
-    }
-
-    private void initWriter() {
-        try {
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, "
-                    + e.getMessage();
-            AtsdUtil.logError(msg);
-        } catch (Exception e) {
-            AtsdUtil.logError("Could not get writer class, " + e.getMessage());
-        }
-        if (writer instanceof AbstractAtsdWriter) {
-            final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
-            if (port <= 0)
-                switch (scheme.toLowerCase()) {
-                    case "tcp":
-                        port = 8081;
-                        break;
-                    case "udp":
-                        port = 8082;
-                        break;
-                    default:
-                        AtsdUtil.logError("Invalid scheme " + scheme);
-                }
-            atsdWriter.setHost(host);
-            atsdWriter.setPort(port);
-            writer = atsdWriter;
-        } else if (writer instanceof HttpAtsdWriter) {
-            final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
-            simpleHttpAtsdWriter.setUrl(url);
-            writer = simpleHttpAtsdWriter;
-            if (port <= 0)
-                port = 80;
-        } else if (writer instanceof HttpsAtsdWriter) {
-            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
-            simpleHttpsAtsdWriter.setUrl(url);
-            writer = simpleHttpsAtsdWriter;
-            if (port <= 0)
-                port = 443;
-        } else {
-            final String msg = "Undefined writer for Collector: " + writer;
-            throw new IllegalStateException(msg);
-        }
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(scheme).append("://").append(host).append(":").append(port);
-        atsdUrl = stringBuilder.toString();
     }
 
     @Override
@@ -218,8 +175,10 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
             }
         });
         super.stop();
-        aggregator.stop();
-        logbackWriter.stop();
+        if (writer != null) {
+            aggregator.stop();
+            logbackWriter.stop();
+        }
     }
 
     public void setTag(Tag tag) {
@@ -234,25 +193,8 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         this.level = level;
     }
 
-    public void setWriter(WritableByteChannel writer) {
-        this.writer = writer;
-    }
-
     public void setUrl(String atsdUrl) {
-        try {
-            URI uri = new URI(atsdUrl);
-            this.scheme = uri.getScheme();
-
-            if (scheme.equals("http") || scheme.equals("https")) {
-                if (uri.getPath().isEmpty())
-                    atsdUrl = atsdUrl.concat("/api/v1/command");
-                url = atsdUrl;
-            }
-            this.host = uri.getHost();
-            this.port = uri.getPort();
-        } catch (URISyntaxException e) {
-            AtsdUtil.logError("Syntax error in atsd-url " + atsdUrl);
-        }
+        url = atsdUrl;
     }
 
     public void setEntity(String entity) {

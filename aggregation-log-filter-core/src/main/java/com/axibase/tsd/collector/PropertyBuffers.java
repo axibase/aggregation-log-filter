@@ -34,10 +34,7 @@ class PropertyBuffers {
     }
 
     public boolean isAllBuffersInitialized() {
-        if (environmentPropertyBuf != null && settingsPropertyBuf != null && runtimePropertyBuf != null && osPropertyBuf != null) {
-            return true;
-        }
-        return false;
+        return environmentPropertyBuf != null && settingsPropertyBuf != null && runtimePropertyBuf != null && osPropertyBuf != null;
     }
 
     public void initEnvironmentPropertyBuf(StringBuilder propertyCommand) {

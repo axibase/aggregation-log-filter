@@ -21,14 +21,13 @@ import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,30 +38,24 @@ public class Log4jCollector extends Filter {
     private Aggregator<LoggingEvent, String, String> aggregator;
     private final List<Log4jEventTrigger> triggers = new ArrayList<Log4jEventTrigger>();
     private Log4jMessageWriter log4jMessageWriter;
-
-    private final List<Tag> tags = new ArrayList<Tag>();
-    private final List<String> mdcTags = new ArrayList<String>();
-
+    private WritableByteChannel writer;
+    private SeriesSenderConfig seriesSenderConfig;
+    /**
+     * Settings from log4j file.
+     */
     // common
     private String entity;
     private Level level = Level.TRACE;
-
-    // writer
-    private WritableByteChannel writer;
-    private String writerHost;
-    private int writerPort;
-
-    private String writerUrl;
-
+    private String url;
     // series sender
-    private SeriesSenderConfig seriesSenderConfig;
     private Integer intervalSeconds;
     private Boolean sendLoggerCounter;
     private String debug;
     private String pattern;
-    private String scheme;
-    private String atsdUrl;
     private int messageLength = -1;
+    // tags
+    private final List<Tag> tags = new ArrayList<Tag>();
+    private final List<String> mdcTags = new ArrayList<String>();
 
     public WritableByteChannel getWriterClass() {
         return writer;
@@ -104,7 +97,7 @@ public class Log4jCollector extends Filter {
         initSeriesSenderConfig();
 
         log4jMessageWriter = new Log4jMessageWriter();
-        log4jMessageWriter.setAtsdUrl(atsdUrl);
+        log4jMessageWriter.setAtsdUrl(url);
         if (entity != null) {
             log4jMessageWriter.setEntity(entity);
         }
@@ -128,7 +121,7 @@ public class Log4jCollector extends Filter {
             log4jMessageWriter.setMessageLength(messageLength);
         }
 
-        aggregator = new Aggregator<LoggingEvent, String, String>(log4jMessageWriter, new Log4jEventProcessor());
+        aggregator = new Aggregator<>(log4jMessageWriter, new Log4jEventProcessor());
         writer = LoggingWrapper.tryWrap(debug, writer);
         aggregator.setWriter(writer);
         if (seriesSenderConfig != null) {
@@ -145,7 +138,7 @@ public class Log4jCollector extends Filter {
         Map<String, String> stringSettings = new HashMap<>();
         stringSettings.put("debug", debug);
         stringSettings.put("pattern", pattern);
-        stringSettings.put("scheme", scheme);
+        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
         log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
@@ -161,61 +154,9 @@ public class Log4jCollector extends Filter {
 
     private void initWriter() {
         try {
-            final WriterType writerType = WriterType.valueOf(scheme.toUpperCase());
-            this.writer = (WritableByteChannel) writerType.getWriterClass().newInstance();
-        } catch (InstantiationException e) {
-            final String msg = "Could not create writer instance by type, "
-                    + e.getMessage();
-            LogLog.error(msg);
+            writer = AtsdWriterFactory.getWriter(url);
         } catch (Exception e) {
-            LogLog.error("Could not instantiate writerType. " + e.getMessage());
-        }
-
-        if (writer instanceof AbstractAtsdWriter) {
-            final AbstractAtsdWriter atsdWriter = (AbstractAtsdWriter) this.writer;
-            checkWriterProperty(writerHost == null, "writerHost", writerHost);
-            if (writerPort <= 0)
-                switch (scheme.toLowerCase()) {
-                    case "tcp":
-                        writerPort = 8081;
-                        break;
-                    case "udp":
-                        writerPort = 8082;
-                        break;
-                    default:
-                        LogLog.error("Invalid scheme " + scheme);
-                }
-            atsdWriter.setHost(writerHost);
-            atsdWriter.setPort(writerPort);
-            writer = atsdWriter;
-        } else if (writer instanceof HttpAtsdWriter) {
-            final HttpAtsdWriter simpleHttpAtsdWriter = new HttpAtsdWriter();
-            simpleHttpAtsdWriter.setUrl(writerUrl);
-            writer = simpleHttpAtsdWriter;
-            if (writerPort <= 0)
-                writerPort = 80;
-        } else if (writer instanceof HttpsAtsdWriter) {
-            final HttpsAtsdWriter simpleHttpsAtsdWriter = new HttpsAtsdWriter();
-            simpleHttpsAtsdWriter.setUrl(writerUrl);
-            writer = simpleHttpsAtsdWriter;
-            if (writerPort <= 0)
-                writerPort = 443;
-        } else {
-            final String msg = "Undefined writer for Log4jCollector: " + writer;
-            LogLog.error(msg);
-            throw new IllegalStateException(msg);
-        }
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(scheme).append("://").append(writerHost).append(":").append(writerPort);
-        atsdUrl = stringBuilder.toString();
-    }
-
-    private void checkWriterProperty(boolean check, String propName, String propValue) {
-        if (check) {
-            final String msg = "Illegal writer property (" +
-                    propName + "): " + propValue;
-            LogLog.error(msg);
-            throw new IllegalStateException(msg);
+            AtsdUtil.logError("Could not get writer class, " + e);
         }
     }
 
@@ -290,19 +231,7 @@ public class Log4jCollector extends Filter {
     }
 
     public void setUrl(String atsdUrl) {
-        try {
-            URI uri = new URI(atsdUrl);
-            this.scheme = uri.getScheme();
-            if (scheme.equals("http") || scheme.equals("https")) {
-                if (uri.getPath().isEmpty())
-                    atsdUrl = atsdUrl.concat("/api/v1/command");
-                writerUrl = atsdUrl;
-            }
-            writerHost = uri.getHost();
-            writerPort = uri.getPort();
-        } catch (URISyntaxException e) {
-            LogLog.error("Syntax error in atsd-url " + atsdUrl);
-        }
+        url = atsdUrl;
     }
 
     public void setMessageLength(int messageLength) {

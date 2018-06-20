@@ -39,13 +39,6 @@
         Database to facilitate root-cause analysis.
     </description>
 
-    <distributionManagement>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
-
     <properties>
         <log4j2.version>2.5</log4j2.version>
     </properties>
@@ -68,6 +61,13 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${log4j2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.axibase</groupId>
+            <artifactId>aggregation-log-filter-test</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

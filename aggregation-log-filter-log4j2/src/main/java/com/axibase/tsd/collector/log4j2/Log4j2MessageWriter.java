@@ -37,7 +37,7 @@ import java.util.*;
 public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, String> {
     private Map<String, String> tags = new LinkedHashMap<String, String>();
     private String entity = AtsdUtil.resolveHostname();
-    private final Map<Key<String>, CounterWithSum> story = new HashMap<Key<String>, CounterWithSum>();
+    private final Map<LoggerAndLevel<String>, CounterWithSum> loggerEventHistory = new HashMap<LoggerAndLevel<String>, CounterWithSum>();
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
     private final Map<String, CounterWithSum> totals = new HashMap<String, CounterWithSum>();
     private MessageHelper messageHelper = new MessageHelper();
@@ -48,16 +48,16 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     private int messageLength = -1;
 
     @Override
-    public void writeStatMessages(WritableByteChannel writer,
-                                  Map<String, EventCounter<String>> diff,
-                                  long deltaTime) throws IOException {
+    public synchronized void writeStatMessages(WritableByteChannel writer,
+                                               Map<String, EventCounter<String>> diff,
+                                               long deltaTime) throws IOException {
         if (deltaTime < 1) {
             throw new IllegalArgumentException("Illegal delta time value: " + deltaTime);
         }
         int repeatCount = seriesSenderConfig.getRepeatCount();
 
         // decrement all previous zero repeat counters
-        for (Counter counter : story.values()) {
+        for (Counter counter : loggerEventHistory.values()) {
             counter.decrementZeroRepeats();
         }
 
@@ -65,11 +65,11 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         for (Map.Entry<String, EventCounter<String>> loggerAndCounter : diff.entrySet()) {
             EventCounter<String> extCounter = loggerAndCounter.getValue();
             for (Map.Entry<String, Long> levelAndCnt : extCounter.values()) {
-                Key<String> key = new Key<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
+                LoggerAndLevel<String> key = new LoggerAndLevel<String>(levelAndCnt.getKey(), loggerAndCounter.getKey());
                 long v = levelAndCnt.getValue();
-                CounterWithSum counter = story.get(key);
+                CounterWithSum counter = loggerEventHistory.get(key);
                 if (counter == null) {
-                    story.put(key, new CounterWithSum(v, repeatCount));
+                    loggerEventHistory.put(key, new CounterWithSum(v, repeatCount));
                 } else {
                     counter.add(v);
                     counter.setZeroRepeats(repeatCount);
@@ -80,13 +80,12 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         long time = System.currentTimeMillis();
 
         // compose & clean
-        for (Iterator<Map.Entry<Key<String>, CounterWithSum>> iterator = story.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<Key<String>, CounterWithSum> entry = iterator.next();
+        for (Map.Entry<LoggerAndLevel<String>, CounterWithSum> entry : loggerEventHistory.entrySet()) {
             CounterWithSum counter = entry.getValue();
             if (counter.getZeroRepeats() < 0) {
                 // iterator.remove(); //#2132 counter should not reset log_event_counter to 0 after repeatCount
             } else {
-                Key<String> key = entry.getKey();
+                LoggerAndLevel<String> key = entry.getKey();
                 String level = key.getLevel();
                 long value = counter.getValue();
                 counter.clean();
@@ -133,7 +132,6 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         while ((wrapper = singles.poll()) != null) {
             writeSingle(writer, wrapper);
         }
-        singles.clearCount();
     }
 
     private void writeSingle(WritableByteChannel writer, EventWrapper<LogEvent> wrapper) {
@@ -213,10 +211,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         }
 
         Level curLevel = Level.TRACE;
-        Level[] levels = new Level[]{
-                Level.FATAL, Level.ERROR,
-                Level.WARN, Level.INFO,
-                Level.DEBUG, Level.TRACE};
+        Level[] levels = {Level.FATAL, Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE};
 
         for (Level l : levels) {
             if (l.intLevel() == level) {

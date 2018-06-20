@@ -26,9 +26,15 @@ import java.nio.channels.UnresolvedAddressException;
  * A client to a ATSD server via UDP.
  */
 public class UdpAtsdWriter extends AbstractAtsdWriter {
-    private DatagramChannel datagramChannel = null;
+    private DatagramChannel datagramChannel;
 
-    public UdpAtsdWriter() {
+    public UdpAtsdWriter(String host, int port) {
+        super(host, port);
+    }
+
+    @Override
+    protected int getDefaultPort() {
+        return 8082;
     }
 
     public void connect() throws IllegalStateException, IOException {
@@ -39,7 +45,7 @@ public class UdpAtsdWriter extends AbstractAtsdWriter {
         if (datagramChannel != null) {
             datagramChannel.close();
         }
-
+        AtsdUtil.logInfo("Connecting to: " + getAddress());
         datagramChannel = DatagramChannel.open();
     }
 

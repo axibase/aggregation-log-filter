@@ -130,7 +130,7 @@ public class AtsdUtil {
             }
             return hostName;
         } catch (UnknownHostException e) {
-            AtsdUtil.logInfo("Could not resolve hostname. " + e.getMessage());
+            logInfo("Could not resolve hostname. " + e.getMessage());
             return DEFAULT_ENTITY;
         } catch (IOException e) {
             e.printStackTrace();

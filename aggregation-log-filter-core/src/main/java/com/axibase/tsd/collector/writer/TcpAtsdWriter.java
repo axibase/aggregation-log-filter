@@ -32,11 +32,16 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
     private DataOutputStream dOut;
     private WritableByteChannel channel;
 
-
-    public TcpAtsdWriter() {
+    public TcpAtsdWriter(String host, int port) {
+        super(host, port);
     }
 
-    public void connect() throws IllegalStateException, IOException {
+    @Override
+    protected int getDefaultPort() {
+        return 8081;
+    }
+
+    private void connect() throws IllegalStateException, IOException {
         if (isConnected()) {
             final String msg = "Already connected";
             AtsdUtil.logInfo(msg);
@@ -55,7 +60,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
 
     }
 
-    public boolean isConnected() {
+    private boolean isConnected() {
         return client != null
                 && client.isConnected()
                 && !client.isClosed();
