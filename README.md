@@ -135,7 +135,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 
 Add the Maven dependency to one of supported logging adapters: `logback`, `log4j`, or `log4j2`.
 
-Dependency to the aggregator core will be imported automatically:
+Dependency to the aggregator core is imported automatically:
 
 ```xml
 <dependency>
@@ -289,7 +289,7 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 | `level` | no | TRACE | Minimum level for processed events. |
 | `intervalSeconds` | no | 60 | Interval in seconds for sending collected counters. |
 | `sendMessage` | no | - | See the [`sendMessage`](#sendmessage) config, MULTIPLE. |
-| `pattern` | no | `%m` | Pattern to format logging events sent to the database. <br>The pattern should not include fields that are already included as tags such as logger name, level, etc. |
+| `pattern` | no | `%m` | Pattern to format logging events sent to the database. <br>The pattern cannot include fields that are already included as tags such as logger name, level, etc. |
 | `sendLoggerCounter` | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
 | `mdcTags` | no | - | User-defined tags to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
 | `debug` | no | false | Enable logging to stdout debug information, see [**Troubleshooting**](#troubleshooting). |
@@ -344,7 +344,7 @@ Same settings as [HTTP](#http) scheme.
 
 ## sendMessage
 
-Configures which log events should be sent to the database.
+Configures which log events are sent to the database.
 
 ```xml
 <sendMessage>
@@ -365,7 +365,7 @@ Configures which log events should be sent to the database.
 
 ### Location Fields
 
-If the appender pattern contains location fields, such as `%L` (line) and `%M` (method), these fields will be added to messages as tags.
+If the appender pattern contains location fields, such as `%L` (line) and `%M` (method), these fields are added to messages as tags.
 
 ```xml
         <layout class="org.apache.log4j.PatternLayout">
