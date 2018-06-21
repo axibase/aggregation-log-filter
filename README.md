@@ -2,13 +2,13 @@
 
 ## Overview
 
-The aggregation logger plugs into a log appender and tracks the total number of log events raised by a Java application with breakdown by level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL.
+The aggregation logger plugs into a log appender and tracks the total number of log events raised by a Java application with breakdown by level: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`.
 
-The counters are sent via the TCP/UDP/HTTP(s) protocol to a time series database every 60 seconds for alerting and long-term retention.
+The counters are sent via the TCP/UDP/HTTP/HTTPS protocol to a time series database every 60 seconds for alerting and long-term retention.
 
 Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
-The logger consists of the core library and adapters for **Logback**, **Log4j**, and **Log4j2** logging frameworks.
+The logger consists of the core library and adapters for **`Logback`**, **`Log4j`**, and **`Log4j2`** logging frameworks.
 
 ## Reference
 
@@ -44,13 +44,13 @@ Counter values are continuously incremented to protect against accidental data l
 
 The logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
 
-* INFO.  Multiplier 5. Events sent: 1, 5, 25, 125, ..., 5^(n-1)
-* WARN.  Multiplier 3. Events sent: 1, 3, 9, 27, ..., 3^(n-1)
-* ERROR. Multiplier 2. Events sent: 1, 2, 4, 8, ..., 2^(n-1)
+* `INFO.  Multiplier 5. Events sent: 1, 5, 25, 125, ..., 5^(n-1)`
+* `WARN.  Multiplier 3. Events sent: 1, 3, 9, 27, ..., 3^(n-1)`
+* `ERROR. Multiplier 2. Events sent: 1, 2, 4, 8, ..., 2^(n-1)`
 
-> ERROR events that inherit from `java.lang.Error` are sent to the database instantly, regardless of the event index.
+> `ERROR` events that inherit from `java.lang.Error` are sent to the database instantly, regardless of the event index.
 
-The aggregation logger sends only a small subset of events to the database and, as such, is not a replacement for specialized log search tools. Instead, it attempts to strike a balance between the volume of collected data and response time.
+The aggregation logger sends only a small subset of events to the database and is not a replacement for specialized log search tools. Instead, logger attempts to strike a balance between the volume of collected data and response time.
 
 ### Properties
 
@@ -58,22 +58,22 @@ The following `java.log_aggregator.*` properties are stored by logger:
 
 | **Type** | **Description** |
 |:---|:---|
-|environment|Current system environment.|
-|runtime|Current system properties.|
-|settings|Aggregation logger [settings](#configuration-settings).|
-|operating_system|General information about the operating system.|
+|`environment`|Current system environment.|
+|`runtime`|Current system properties.|
+|`settings`|Aggregation logger [settings](#configuration-settings).|
+|`operating_system`|General information about the operating system.|
 
 ## Heartbeat
 
 Since counters are flushed to the database every 60 seconds, the incoming event stream can be used for heartbeat monitoring as an early warning of network outages, garbage collection freezes, and application crashes.
 
-![](log_writer_heartbeat.png)
+![](./log_writer_heartbeat.png)
 
-[Heartbeat rule in XML](rule_java_log_writer_heartbeat_stopped.xml)
+[Heartbeat rule in XML](./rule_java_log_writer_heartbeat_stopped.xml)
 
 ## Sample Portal
 
-![Log Counter Portal](log_errors_sm.png)
+![Log Counter Portal](./log_errors_sm.png)
 
 ## Live Examples
 
@@ -82,24 +82,24 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 
 ## Requirements
 
-* Java 1.7 and later
+* Java `1.7` and later
 
 ## Supported Logging Frameworks
 
-* [Logback](http://logback.qos.ch/documentation.html) 0.9.21+, 1.0.x, 1.1.x (slf4j 1.6.0+) - [aggregation-log-filter-logback](https://github.com/axibase/aggregation-log-filter-logback).
-* [Log4j](http://logging.apache.org/log4j/1.2/) 1.2.13+ - [aggregation-log-filter-log4j](https://github.com/axibase/aggregation-log-filter-log4j).
-* [Log4j2](https://logging.apache.org/log4j/2.x/) 2.5+ - [aggregation-log-filter-log4j2](https://github.com/axibase/aggregation-log-filter-log4j2).
+* [`Logback`](http://logback.qos.ch/documentation.html) `0.9.21+`, `1.0.x`, `1.1.x` (`slf4j 1.6.0+`) - [`aggregation-log-filter-logback`](https://github.com/axibase/aggregation-log-filter-logback).
+* [`Log4j`](http://logging.apache.org/log4j) `1.2.13+` - [`aggregation-log-filter-log4j`](https://github.com/axibase/aggregation-log-filter-log4j).
+* [`Log4j2`](http://logging.apache.org/log4j/2.0/) `2.q5+` - [`aggregation-log-filter-log4j2`](https://github.com/axibase/aggregation-log-filter-log4j2).
 
 ## Supported Time Series Databases
 
-* [Axibase Time Series Database](https://axibase.com/products/axibase-time-series-database/)
+* [Axibase Time Series Database](https://axibase.com/docs/atsd/)
 
 ## Configuration Examples
 
-* [Logback XML](#logback-xml-configuration-example)
-* [log4j Properties](#log4j-properties-example)
-* [log4j XML](#log4j-xml-example)
-* [log4j2 XML](#log4j2-xml-example)
+* [`Logback` XML](#logback-xml-configuration-example)
+* [`log4j` Properties](#log4j-properties-example)
+* [`log4j` XML](#log4j-xml-example)
+* [`log4j2` XML](#log4j2-xml-example)
 
 ## Performance
 
@@ -118,7 +118,7 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 #log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
 
-> DONE in 5589 ms
+> `DONE in 5589 ms`
 
 #### Filter Enabled
 
@@ -127,15 +127,15 @@ log4j.appender.APPENDER.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCo
 log4j.appender.APPENDER.filter.COLLECTOR.url=tcp://localhost
 ```
 
-> DONE in 6002 ms
+> `DONE in 6002 ms`
 
 ## Installation
 
 ### Option 1: Maven
 
-Add the Maven dependency to one of supported logging adapters: logback, log4j, or log4j2.
+Add the Maven dependency to one of supported logging adapters: `logback`, `log4j`, or `log4j2`.
 
-Dependency to the aggregator core will be imported automatically:
+Dependency to the aggregator core is imported automatically:
 
 ```xml
 <dependency>
@@ -147,14 +147,14 @@ Dependency to the aggregator core will be imported automatically:
 
 ### Option 2: Classpath
 
-Add core and adapter libraries to classpath:
+Add core and adapter libraries to `classpath`:
 
-* Download `aggregation-log-filter-2.x.y.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
-* Download `aggregation-log-filter-{adapter}-2.x.y.jar` from Maven Central
-  * [logback](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-  * [log4j](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
-  * [log4j2](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
-* Add jar files to classpath, replace `x`, `y` with appropriate version:
+* Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+* Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
+  * [`logback`](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+  * [`log4j`](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
+  * [`log4j2`](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
+* Add `.jar` files to `classpath`, replace `x` with appropriate version:
 
 ```sh
 java -classpath lib/app.jar:lib/aggregation-log-filter-2.x.y.jar:lib/aggregation-log-filter-{adapter}-2.x.y.jar Main
@@ -162,7 +162,7 @@ java -classpath lib/app.jar:lib/aggregation-log-filter-2.x.y.jar:lib/aggregation
 
 ### Option 3: lib directory
 
-Copy core and adapter libraries to the application lib directory.
+Copy core and adapter libraries to the application `/lib` directory.
 
 Apache ActiveMQ example:
 
@@ -199,7 +199,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 </configuration>
 ```
 
-* [View logback.xml example with RollingFileAppender.](https://github.com/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml)
+* [View `logback.xml` example with `RollingFileAppender`](https://github.com/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml).
 
 ## Log4j Properties Example
 
@@ -209,7 +209,7 @@ log4j.appender.logfile.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCol
 log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 ```
 
-* [View log4j.properties example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties)
+* [View `log4j.properties` example](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties).
 
 ## Log4j XML Example
 
@@ -224,7 +224,7 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
     </appender>
 ```
 
-* [View complete log4j.xml example.](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml)
+* [View complete `log4j.xml` example](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml).
 
 ## Log4j2 XML Example
 
@@ -283,17 +283,17 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| url | yes | - | Database address specified with URI syntax: ```scheme:[//[user:password@]host[:port]]```.<br>Supported schemes: [tcp](#tcp), [udp](#udp), [http](#http), [https](#https). |
-| entity | no | machine hostname | Entity name for series and messages, usually the hostname of the machine where the application is running. |
-| tag | no | - | User-defined tag(s) to be included in series and message commands, MULTIPLE. |
-| level | no | TRACE | Minimum level for processed events. |
-| intervalSeconds | no | 60 | Interval in seconds for sending collected counters. |
-| sendMessage | no | - | See the [`sendMessage`](#sendmessage) config, MULTIPLE. |
-| pattern | no | %m | Pattern to format logging events sent to the database. <br>The pattern should not include fields that are already included as tags such as logger name, level, etc. |
-| sendLoggerCounter | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
-| mdcTags | no | - | User-defined tag(s) to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
-| debug | no | false | Enable logging to stdout debug information, see [`Troubleshooting`](#troubleshooting). |
-| messageLength | no | -1 | Allow to control event message size, default value to show the whole message |
+| `url` | yes | - | Database address specified with URI syntax: `scheme:[//[user:password@]host[:port]]`.<br>Supported schemes: [TCP](#tcp), [UDP](#udp), [HTTP](#http), [HTTPS](#https). |
+| `entity` | no | machine hostname | Entity name for series and messages, usually the hostname of the machine where the application is running. |
+| `tag` | no | - | User-defined tags to be included in series and message commands, MULTIPLE. |
+| `level` | no | TRACE | Minimum level for processed events. |
+| `intervalSeconds` | no | 60 | Interval in seconds for sending collected counters. |
+| `sendMessage` | no | - | See the [`sendMessage`](#sendmessage) config, MULTIPLE. |
+| `pattern` | no | `%m` | Pattern to format logging events sent to the database. <br>The pattern cannot include fields that are already included as tags such as logger name, level, etc. |
+| `sendLoggerCounter` | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
+| `mdcTags` | no | - | User-defined tags to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
+| `debug` | no | false | Enable logging to `stdout` debug information, see [**Troubleshooting**](#troubleshooting). |
+| `messageLength` | no | `-1` | Allow to control event message size, default value to show the whole message |
 
 ## Database Address
 
@@ -307,8 +307,8 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| host | yes | - | database hostname or IP address, string |
-| port | no | 8081 | database TCP port, integer |
+| `host` | yes | - | database hostname or IP address, string |
+| `port` | no | `8081` | database TCP port, integer |
 
 ### UDP
 
@@ -318,8 +318,8 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| host | yes | - | database hostname or IP address, string |
-| port | no | 8082 | database UDP port, integer |
+| `host` | yes | - | database hostname or IP address, string |
+| `port` | no | `8082` | database UDP port, integer |
 
 ### HTTP
 
@@ -329,10 +329,10 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 
 | Name | Required | Default | Description |
 |---|---|---|---|
-| username | yes | - | username, string |
-| password | yes | - | password, string |
-| host | yes | - | database hostname or IP address, string |
-| port | no | 80/443 | database HTTP/s port, integer<br>Note that ATSD is listening on ports 8088/http and 8443/https by default. |
+| `username` | yes | - | username, string |
+| `password` | yes | - | password, string |
+| `host` | yes | - | database hostname or IP address, string |
+| `port` | no | `80/443` | database HTTP/s port, integer<br>Note that ATSD is listening on ports `8088`/HTTP and `8443`/HTTPS by default. |
 
 ### HTTPS
 
@@ -344,7 +344,7 @@ Same settings as [HTTP](#http) scheme.
 
 ## sendMessage
 
-Configures which log events should be sent to the database.
+Configures which log events are sent to the database.
 
 ```xml
 <sendMessage>
@@ -359,13 +359,13 @@ Configures which log events should be sent to the database.
 
 | Name | Required | Default Value | Description |
 |---|---|---|---|
-| level | no | WARN | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
-| stackTraceLines | no | 0; ERROR: -1 | Number of stacktrace lines included in the message, -1 -- all lines. |
-| sendMultiplier | no | INFO-: 5; WARN: 3; ERROR: 2   | Determines index of events sent each period (10 minutes). Determined as sendMultiplier^(n-1). |
+| `level` | no | `WARN` | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
+| `stackTraceLines` | no | `0; ERROR: -1` | Number of `stacktrace` lines included in the message, `-1 -- all lines`. |
+| `sendMultiplier` | no | `INFO-: 5; WARN: 3; ERROR: 2`   | Determines index of events sent each period (10 minutes). Determined as `sendMultiplier^(n-1)`. |
 
 ### Location Fields
 
-If the appender pattern contains location fields, such as `%L` (line) and `%M` (method), these fields will be added to messages as tags.
+If the appender pattern contains location fields, such as `%L` (line) and `%M` (method), these fields are added to messages as tags.
 
 ```xml
         <layout class="org.apache.log4j.PatternLayout">
@@ -391,13 +391,13 @@ Logback: add under `<filter>`.
 <debug>true</debug>
 ```
 
-Log4j: add the JVM setting `-Dlog4j.debug` and add the `DEBUG` setting to the `log4j.properties` file.
+`Log4j`: add the JVM setting `-Dlog4j.debug` and add the `DEBUG` setting to the `log4j.properties` file.
 
 ```sh
 log4j.appender.APPENDER.filter.COLLECTOR.debug=true
 ```
 
-Log4j2: add debug under `<Collector>` and set `status="DEBUG"` under `Configuration`:
+`Log4j2`: add debug under `<Collector>` and set `status="DEBUG"` under `Configuration`:
 
 ```xml
 <Configuration status="DEBUG">
