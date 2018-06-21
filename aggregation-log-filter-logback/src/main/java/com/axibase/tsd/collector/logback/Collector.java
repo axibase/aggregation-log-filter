@@ -25,7 +25,8 @@ import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.writer.*;
+import com.axibase.tsd.collector.writer.AtsdWriterFactory;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -36,12 +37,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
-    private static Collector instance;
+    private static final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
     private LogbackWriter<E> logbackWriter;
     private Aggregator<E, String, Level> aggregator;
     private SeriesSenderConfig seriesSenderConfig;
-    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
-    private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
+    private final List<LogbackEventTrigger<E>> triggers = new ArrayList<>();
     private WritableByteChannel writer;
     /**
      * Settings from logback file.
@@ -58,15 +58,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private int messageLength = -1;
     // tags
     private final List<Tag> tags = new ArrayList<>();
-    private final List<String> mdcTags = new ArrayList<String>();
-
-    public Collector() {
-        super();
-        if (instance != null) {
-            instance.stop();
-        }
-        instance = this;
-    }
+    private final List<String> mdcTags = new ArrayList<>();
 
     @Override
     public FilterReply decide(E event) {
@@ -83,7 +75,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     @Override
     public void start() {
         super.start();
-        //context.register(this); // Issue 4066
+        context.register(this);
         initSeriesSenderConfig();
         try {
             writer = AtsdWriterFactory.getWriter(url);
@@ -108,11 +100,10 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 logbackWriter.setMessageLength(messageLength);
             }
             logbackWriter.setAtsdUrl(url);
-            if (debug != null) {
-                writer = new LoggingWrapper(writer);
-            } else {
+            if (debug == null) {
                 debug = "false";
             }
+            writer = LoggingWrapper.tryWrap(debug, writer);
 
             aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
             aggregator.setWriter(writer);
