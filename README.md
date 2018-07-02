@@ -290,9 +290,9 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 | `intervalSeconds` | no | 60 | Interval in seconds for sending collected counters. |
 | `sendMessage` | no | - | See the [`sendMessage`](#sendmessage) config, MULTIPLE. |
 | `pattern` | no | `%m` | Pattern to format logging events sent to the database. <br>The pattern cannot include fields that are already included as tags such as logger name, level, etc. |
-| `sendLoggerCounter` | no | true | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
+| `sendLoggerCounter` | no | `true` | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
 | `mdcTags` | no | - | User-defined tags to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
-| `debug` | no | false | Enable logging to `stdout` debug information, see [**Troubleshooting**](#troubleshooting). |
+| `debug` | no | `false` | Enable logging to `stdout` debug information, see [**Troubleshooting**](#troubleshooting). |
 | `messageLength` | no | `-1` | Allow to control event message size, default value to show the whole message |
 
 ## Database Address
@@ -324,7 +324,7 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 ### HTTP
 
 ```xml
-<url>http://username:password@atsd_host:http_port</url>
+<url>http://username:password@atsd_hostname:8088</url>
 ```
 
 | Name | Required | Default | Description |
@@ -337,7 +337,7 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 ### HTTPS
 
 ```xml
-<url>https://username:password@atsd_host:https_port</url>
+<url>https://username:password@atsd_hostname:8443</url>
 ```
 
 Same settings as [HTTP](#http) scheme.
