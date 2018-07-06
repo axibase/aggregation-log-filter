@@ -16,7 +16,7 @@
 package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
-
+import com.sun.management.UnixOperatingSystemMXBean;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -126,7 +126,7 @@ public class MessageHelper {
             try {
                 propBuffers.writeEnvironmentPropertyBufTo(writer);
             } catch (IOException e) {
-                AtsdUtil.logInfo("Writer failed to send java.log_aggregator.environment property");
+                AtsdUtil.logError("Writer failed to send java.log_aggregator.environment property");
             }
         }
     }
@@ -178,7 +178,7 @@ public class MessageHelper {
             try {
                 propBuffers.writeRuntimePropertyBufTo(writer);
             } catch (IOException e) {
-                AtsdUtil.logInfo("Writer failed to send java.log_aggregator.runtime property");
+                AtsdUtil.logError("Writer failed to send java.log_aggregator.runtime property");
             }
         }
     }
@@ -197,7 +197,7 @@ public class MessageHelper {
         try {
             propBuffers.writeSettingsPropertyBufTo(writer);
         } catch (IOException e) {
-            AtsdUtil.logInfo("Writer failed to send java.log_aggregator.settings property");
+            AtsdUtil.logError("Writer failed to send java.log_aggregator.settings property");
         }
     }
 
@@ -205,34 +205,30 @@ public class MessageHelper {
         StringBuilder sb = new StringBuilder(PROPERTY_COMMAND_PREFIX).append(entity);
         sb.append(" t:java.log_aggregator.operating_system");
         sb.append(COMMAND_KEY).append(AtsdUtil.sanitizeValue(command));
-
         try {
             OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
             sb.append(" v:").append("Arch=").append(AtsdUtil.sanitizeValue(osMXBean.getArch()));
             sb.append(" v:").append("AvailableProcessors=").append(AtsdUtil.sanitizeValue(osMXBean.getAvailableProcessors()));
             sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(osMXBean.getName()));
             sb.append(" v:").append("Version=").append(AtsdUtil.sanitizeValue(osMXBean.getVersion()));
-
             try {
-                if (osMXBean instanceof com.sun.management.UnixOperatingSystemMXBean) {
-                    com.sun.management.UnixOperatingSystemMXBean osMXBeanUnix = (com.sun.management.UnixOperatingSystemMXBean) osMXBean;
+                if (osMXBean instanceof UnixOperatingSystemMXBean) {
+                    UnixOperatingSystemMXBean osMXBeanUnix = (UnixOperatingSystemMXBean) osMXBean;
                     sb.append(" v:").append("MaxFileDescriptorCount=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getMaxFileDescriptorCount()));
                     sb.append(" v:").append("TotalPhysicalMemorySize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalPhysicalMemorySize()));
                     sb.append(" v:").append("TotalSwapSpaceSize=").append(AtsdUtil.sanitizeValue(osMXBeanUnix.getTotalSwapSpaceSize()));
                 }
-            } catch (Exception e) {
+            } catch (NoClassDefFoundError e) {
                 AtsdUtil.logError("Writer failed to get operating_system properties for UnixOperatingSystem. " + e.getMessage());
             }
-
             sb.append("\n");
             propBuffers.initOsPropertyBuf(sb);
             try {
                 propBuffers.writeOsPropertyBufTo(writer);
             } catch (IOException e) {
-                AtsdUtil.logInfo("Writer failed to send java.log_aggregator.operating_system property");
+                AtsdUtil.logError("Writer failed to send java.log_aggregator.operating_system property");
             }
-
-        } catch (Exception e) {
+        } catch (NoClassDefFoundError e) {
             AtsdUtil.logError("Writer failed to get general operating system properties. Skip operating system property sending. " + e.getMessage());
         }
     }
@@ -327,7 +323,7 @@ public class MessageHelper {
                     propBuffers.writeAllTo(writer);
                 }
             } catch (IOException e) {
-                AtsdUtil.logInfo("Writer failed to send java.log_aggregator property command");
+                AtsdUtil.logError("Writer failed to send java.log_aggregator property command");
             }
         }
     }

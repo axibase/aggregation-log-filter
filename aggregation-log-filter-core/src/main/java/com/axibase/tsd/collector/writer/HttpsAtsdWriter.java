@@ -16,19 +16,29 @@
 package com.axibase.tsd.collector.writer;
 
 import com.axibase.tsd.collector.AtsdUtil;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
 public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
+
     private HttpsURLConnection connection;
     private OutputStream outputStream;
+    private String ignoreSslErrors;
 
-    public HttpsAtsdWriter(URI uri) {
+
+    public HttpsAtsdWriter(URI uri, String ignoreSslErrors) {
         super(uri);
+        this.ignoreSslErrors = ignoreSslErrors;
+        AtsdUtil.logInfo("Ignore SSL Errors: " + ignoreSslErrors);
     }
 
     @Override
@@ -44,17 +54,17 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
     private void init() throws IOException {
         connection = null;
         outputStream = null;
-
         try {
+            if (StringUtils.equalsIgnoreCase(ignoreSslErrors, "true")) {
+                disableSSLCertificateChecks();
+            }
             connection = (HttpsURLConnection) uri.toURL().openConnection();
             initConnection(connection);
             connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
             connection.setUseCaches(false);
-
             outputStream = connection.getOutputStream();
-
-        } catch (Throwable e) {
-            AtsdUtil.logInfo("Could not write messages. " + e.getMessage());
+        } catch (IOException e) {
+            AtsdUtil.logError("Could not init HTTPS writer", e);
             close();
         }
     }
@@ -80,7 +90,6 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
             if (code != HttpsURLConnection.HTTP_OK) {
                 throw new IOException("Illegal response code: " + code);
             }
-
             try {
                 connection.disconnect();
             } catch (Exception e) {
@@ -98,5 +107,38 @@ public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
         }
         init();
         return responseCode;
+    }
+
+    private void disableSSLCertificateChecks() {
+
+        TrustManager[] trustAllCerts = {new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            @Override
+            public void checkClientTrusted(X509Certificate[] arg0, String arg1) {
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] arg0, String arg1) {
+            }
+        }};
+
+        try {
+            SSLContext context = SSLContext.getInstance("SSL");
+            context.init(null, trustAllCerts, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+
+            HostnameVerifier allHostsValid = new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            };
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+            AtsdUtil.logError("Cannot create SSL context.");
+        }
     }
 }

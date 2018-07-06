@@ -28,7 +28,6 @@ import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
 import com.axibase.tsd.collector.writer.LoggingWrapper;
 import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.slf4j.MDC;
-
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
@@ -95,8 +94,8 @@ public class LogbackWriter<E extends ILoggingEvent>
                         String levelString = level.toString();
                         messageHelper.writeCounter(writer, key, levelString, counter.getSum());
                     }
-                } catch (Throwable e) {
-                    addError("Could not write series " + atsdUrl);
+                } catch (Exception e) {
+                    AtsdUtil.logError("Could not write log_event_counter series " + atsdUrl + " - " + e.getMessage());
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -121,8 +120,8 @@ public class LogbackWriter<E extends ILoggingEvent>
                 counterWithSum.clean();
                 // write total sum
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, levelString);
-            } catch (Throwable e) {
-                addError("Could not write series " + atsdUrl);
+            } catch (Exception e) {
+                AtsdUtil.logError("Could not write log_event_total_counter series " + atsdUrl + " - " + e.getMessage());
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -163,7 +162,7 @@ public class LogbackWriter<E extends ILoggingEvent>
             }
             writeMessage(writer, event, sb, message, wrapper.getContext());
         } catch (IOException e) {
-            addError("Could not write message " + atsdUrl);
+            AtsdUtil.logError("Could not write message " + atsdUrl);
         }
     }
 
@@ -201,7 +200,10 @@ public class LogbackWriter<E extends ILoggingEvent>
     }
 
     @Override
-    public void start(WritableByteChannel writer, int level, int intervalSeconds, Map<String, String> stringSettings) {
+    public void start(WritableByteChannel writer,
+                      int level,
+                      int intervalSeconds,
+                      Map<String, String> stringSettings) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
@@ -252,8 +254,8 @@ public class LogbackWriter<E extends ILoggingEvent>
                     addInfo("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (IOException e) {
-                addInfo("Aggregation log filter: failed to connect to ATSD. " + e);
-                addError("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                AtsdUtil.logError("Aggregation log filter: failed to connect to ATSD. " + e);
+                AtsdUtil.logError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
 

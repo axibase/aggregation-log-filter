@@ -1,8 +1,8 @@
 package com.axibase.tsd.collector.writer;
 
 import org.apache.commons.lang3.StringUtils;
-
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -10,10 +10,10 @@ import java.nio.channels.WritableByteChannel;
  */
 public class AtsdWriterFactory {
 
-    public static WritableByteChannel getWriter(String url) throws Exception {
+    public static WritableByteChannel getWriter(String url, String ignoreSslErrors) throws URISyntaxException {
         URI atsdURL = new URI(url);
         String scheme = StringUtils.lowerCase(atsdURL.getScheme());
-        if (scheme == null) throw new IllegalStateException("Scheme cannot be empty.");
+        if (scheme == null) throw new IllegalStateException("Scheme cannot be empty");
         String host = atsdURL.getHost();
         int port = atsdURL.getPort();
 
@@ -26,10 +26,9 @@ public class AtsdWriterFactory {
             case "http":
                 return new HttpAtsdWriter(atsdURL);
             case "https":
-                return new HttpsAtsdWriter(atsdURL);
+                return new HttpsAtsdWriter(atsdURL, ignoreSslErrors);
             default:
-                String msg = "Unsupported scheme.";
-                throw new IllegalStateException(msg);
+                throw new IllegalStateException("Unsupported scheme");
         }
 
     }

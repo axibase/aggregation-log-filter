@@ -19,7 +19,7 @@ import com.axibase.tsd.collector.AtsdUtil;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
@@ -29,7 +29,7 @@ import java.nio.channels.WritableByteChannel;
  */
 public class TcpAtsdWriter extends AbstractAtsdWriter {
     private Socket client;
-    private DataOutputStream dOut;
+    private DataOutputStream dataOut;
     private WritableByteChannel channel;
 
     public TcpAtsdWriter(String host, int port) {
@@ -42,26 +42,20 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
     }
 
     private void connect() throws IllegalStateException, IOException {
-        if (isConnected()) {
-            final String msg = "Already connected";
-            AtsdUtil.logInfo(msg);
-            throw new IllegalStateException(msg);
-        }
-        java.net.InetSocketAddress address = getAddress();
+        InetSocketAddress address = getAddress();
         if (address.getAddress() == null) {
-            AtsdUtil.logInfo("Illegal address: " + address);
-            throw new java.net.UnknownHostException(address.getHostName());
+            AtsdUtil.logError("Illegal address: " + address);
+            throw new UnknownHostException(address.getHostName());
         }
-        AtsdUtil.logInfo("Connecting to: " + getAddress());
-        client = new Socket(address.getHostName(), address.getPort());
+        client = new Socket();
+        client.connect(address, 5000);
         client.setSoTimeout(5000);
-        dOut = new DataOutputStream(client.getOutputStream());
-        channel = Channels.newChannel(dOut);
-
+        dataOut = new DataOutputStream(client.getOutputStream());
+        channel = Channels.newChannel(dataOut);
     }
 
     private boolean isConnected() {
-        return client != null
+        return (client != null)
                 && client.isConnected()
                 && !client.isClosed();
     }
@@ -77,7 +71,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
                 cnt += channel.write(message);
             }
         } catch (IOException e) {
-            AtsdUtil.logInfo("Could not write messages", e);
+            AtsdUtil.logError("Could not write messages using TCP", e);
             close();
             throw e;
         }

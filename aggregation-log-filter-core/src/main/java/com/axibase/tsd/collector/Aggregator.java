@@ -33,7 +33,7 @@ public class Aggregator<E, K, L> {
     private final Worker worker = new Worker();
     private final ConcurrentMap<K, SyncEventCounter<E, L>> total =
             new ConcurrentHashMap<K, SyncEventCounter<E, L>>();
-    private CountedQueue<EventWrapper<E>> singles = new CountedQueue<EventWrapper<E>>();
+    private CountedQueue<EventWrapper<E>> singles = new CountedQueue<>();
     private AtomicLong totalCounter = new AtomicLong(0);
     private WritableByteChannel writer;
     private final MessageWriter<E, K, L> messageWriter;
@@ -63,7 +63,7 @@ public class Aggregator<E, K, L> {
             totalCounter.incrementAndGet();
 
             // try to send immediately instance of Error
-            if (!messageWriter.sendErrorInstance(writer,event) && (triggers != null)) {
+            if (!messageWriter.sendErrorInstance(writer, event) && (triggers != null)) {
                 int lines = 0;
                 boolean fire = false;
                 for (SendMessageTrigger<E> trigger : triggers) {
@@ -235,7 +235,6 @@ public class Aggregator<E, K, L> {
                     diff.put(key, diffCount);
                 }
             }
-
             messageWriter.writeStatMessages(writer, diff, (1 + currentTime - lastTime));
         }
 
