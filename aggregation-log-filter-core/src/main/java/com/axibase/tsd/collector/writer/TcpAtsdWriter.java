@@ -86,7 +86,7 @@ public class TcpAtsdWriter extends AbstractAtsdWriter {
     public void close() throws IOException {
         if (client != null) {
             channel.close();
-            dOut.close();
+            dataOut.close();
             client.close();
         }
     }
