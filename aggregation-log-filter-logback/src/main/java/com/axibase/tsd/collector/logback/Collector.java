@@ -24,7 +24,8 @@ import com.axibase.tsd.collector.Aggregator;
 import com.axibase.tsd.collector.AtsdUtil;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
-import com.axibase.tsd.collector.writer.*;
+import com.axibase.tsd.collector.writer.AtsdWriterFactory;
+import com.axibase.tsd.collector.writer.LoggingWrapper;
 import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -34,12 +35,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Collector<E extends ILoggingEvent> extends Filter<E> implements ContextAware {
-    private static Collector instance;
+    private static final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
     private LogbackWriter<E> logbackWriter;
     private Aggregator<E, String, Level> aggregator;
     private SeriesSenderConfig seriesSenderConfig;
-    private final String MESSAGE_WITHOUT_STACKTRACE = "%nopex";
-    private final List<LogbackEventTrigger<E>> triggers = new ArrayList<LogbackEventTrigger<E>>();
+    private final List<LogbackEventTrigger<E>> triggers = new ArrayList<>();
     private WritableByteChannel writer;
     /**
      * Settings from logback file.
@@ -57,7 +57,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private int messageLength = -1;
     // tags
     private final List<Tag> tags = new ArrayList<>();
-    private final List<String> mdcTags = new ArrayList<String>();
+    private final List<String> mdcTags = new ArrayList<>();
 
     @Override
     public FilterReply decide(E event) {
@@ -101,7 +101,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 logbackWriter.setMessageLength(messageLength);
             }
             logbackWriter.setAtsdUrl(url);
-
+          
             aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
             aggregator.setWriter(writer);
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
