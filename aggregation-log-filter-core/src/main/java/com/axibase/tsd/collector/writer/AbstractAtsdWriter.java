@@ -15,6 +15,7 @@
 
 package com.axibase.tsd.collector.writer;
 
+import com.axibase.tsd.collector.AtsdUtil;
 import java.net.InetSocketAddress;
 import java.nio.channels.WritableByteChannel;
 
@@ -27,6 +28,7 @@ public abstract class AbstractAtsdWriter implements WritableByteChannel {
         if (host == null) throw new IllegalStateException("Host can not be null.");
         this.host = host;
         this.port = (port > 0) ? port : getDefaultPort();
+        AtsdUtil.logInfo("Connecting to " + this.host + ":" + this.port);
     }
 
     public InetSocketAddress getAddress() {

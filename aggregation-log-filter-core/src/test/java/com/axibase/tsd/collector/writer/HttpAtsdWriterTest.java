@@ -33,7 +33,7 @@ public class HttpAtsdWriterTest {
             new HttpAtsdWriter(new URI("http://localhost:8088"));
             fail("IllegalStateException hasn't been thrown.");
         } catch (IllegalStateException e) {
-            assertEquals("Credentials cannot be empty.", e.getMessage());
+            assertEquals("Credentials cannot be empty", e.getMessage());
         }
     }
 

@@ -17,7 +17,6 @@ package com.axibase.tsd.collector.log4j2;
 
 import com.axibase.tsd.collector.Aggregator;
 import com.axibase.tsd.collector.AtsdUtil;
-import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
@@ -28,8 +27,6 @@ import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
-import org.apache.logging.log4j.status.StatusLogger;
-
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
@@ -52,8 +49,9 @@ public class Log4j2Collector extends AbstractFilter {
      */
     // common
     private String entity;
-    private Level level = Level.TRACE;
+    private Level level;
     private String url;
+    private String ignoreSslErrors;
     // series sender
     private Integer intervalSeconds;
     private Boolean sendLoggerCounter;
@@ -62,49 +60,15 @@ public class Log4j2Collector extends AbstractFilter {
     private String messageLength;
     // tags
     private final List<Tag> tags = new ArrayList<>();
-    private final List<String> mdcTags = new ArrayList<String>();
-
+    private final List<String> mdcTags = new ArrayList<>();
 
     public WritableByteChannel getWriterClass() {
         return writer;
     }
 
-    static {
-        AtsdUtil.setInternalLogger(new InternalLogger() {
-            @Override
-            public void error(String message, Throwable t) {
-                StatusLogger.getLogger().error(message, t);
-            }
-
-            @Override
-            public void error(String message) {
-                StatusLogger.getLogger().error(message);
-            }
-
-            @Override
-            public void warn(String message) {
-                StatusLogger.getLogger().warn(message);
-            }
-
-            @Override
-            public void info(String message) {
-                StatusLogger.getLogger().debug(message);
-            }
-
-            @Override
-            public void info(String message, Throwable t) {
-                StatusLogger.getLogger().debug(message, t);
-            }
-        });
-    }
-
-    public Log4j2Collector() {
-    }
-
-    public void init() {
-        initWriter();
+    public void init() throws Exception {
         initSeriesSenderConfig();
-
+        writer = AtsdWriterFactory.getWriter(url, ignoreSslErrors);
         messageBuilder = new Log4j2MessageWriter();
         messageBuilder.setAtsdUrl(url);
         if (entity != null) {
@@ -113,21 +77,13 @@ public class Log4j2Collector extends AbstractFilter {
         if (seriesSenderConfig != null) {
             messageBuilder.setSeriesSenderConfig(seriesSenderConfig);
         }
-        if (pattern == null) {
-            pattern = DEFAULT_PATTERN;
-        }
         messageBuilder.setPattern(pattern);
-        if (debug == null) {
-            debug = "false";
-        }
+
         for (Tag tag : tags) {
             messageBuilder.addTag(tag);
         }
         for (String mdcTag : mdcTags) {
             messageBuilder.addMdcTag(mdcTag);
-        }
-        if (messageLength == null) {
-            messageLength = DEFAULT_MESSAGE_LENGTH;
         }
         messageBuilder.setMessageLength(messageLength);
 
@@ -143,13 +99,14 @@ public class Log4j2Collector extends AbstractFilter {
         for (Log4j2EventTrigger trigger : triggers) {
             aggregator.addSendMessageTrigger(trigger);
         }
-        aggregator.start();
+
         Map<String, String> stringSettings = new HashMap<>();
         stringSettings.put("debug", debug);
         stringSettings.put("pattern", pattern);
-        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
+        stringSettings.put("scheme", StringUtils.substringBefore(url, ":"));
+        stringSettings.put("ignoreSslErrors", ignoreSslErrors);
         messageBuilder.start(writer, level.intLevel(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
-
+        aggregator.start();
     }
 
     /**
@@ -167,10 +124,11 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("url") final String url,
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
             @PluginAttribute("sendLoggerCounter") final Boolean sendLoggerCounter,
-            @PluginAttribute("pattern") final String pattern,
-            @PluginAttribute("messageLength") final String messageLength,
-            @PluginAttribute("debug") final String debug) {
-        final Level minLevel = level == null ? Level.TRACE : level;
+            @PluginAttribute(value = "pattern", defaultString = DEFAULT_PATTERN) final String pattern,
+            @PluginAttribute(value = "messageLength", defaultString = DEFAULT_MESSAGE_LENGTH) final String messageLength,
+            @PluginAttribute(value = "debug", defaultString = "false") final String debug,
+            @PluginAttribute(value = "ignoreSslErrors", defaultString = "true") final String ignoreSslErrors) {
+        final Level minLevel = (level == null) ? Level.TRACE : level;
         final Log4j2Collector collector = new Log4j2Collector();
         collector.setEntity(entity);
         collector.setTags(tags);
@@ -179,6 +137,9 @@ public class Log4j2Collector extends AbstractFilter {
         collector.setLevel(minLevel);
         collector.setUrl(url);
         collector.setMessageLength(messageLength);
+        collector.setDebug(debug);
+        collector.setPattern(pattern);
+        collector.setIgnoreSslErrors(ignoreSslErrors);
         if (intervalSeconds <= 0) {
             collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
         } else {
@@ -189,12 +150,10 @@ public class Log4j2Collector extends AbstractFilter {
         } else {
             collector.setSendLoggerCounter(sendLoggerCounter);
         }
-        collector.setPattern(pattern);
-        collector.setDebug(debug);
         try {
             collector.init();
         } catch (Exception e) {
-            AtsdUtil.logError("Could not initialize collector. " + e);
+            AtsdUtil.logError("Cannot init Log4j2Collector" + " - " + e + ".");
         }
         return collector;
     }
@@ -208,15 +167,6 @@ public class Log4j2Collector extends AbstractFilter {
             seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
         }
     }
-
-    private void initWriter() {
-        try {
-            writer = AtsdWriterFactory.getWriter(url);
-        } catch (Exception e) {
-            AtsdUtil.logError("Could not get writer class, " + e);
-        }
-    }
-
 
     public void setUrl(String atsdUrl) {
         url = atsdUrl;
@@ -300,12 +250,18 @@ public class Log4j2Collector extends AbstractFilter {
     public Result filter(LogEvent event) {
         try {
             if (event.getLevel().intLevel() <= level.intLevel()) {
-                aggregator.register(event);
+                if (aggregator != null) {
+                    aggregator.register(event);
+                }
             }
         } catch (IOException e) {
-            StatusLogger.getLogger().error("Could not write message. " + e.getMessage());
+            AtsdUtil.logError("Could not register event. " + e);
         }
         return Result.NEUTRAL;
+    }
+
+    public void setIgnoreSslErrors(String ignoreSslErrors) {
+        this.ignoreSslErrors = ignoreSslErrors;
     }
 
     @Override
@@ -324,6 +280,7 @@ public class Log4j2Collector extends AbstractFilter {
                 ", sendLoggerCounter='" + sendLoggerCounter + '\'' +
                 ", debug='" + debug + '\'' +
                 ", pattern='" + pattern + '\'' +
+                ", ignoreSslErrors='" + ignoreSslErrors + '\'' +
                 '}';
     }
 }

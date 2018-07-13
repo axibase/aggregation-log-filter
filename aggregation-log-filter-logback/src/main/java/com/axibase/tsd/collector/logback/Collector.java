@@ -50,8 +50,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     private String entity;
     private Level level = Level.TRACE;
     private String url;
+    private String ignoreSslErrors = "true";
     // series sender
-    private String debug;
+    private String debug = "false";
     private String pattern;
     private Integer intervalSeconds;
     private Boolean sendLoggerCounter;
@@ -64,10 +65,12 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
     public FilterReply decide(E event) {
         try {
             if (event.getLevel().isGreaterOrEqual(level)) {
-                aggregator.register(event);
+                if (aggregator != null) {
+                    aggregator.register(event);
+                }
             }
         } catch (IOException e) {
-            addError("Could not write message. " + e.getMessage());
+            AtsdUtil.logError("Could not register event. " + e);
         }
         return FilterReply.NEUTRAL;
     }
@@ -78,12 +81,12 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
         context.register(this);
         initSeriesSenderConfig();
         try {
-            writer = AtsdWriterFactory.getWriter(url);
+            writer = AtsdWriterFactory.getWriter(url, ignoreSslErrors);
+            writer = LoggingWrapper.tryWrap(debug, writer);
             logbackWriter = new LogbackWriter<>();
             if (entity != null) {
                 logbackWriter.setEntity(entity);
             }
-
             logbackWriter.setSeriesSenderConfig(seriesSenderConfig);
             if (pattern == null) {
                 pattern = "%m";
@@ -100,30 +103,25 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 logbackWriter.setMessageLength(messageLength);
             }
             logbackWriter.setAtsdUrl(url);
-            if (debug == null) {
-                debug = "false";
-            }
-            writer = LoggingWrapper.tryWrap(debug, writer);
 
             aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
             aggregator.setWriter(writer);
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
-
             aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.ERROR));
             aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.WARN));
             aggregator.addSendMessageTrigger(new LogbackEventTrigger<E>(Level.INFO));
-
             for (LogbackEventTrigger<E> trigger : triggers) {
                 aggregator.addSendMessageTrigger(trigger);
             }
-            aggregator.start();
             Map<String, String> stringSettings = new HashMap<>();
             stringSettings.put("debug", debug);
+            stringSettings.put("ignoreSslErrors", ignoreSslErrors);
             stringSettings.put("pattern", pattern);
             stringSettings.put("scheme", StringUtils.substringBefore(url, ":"));
             logbackWriter.start(writer, level.levelInt, (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
+            aggregator.start();
         } catch (Exception e) {
-            AtsdUtil.logError("Writer is not initialized - " + e);
+            AtsdUtil.logError("Cannot start " + getClass().getSimpleName() + " - " + e + ".");
         }
     }
 
@@ -139,32 +137,6 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     @Override
     public void stop() {
-        AtsdUtil.setInternalLogger(new InternalLogger() {
-            @Override
-            public void error(String message, Throwable exception) {
-                addError(message, exception);
-            }
-
-            @Override
-            public void error(String message) {
-                addError(message);
-            }
-
-            @Override
-            public void warn(String message) {
-                addWarn(message);
-            }
-
-            @Override
-            public void info(String message) {
-                addInfo(message);
-            }
-
-            @Override
-            public void info(String message, Throwable exception) {
-                addInfo(message, exception);
-            }
-        });
         super.stop();
         if (writer != null) {
             aggregator.stop();
@@ -214,5 +186,9 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
 
     public void setMessageLength(int messageLength) {
         this.messageLength = messageLength;
+    }
+
+    public void setIgnoreSslErrors(String ignoreSslErrors) {
+        this.ignoreSslErrors = ignoreSslErrors;
     }
 }

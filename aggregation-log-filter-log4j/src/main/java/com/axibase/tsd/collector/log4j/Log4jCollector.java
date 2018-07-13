@@ -17,7 +17,6 @@ package com.axibase.tsd.collector.log4j;
 
 import com.axibase.tsd.collector.Aggregator;
 import com.axibase.tsd.collector.AtsdUtil;
-import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.*;
@@ -47,99 +46,86 @@ public class Log4jCollector extends Filter {
     private String entity;
     private Level level = Level.TRACE;
     private String url;
+    private String ignoreSslErrors = "true";
     // series sender
     private Integer intervalSeconds;
     private Boolean sendLoggerCounter;
-    private String debug;
+    private String debug = "false";
     private String pattern;
     private int messageLength = -1;
     // tags
-    private final List<Tag> tags = new ArrayList<Tag>();
-    private final List<String> mdcTags = new ArrayList<String>();
+    private final List<Tag> tags = new ArrayList<>();
+    private final List<String> mdcTags = new ArrayList<>();
 
     public WritableByteChannel getWriterClass() {
         return writer;
     }
 
-    static {
-        AtsdUtil.setInternalLogger(new InternalLogger() {
-            @Override
-            public void error(String message, Throwable t) {
-                LogLog.error(message, t);
+    @Override
+    public int decide(LoggingEvent event) {
+        try {
+            if (event.getLevel().isGreaterOrEqual(level)) {
+                if (aggregator != null) {
+                    aggregator.register(event);
+                }
             }
-
-            @Override
-            public void error(String message) {
-                LogLog.error(message);
-            }
-
-            @Override
-            public void warn(String message) {
-                LogLog.warn(message);
-            }
-
-            @Override
-            public void info(String message) {
-                LogLog.debug(message);
-            }
-
-            @Override
-            public void info(String message, Throwable t) {
-                LogLog.debug(message, t);
-            }
-        });
+        } catch (IOException e) {
+            AtsdUtil.logError("Could not register event. " + e);
+        }
+        return NEUTRAL;
     }
 
     @Override
     public void activateOptions() {
         super.activateOptions();
-        initWriter();
         initSeriesSenderConfig();
+        try {
+            writer = AtsdWriterFactory.getWriter(url, ignoreSslErrors);
+            writer = LoggingWrapper.tryWrap(debug, writer);
+            log4jMessageWriter = new Log4jMessageWriter();
+            log4jMessageWriter.setAtsdUrl(url);
+            if (entity != null) {
+                log4jMessageWriter.setEntity(entity);
+            }
+            if (seriesSenderConfig != null) {
+                log4jMessageWriter.setSeriesSenderConfig(seriesSenderConfig);
+            }
+            if (pattern == null) {
+                pattern = "%m";
+            }
+            log4jMessageWriter.setPattern(pattern);
+            for (Tag tag : tags) {
+                log4jMessageWriter.addTag(tag);
+            }
+            for (String mdcTag : mdcTags) {
+                log4jMessageWriter.addMdcTag(mdcTag);
+            }
+            if (messageLength >= 0) {
+                log4jMessageWriter.setMessageLength(messageLength);
+            }
 
-        log4jMessageWriter = new Log4jMessageWriter();
-        log4jMessageWriter.setAtsdUrl(url);
-        if (entity != null) {
-            log4jMessageWriter.setEntity(entity);
-        }
-        if (seriesSenderConfig != null) {
-            log4jMessageWriter.setSeriesSenderConfig(seriesSenderConfig);
-        }
-        if (pattern == null) {
-            pattern = "%m";
-        }
-        log4jMessageWriter.setPattern(pattern);
-        if (debug == null) {
-            debug = "false";
-        }
-        for (Tag tag : tags) {
-            log4jMessageWriter.addTag(tag);
-        }
-        for (String mdcTag : mdcTags) {
-            log4jMessageWriter.addMdcTag(mdcTag);
-        }
-        if (messageLength >= 0) {
-            log4jMessageWriter.setMessageLength(messageLength);
-        }
+            aggregator = new Aggregator<>(log4jMessageWriter, new Log4jEventProcessor());
+            aggregator.setWriter(writer);
+            if (seriesSenderConfig != null) {
+                aggregator.setSeriesSenderConfig(seriesSenderConfig);
+            }
 
-        aggregator = new Aggregator<>(log4jMessageWriter, new Log4jEventProcessor());
-        writer = LoggingWrapper.tryWrap(debug, writer);
-        aggregator.setWriter(writer);
-        if (seriesSenderConfig != null) {
-            aggregator.setSeriesSenderConfig(seriesSenderConfig);
+            aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.ERROR));
+            aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.WARN));
+            aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.INFO));
+            for (Log4jEventTrigger trigger : triggers) {
+                aggregator.addSendMessageTrigger(trigger);
+            }
+            Map<String, String> stringSettings = new HashMap<>();
+            stringSettings.put("debug", debug);
+            stringSettings.put("pattern", pattern);
+            stringSettings.put("scheme", StringUtils.substringBefore(url, ":"));
+            stringSettings.put("ignoreSslErrors", ignoreSslErrors);
+            log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
+            aggregator.start();
+        } catch (Exception e) {
+            AtsdUtil.logError("Cannot activate " + getClass().getSimpleName() + " - " + e + ".");
         }
-
-        aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.ERROR));
-        aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.WARN));
-        aggregator.addSendMessageTrigger(new Log4jEventTrigger(Level.INFO));
-        for (Log4jEventTrigger trigger : triggers) {
-            aggregator.addSendMessageTrigger(trigger);
-        }
-        aggregator.start();
-        Map<String, String> stringSettings = new HashMap<>();
-        stringSettings.put("debug", debug);
-        stringSettings.put("pattern", pattern);
-        stringSettings.put("scheme", StringUtils.substringBefore(url,":"));
-        log4jMessageWriter.start(writer, level.toInt(), (int) (seriesSenderConfig.getIntervalMs() / 1000), stringSettings);
     }
 
     private void initSeriesSenderConfig() {
@@ -149,14 +135,6 @@ public class Log4jCollector extends Filter {
         }
         if (sendLoggerCounter != null) {
             seriesSenderConfig.setSendLoggerCounter(sendLoggerCounter);
-        }
-    }
-
-    private void initWriter() {
-        try {
-            writer = AtsdWriterFactory.getWriter(url);
-        } catch (Exception e) {
-            AtsdUtil.logError("Could not get writer class, " + e);
         }
     }
 
@@ -238,15 +216,7 @@ public class Log4jCollector extends Filter {
         this.messageLength = messageLength;
     }
 
-    @Override
-    public int decide(LoggingEvent event) {
-        try {
-            if (event.getLevel().isGreaterOrEqual(level)) {
-                aggregator.register(event);
-            }
-        } catch (IOException e) {
-            LogLog.error("Could not write message. " + e.getMessage());
-        }
-        return NEUTRAL;
+    public void setIgnoreSslErrors(String ignoreSslErrors) {
+        this.ignoreSslErrors = ignoreSslErrors;
     }
 }

@@ -24,6 +24,7 @@ import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.apache.log4j.Level;
 import org.apache.log4j.MDC;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
@@ -88,10 +89,11 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 long value = counter.getValue();
                 counter.clean();
                 try {
-                    if (seriesSenderConfig.isSendLoggerCounter())
+                    if (seriesSenderConfig.isSendLoggerCounter()) {
                         messageHelper.writeCounter(writer, key, level, counter.getSum());
-                } catch (Throwable e) {
-                    AtsdUtil.logInfo("Could not write series " + atsdUrl + ". " + e.getMessage());
+                    }
+                } catch (Exception e) {
+                    AtsdUtil.logError("Could not write log_event_counter series " + atsdUrl + " - " + e.getMessage());
                 } finally {
                     if (value > 0) {
                         CounterWithSum total = totals.get(level);
@@ -115,8 +117,8 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                 counterWithSum.clean();
                 // write total count
                 messageHelper.writeTotalCounter(writer, time, counterWithSum, level);
-            } catch (Throwable e) {
-                AtsdUtil.logInfo("Could not write series " + atsdUrl + ". " + e.getMessage());
+            } catch (Exception e) {
+                AtsdUtil.logError("Could not write log_event_total_counter series " + atsdUrl + " - " + e.getMessage());
             } finally {
 //                entry.getValue().decrementZeroRepeats();
             }
@@ -156,7 +158,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             }
             writeMessage(writer, event, sb, message, wrapper.getContext());
         } catch (Exception e) {
-            AtsdUtil.logInfo("Could not write message " + atsdUrl + " " + e.getMessage());
+            AtsdUtil.logError("Could not write message " + atsdUrl + " " + e.getMessage());
         }
     }
 
@@ -193,7 +195,10 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     }
 
     @Override
-    public void start(WritableByteChannel writer, int level, int intervalSeconds, Map<String, String> stringSettings) {
+    public void start(WritableByteChannel writer,
+                      int level,
+                      int intervalSeconds,
+                      Map<String, String> stringSettings) {
         messageHelper.setSeriesSenderConfig(seriesSenderConfig);
         messageHelper.setEntity(AtsdUtil.sanitizeEntity(entity));
         messageHelper.setTags(tags);
@@ -221,7 +226,6 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
             CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
             totals.put(Level.toLevel(l).toString(), total);
         }
-        AtsdUtil.logInfo("Aggregation log filter: connecting to ATSD on " + atsdUrl);
         if (writer != null) {
             try {
                 for (int l : levels) {
@@ -236,13 +240,13 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
                     writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
                 }
                 if (writerToCheck instanceof TcpAtsdWriter)
-                    AtsdUtil.logInfo("Aggregation log filter: connected to ATSD.");
+                    AtsdUtil.logInfo("Aggregation log filter: connected to ATSD");
                 else if (writerToCheck instanceof BaseHttpAtsdWriter) {
                     AtsdUtil.logInfo("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (IOException e) {
-                AtsdUtil.logInfo("Aggregation log filter: failed to connect to ATSD.");
-                AtsdUtil.logInfo("Writer failed to send initial total counter value for " + Level.toLevel(level));
+                AtsdUtil.logError("Aggregation log filter: failed to connect to ATSD. " + e);
+                AtsdUtil.logError("Writer failed to send initial total counter value for " + Level.toLevel(level));
             }
         }
     }

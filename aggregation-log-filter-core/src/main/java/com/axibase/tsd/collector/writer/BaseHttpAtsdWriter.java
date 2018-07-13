@@ -39,9 +39,9 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
         this.uri = uri.getPath().isEmpty() ? uri.resolve("/api/v1/command") : uri;
         credentials = uri.getUserInfo();
         if (StringUtils.isNotBlank(credentials)) {
-            AtsdUtil.logInfo("Connecting to /" + uri.getHost() + ":" + uri.getPort());
+            AtsdUtil.logInfo("Connecting to " + uri.getHost() + ":" + uri.getPort());
         }else{
-            throw new IllegalStateException("Credentials cannot be empty.");
+            throw new IllegalStateException("Credentials cannot be empty");
         }
     }
 

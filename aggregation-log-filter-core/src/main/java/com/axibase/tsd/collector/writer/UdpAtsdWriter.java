@@ -41,11 +41,9 @@ public class UdpAtsdWriter extends AbstractAtsdWriter {
         if (isConnected()) {
             throw new IllegalStateException("Already connected");
         }
-
         if (datagramChannel != null) {
             datagramChannel.close();
         }
-        AtsdUtil.logInfo("Connecting to: " + getAddress());
         datagramChannel = DatagramChannel.open();
     }
 

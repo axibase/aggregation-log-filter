@@ -27,7 +27,7 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
     private HttpURLConnection connection;
     private OutputStream outputStream;
 
-    public HttpAtsdWriter(URI uri){
+    public HttpAtsdWriter(URI uri) {
         super(uri);
     }
 
@@ -44,17 +44,14 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
     private void init() throws IOException {
         connection = null;
         outputStream = null;
-
         try {
             connection = (HttpURLConnection) uri.toURL().openConnection();
             initConnection(connection);
             connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
             connection.setUseCaches(false);
-
             outputStream = connection.getOutputStream();
-
-        } catch (Throwable e) {
-            AtsdUtil.logInfo("Could not write messages. " + e);
+        } catch (IOException e) {
+            AtsdUtil.logError("Could not init HTTP writer", e);
             close();
         }
     }
@@ -80,7 +77,6 @@ public class HttpAtsdWriter extends BaseHttpAtsdWriter {
             if (code != HttpURLConnection.HTTP_OK) {
                 throw new IOException("Illegal response code: " + code);
             }
-
             try {
                 connection.disconnect();
             } catch (Exception e) {
