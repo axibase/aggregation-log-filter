@@ -67,13 +67,15 @@ The following `java.log_aggregator.*` properties are stored by logger:
 
 Since counters are flushed to the database every 60 seconds, the incoming event stream can be used for heartbeat monitoring as an early warning of network outages, garbage collection freezes, and application crashes.
 
-![](./log_writer_heartbeat.png)
+![](./readme_1.png)
+![](./readme_2.png)
+![](./readme_3.png)
 
-[Heartbeat rule in XML](./rule_java_log_writer_heartbeat_stopped.xml)
+Heartbeat rule [configuration](./rule.xml) in XML.
 
 ## Sample Portal
 
-![Log Counter Portal](./log_errors_sm.png)
+![](./readme_4.png)
 
 ## Live Examples
 
@@ -104,11 +106,11 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 ## Performance
 
 ```java
-    long start = System.currentTimeMillis();
-    for (int i = 1; i <= 1000000; i++) {
-        logger.error("msg " + new Date() + " : index=" + i);
-    }
-    long end = System.currentTimeMillis();
+long start = System.currentTimeMillis();
+for (int i = 1; i <= 1000000; i++) {
+    logger.error("msg " + new Date() + " : index=" + i);
+}
+long end = System.currentTimeMillis();
 ```
 
 ### Filter Disabled
@@ -139,9 +141,9 @@ Dependency to the aggregator core is imported automatically:
 
 ```xml
 <dependency>
-            <groupId>com.axibase</groupId>
-            <artifactId>aggregation-log-filter-{adapter}</artifactId>
-            <version>2.x.y</version>
+    <groupId>com.axibase</groupId>
+    <artifactId>aggregation-log-filter-{adapter}</artifactId>
+    <version>2.x.y</version>
 </dependency>
 ```
 
@@ -189,7 +191,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 
         <!-- attach log aggregator to 'FILE' appender -->
         <filter class="com.axibase.tsd.collector.logback.Collector">
-            <url>tcp://atsd_host:tcp_port</url>
+            <url>tcp://atsd_hostname:tcp_port</url>
         </filter>
     </appender>
 
@@ -206,7 +208,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 ```properties
 #attach log aggregator to 'logfile' appender -->
 log4j.appender.logfile.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCollector
-log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
+log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_hostname:tcp_port
 ```
 
 * [View `log4j.properties` example](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties).
@@ -214,14 +216,14 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
 ## Log4j XML Example
 
 ```xml
-    <appender name="APPENDER" class="org.apache.log4j.ConsoleAppender">
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
-        </layout>
-        <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
-            <param name="url" value="tcp://atsd_host:tcp_port"/>
-        </filter>
-    </appender>
+<appender name="APPENDER" class="org.apache.log4j.ConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+        <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
+    </layout>
+    <filter class="com.axibase.tsd.collector.log4j.Log4jCollector">
+        <param name="url" value="tcp://atsd_hostname:tcp_port"/>
+    </filter>
+</appender>
 ```
 
 * [View complete `log4j.xml` example](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml).
@@ -233,7 +235,7 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_host:tcp_port
     <Appenders>
         <Console name="APPENDER">
             <Filters>
-                <Collector url="tcp://atsd_host:tcp_port"/>
+                <Collector url="tcp://atsd_hostname:tcp_port"/>
             </Filters>
         </Console>
     </Appenders>
@@ -259,22 +261,22 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 ### Java Example
 
 ```java
-   #MDC.put("job_name", job.getName());
-   MDC.put("job_name", "snmp-prd-router");
-   MDC.put("task_id", "2");
+#MDC.put("job_name", job.getName());
+MDC.put("job_name", "snmp-prd-router");
+MDC.put("task_id", "2");
 ```
 
 ### Log4j
 
 ```sh
-   log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_name;task_id
+log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_name;task_id
 ```
 
 ### Logback
 
 ```xml
-   <mdcTag>job_name</mdcTag>
-   <mdcTag>task_id</mdcTag>
+<mdcTag>job_name</mdcTag>
+<mdcTag>task_id</mdcTag>
 ```
 
 * See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
@@ -293,7 +295,8 @@ message e:spbswgvml008 t:command=AxibaseCollector t:type=logger m:"Fetching erro
 | `sendLoggerCounter` | no | `true` | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
 | `mdcTags` | no | - | User-defined tags to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
 | `debug` | no | `false` | Enable logging to `stdout` debug information, see [**Troubleshooting**](#troubleshooting). |
-| `messageLength` | no | `-1` | Allow to control event message size, default value to show the whole message |
+| `messageLength` | no | `-1` | Allow to control event message size, default value to show the whole message. |
+| `ignoreSslErrors` | no | `true` | Ignore errors if the SSL certificated presented by the endpoint is self-signed, expired, or otherwise invalid. |
 
 ## Database Address
 
@@ -302,7 +305,7 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 ### TCP
 
 ```xml
-<url>tcp://atsd_host:tcp_port</url>
+<url>tcp://atsd_hostname:tcp_port</url>
 ```
 
 | Name | Required | Default | Description |
@@ -313,7 +316,7 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 ### UDP
 
 ```xml
-<url>udp://atsd_host:udp_port</url>
+<url>udp://atsd_hostname:udp_port</url>
 ```
 
 | Name | Required | Default | Description |
@@ -332,7 +335,7 @@ Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to 
 | `username` | yes | - | username, string |
 | `password` | yes | - | password, string |
 | `host` | yes | - | database hostname or IP address, string |
-| `port` | no | `80/443` | database HTTP/s port, integer<br>Note that ATSD is listening on ports `8088`/HTTP and `8443`/HTTPS by default. |
+| `port` | no | `80/443` | database HTTP/HTTPS port, integer<br>Note that ATSD is listening on ports `8088`/HTTP and `8443`/HTTPS by default. |
 
 ### HTTPS
 
@@ -361,16 +364,16 @@ Configures which log events are sent to the database.
 |---|---|---|---|
 | `level` | no | `WARN` | Trace level to which this configuration applies. Note, that lower level settings do not apply to upper levels. Each level is configured separately. |
 | `stackTraceLines` | no | `0; ERROR: -1` | Number of `stacktrace` lines included in the message, `-1 -- all lines`. |
-| `sendMultiplier` | no | `INFO-: 5; WARN: 3; ERROR: 2`   | Determines index of events sent each period (10 minutes). Determined as `sendMultiplier^(n-1)`. |
+| `sendMultiplier` | no | `INFO: 5`<br>`WARN: 3`<br>`ERROR: 2`   | Determines index of events sent each period (10 minutes). Determined as `sendMultiplier^(n-1)`. |
 
 ### Location Fields
 
 If the appender pattern contains location fields, such as `%L` (line) and `%M` (method), these fields are added to messages as tags.
 
 ```xml
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n %L"/>
-        </layout>
+<layout class="org.apache.log4j.PatternLayout">
+   <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n %L"/>
+</layout>
 ```
 
 Message command example with location fields:
@@ -385,7 +388,7 @@ message e:nurswgvml007 t:command=com.axibase.tsd.Server t:type=logger m:"Initial
 
 Add the `debug = true` parameter to display logger errors and commands.
 
-Logback: add under `<filter>`.
+`Logback`: add under `<filter>`.
 
 ```xml
 <debug>true</debug>
@@ -405,7 +408,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.debug=true
         <Console name="APPENDER">
             <PatternLayout pattern="%d [%t] %-5p %c - %m%n"/>
             <Filters>
-                <Collector url="tcp://atsd_host:tcp_port" debug="true" />
+                <Collector url="tcp://atsd_hostname:tcp_port" debug="true" />
             </Filters>
         </Console>
     </Appenders>
