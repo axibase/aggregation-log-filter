@@ -27,8 +27,6 @@ import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
-import org.apache.logging.log4j.status.StatusLogger;
-
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
@@ -257,7 +255,7 @@ public class Log4j2Collector extends AbstractFilter {
                 }
             }
         } catch (IOException e) {
-            StatusLogger.getLogger().error("Could not register event. " + e);
+            AtsdUtil.logError("Could not register event. " + e);
         }
         return Result.NEUTRAL;
     }

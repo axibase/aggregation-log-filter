@@ -29,7 +29,6 @@ import org.apache.logging.log4j.core.pattern.LogEventPatternConverter;
 import org.apache.logging.log4j.core.pattern.PatternFormatter;
 import org.apache.logging.log4j.core.pattern.PatternParser;
 import org.apache.logging.log4j.*;
-import org.apache.logging.log4j.status.StatusLogger;
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
@@ -239,7 +238,6 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             CounterWithSum total = new CounterWithSum(0, seriesSenderConfig.getRepeatCount());
             totals.put(l.toString(), total);
         }
-        StatusLogger.getLogger().debug("Aggregation log filter: connecting to ATSD on " + atsdUrl);
         if (writer != null) {
             try {
                 for (Level l : levels) {
@@ -252,9 +250,9 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
                     writerToCheck = ((LoggingWrapper) writerToCheck).getWrapped();
                 }
                 if (writerToCheck instanceof TcpAtsdWriter)
-                    StatusLogger.getLogger().debug("Aggregation log filter: connected to ATSD.");
+                    AtsdUtil.logInfo("Aggregation log filter: connected to ATSD");
                 else if (writerToCheck instanceof BaseHttpAtsdWriter) {
-                    StatusLogger.getLogger().debug("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
+                    AtsdUtil.logInfo("Aggregation log filter: connected with status code " + ((BaseHttpAtsdWriter) writerToCheck).getStatusCode());
                 }
             } catch (IOException e) {
                 AtsdUtil.logError("Aggregation log filter: failed to connect to ATSD. " + e);

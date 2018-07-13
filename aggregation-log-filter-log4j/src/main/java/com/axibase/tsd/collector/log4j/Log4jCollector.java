@@ -70,7 +70,7 @@ public class Log4jCollector extends Filter {
                 }
             }
         } catch (IOException e) {
-            LogLog.error("Could not register event. " + e);
+            AtsdUtil.logError("Could not register event. " + e);
         }
         return NEUTRAL;
     }

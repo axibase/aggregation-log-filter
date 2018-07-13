@@ -22,11 +22,13 @@ import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.FilterReply;
 import com.axibase.tsd.collector.Aggregator;
 import com.axibase.tsd.collector.AtsdUtil;
+import com.axibase.tsd.collector.InternalLogger;
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.AtsdWriterFactory;
 import com.axibase.tsd.collector.writer.LoggingWrapper;
 import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
@@ -68,7 +70,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 }
             }
         } catch (IOException e) {
-            addError("Could not register event. " + e);
+            AtsdUtil.logError("Could not register event. " + e);
         }
         return FilterReply.NEUTRAL;
     }
@@ -101,7 +103,7 @@ public class Collector<E extends ILoggingEvent> extends Filter<E> implements Con
                 logbackWriter.setMessageLength(messageLength);
             }
             logbackWriter.setAtsdUrl(url);
-          
+
             aggregator = new Aggregator<>(logbackWriter, new LogbackEventProcessor<E>());
             aggregator.setWriter(writer);
             aggregator.setSeriesSenderConfig(seriesSenderConfig);
