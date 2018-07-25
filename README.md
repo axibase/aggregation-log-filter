@@ -10,6 +10,15 @@ Collecting aggregate error counts is particularly relevant for applications wher
 
 The logger consists of the core library and adapters for **`Logback`**, **`Log4j`**, and **`Log4j2`** logging frameworks.
 
+## Sample Portal
+
+![](./readme_4.png)
+
+## Live Examples
+
+* [Standalone](https://apps.axibase.com/chartlab/2f607d1b/7)
+* [Distributed](https://apps.axibase.com/chartlab/007721aa)
+
 ## Reference
 
 * [Collected Data](#collected-data)
@@ -72,15 +81,6 @@ Since counters are flushed to the database every 60 seconds, the incoming event 
 ![](./readme_3.png)
 
 Heartbeat rule [configuration](./rule.xml) in XML.
-
-## Sample Portal
-
-![](./readme_4.png)
-
-## Live Examples
-
-* [Standalone](https://apps.axibase.com/chartlab/2f607d1b/7)
-* [Distributed](https://apps.axibase.com/chartlab/007721aa)
 
 ## Requirements
 
