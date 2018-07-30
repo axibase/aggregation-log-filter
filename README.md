@@ -88,9 +88,9 @@ Heartbeat rule [configuration](./rule.xml) in XML.
 
 ## Supported Logging Frameworks
 
-* [`Logback`](http://logback.qos.ch/documentation.html) `0.9.21+`, `1.0.x`, `1.1.x` (`slf4j 1.6.0+`) - [`aggregation-log-filter-logback`](https://github.com/axibase/aggregation-log-filter-logback).
-* [`Log4j`](http://logging.apache.org/log4j) `1.2.13+` - [`aggregation-log-filter-log4j`](https://github.com/axibase/aggregation-log-filter-log4j).
-* [`Log4j2`](http://logging.apache.org/log4j/2.0/) `2.q5+` - [`aggregation-log-filter-log4j2`](https://github.com/axibase/aggregation-log-filter-log4j2).
+* [`Logback`](https://logback.qos.ch/documentation.html) `0.9.21+`, `1.0.x`, `1.1.x` (`slf4j 1.6.0+`) - [`aggregation-log-filter-logback`](https://github.com/axibase/aggregation-log-filter-logback).
+* [`Log4j`](https://logging.apache.org/log4j) `1.2.13+` - [`aggregation-log-filter-log4j`](https://github.com/axibase/aggregation-log-filter-log4j).
+* [`Log4j2`](https://logging.apache.org/log4j/2.0/) `2.q5+` - [`aggregation-log-filter-log4j2`](https://github.com/axibase/aggregation-log-filter-log4j2).
 
 ## Supported Time Series Databases
 
@@ -151,11 +151,11 @@ Dependency to the aggregator core is imported automatically:
 
 Add core and adapter libraries to `classpath`:
 
-* Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
+* Download `aggregation-log-filter-1.2.x.jar` from [Maven Central](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter%22)
 * Download `aggregation-log-filter-{adapter}-1.2.x.jar` from Maven Central
-  * [`logback`](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
-  * [`log4j`](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
-  * [`log4j2`](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
+  * [`logback`](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22)
+  * [`log4j`](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22)
+  * [`log4j2`](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22)
 * Add `.jar` files to `classpath`, replace `x` with appropriate version:
 
 ```sh
@@ -279,7 +279,7 @@ log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_name;task_id
 <mdcTag>task_id</mdcTag>
 ```
 
-* See also [Logback:Mapped Diagnostic Context](http://logback.qos.ch/manual/mdc.html)
+* See also [Logback: Mapped Diagnostic Context](https://logback.qos.ch/manual/mdc.html)
 
 ## Configuration Settings
 
