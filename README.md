@@ -88,9 +88,9 @@ Heartbeat rule [configuration](./rule.xml) in XML.
 
 ## Supported Logging Frameworks
 
-* [`Logback`](https://logback.qos.ch/documentation.html) `0.9.21+`, `1.0.x`, `1.1.x` (`slf4j 1.6.0+`) - [`aggregation-log-filter-logback`](https://github.com/axibase/aggregation-log-filter-logback).
-* [`Log4j`](https://logging.apache.org/log4j) `1.2.13+` - [`aggregation-log-filter-log4j`](https://github.com/axibase/aggregation-log-filter-log4j).
-* [`Log4j2`](https://logging.apache.org/log4j/2.0/) `2.q5+` - [`aggregation-log-filter-log4j2`](https://github.com/axibase/aggregation-log-filter-log4j2).
+* [`Logback`](https://logback.qos.ch/documentation.html) `0.9.21+`, `1.0.x`, `1.1.x` (`slf4j 1.6.0+`) - [`aggregation-log-filter-logback`](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-logback%22).
+* [`Log4j`](https://logging.apache.org/log4j) `1.2.13+` - [`aggregation-log-filter-log4j`](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j%22).
+* [`Log4j2`](https://logging.apache.org/log4j/2.0/) `2.q5+` - [`aggregation-log-filter-log4j2`](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.axibase%22%20AND%20a%3A%22aggregation-log-filter-log4j2%22).
 
 ## Supported Time Series Databases
 
@@ -201,7 +201,7 @@ wget --content-disposition -P /opt/apache-activemq-5.9.1/lib/ \
 </configuration>
 ```
 
-* [View `logback.xml` example with `RollingFileAppender`](https://github.com/axibase/aggregation-log-filter-logback/blob/master/src/test/resources/logback-atsd-example.xml).
+* [View `logback.xml` example with `RollingFileAppender`](./aggregation-log-filter-logback/src/test/resources/logback-atsd-example.xml).
 
 ## Log4j Properties Example
 
@@ -211,7 +211,7 @@ log4j.appender.logfile.filter.COLLECTOR=com.axibase.tsd.collector.log4j.Log4jCol
 log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_hostname:tcp_port
 ```
 
-* [View `log4j.properties` example](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.properties).
+* [View `log4j.properties` example](./aggregation-log-filter-log4j/src/test/resources/log4j-test.properties).
 
 ## Log4j XML Example
 
@@ -226,7 +226,7 @@ log4j.appender.logfile.filter.COLLECTOR.url=tcp://atsd_hostname:tcp_port
 </appender>
 ```
 
-* [View complete `log4j.xml` example](https://github.com/axibase/aggregation-log-filter-log4j/blob/master/src/test/resources/log4j-test.xml).
+* [View complete `log4j.xml` example](./aggregation-log-filter-log4j/src/test/resources/log4j-test.xml).
 
 ## Log4j2 XML Example
 
