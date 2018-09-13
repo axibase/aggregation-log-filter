@@ -20,93 +20,33 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.net.ssl.*;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 public class HttpsAtsdWriter extends BaseHttpAtsdWriter {
-
-    private HttpsURLConnection connection;
-    private OutputStream outputStream;
     private String ignoreSslErrors;
 
-
-    public HttpsAtsdWriter(URI uri, String ignoreSslErrors) {
+    HttpsAtsdWriter(URI uri, String ignoreSslErrors) {
         super(uri);
         this.ignoreSslErrors = ignoreSslErrors;
         AtsdUtil.logInfo("Ignore SSL Errors: " + ignoreSslErrors);
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
-        close();
-        init();
-        if (outputStream == null) {
-            throw new IOException("outputStream has not been initialized properly");
-        }
-        return writeBuffer(outputStream, src);
-    }
-
-    private void init() throws IOException {
-        connection = null;
-        outputStream = null;
+    protected void init() throws IOException {
         try {
             if (StringUtils.equalsIgnoreCase(ignoreSslErrors, "true")) {
                 disableSSLCertificateChecks();
             }
             connection = (HttpsURLConnection) uri.toURL().openConnection();
-            initConnection(connection);
-            connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
-            connection.setUseCaches(false);
-            outputStream = connection.getOutputStream();
+            initConnection();
         } catch (IOException e) {
             AtsdUtil.logError("Could not init HTTPS writer", e);
             close();
         }
-    }
-
-    @Override
-    public boolean isOpen() {
-        return outputStream != null;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (outputStream != null) {
-            outputStream.flush();
-            try {
-                outputStream.close();
-            } catch (IOException e) {
-                AtsdUtil.logInfo("Could not close output stream. " + e.getMessage());
-            }
-            outputStream = null;
-        }
-        if (connection != null) {
-            int code = connection.getResponseCode();
-            if (code != HttpsURLConnection.HTTP_OK) {
-                throw new IOException("Illegal response code: " + code);
-            }
-            try {
-                connection.disconnect();
-            } catch (Exception e) {
-                AtsdUtil.logInfo("Could not disconnect. " + e.getMessage());
-            }
-            connection = null;
-        }
-    }
-
-    @Override
-    public int getStatusCode() throws IOException {
-        int responseCode = -1;
-        if (isOpen()) {
-            responseCode = connection.getResponseCode();
-        }
-        init();
-        return responseCode;
     }
 
     private void disableSSLCertificateChecks() {

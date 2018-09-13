@@ -16,83 +16,24 @@
 package com.axibase.tsd.collector.writer;
 
 import com.axibase.tsd.collector.AtsdUtil;
-
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.nio.ByteBuffer;
 
 public class HttpAtsdWriter extends BaseHttpAtsdWriter {
-    private HttpURLConnection connection;
-    private OutputStream outputStream;
 
-    public HttpAtsdWriter(URI uri) {
+    HttpAtsdWriter(URI uri) {
         super(uri);
     }
 
     @Override
-    public int write(ByteBuffer src) throws IOException {
-        close();
-        init();
-        if (outputStream == null) {
-            throw new IOException("outputStream has not been initialized properly");
-        }
-        return writeBuffer(outputStream, src);
-    }
-
-    private void init() throws IOException {
-        connection = null;
-        outputStream = null;
+    protected void init() throws IOException{
         try {
             connection = (HttpURLConnection) uri.toURL().openConnection();
-            initConnection(connection);
-            connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
-            connection.setUseCaches(false);
-            outputStream = connection.getOutputStream();
+            initConnection();
         } catch (IOException e) {
             AtsdUtil.logError("Could not init HTTP writer", e);
             close();
         }
-    }
-
-    @Override
-    public boolean isOpen() {
-        return outputStream != null;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (outputStream != null) {
-            outputStream.flush();
-            try {
-                outputStream.close();
-            } catch (IOException e) {
-                AtsdUtil.logInfo("Could not close output stream. " + e.getMessage());
-            }
-            outputStream = null;
-        }
-        if (connection != null) {
-            int code = connection.getResponseCode();
-            if (code != HttpURLConnection.HTTP_OK) {
-                throw new IOException("Illegal response code: " + code);
-            }
-            try {
-                connection.disconnect();
-            } catch (Exception e) {
-                AtsdUtil.logInfo("Could not disconnect. " + e.getMessage());
-            }
-            connection = null;
-        }
-    }
-
-    @Override
-    public int getStatusCode() throws IOException {
-        int responseCode = -1;
-        if (isOpen()) {
-            responseCode = connection.getResponseCode();
-        }
-        init();
-        return responseCode;
     }
 }

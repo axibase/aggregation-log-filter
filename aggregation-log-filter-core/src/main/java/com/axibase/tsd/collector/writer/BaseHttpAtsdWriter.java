@@ -19,63 +19,95 @@ import com.axibase.tsd.collector.AtsdUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
-    public static final String DEFAULT_METHOD = "POST";
-    public static final int DEFAULT_CHUNK_SIZE = 1024;
+    private static final String DEFAULT_METHOD = "POST";
+    private static final int DEFAULT_CHUNK_SIZE = 1024;
     private static final int DEFAULT_TIMEOUT_MS = 5000;
-    protected String method = DEFAULT_METHOD;
+    private String method = DEFAULT_METHOD;
     protected URI uri;
     protected String credentials;
-    protected int timeout = DEFAULT_TIMEOUT_MS;
+    private int timeout = DEFAULT_TIMEOUT_MS;
+    protected HttpURLConnection connection;
+    protected OutputStream outputStream;
 
-    public BaseHttpAtsdWriter(URI uri) {
+    BaseHttpAtsdWriter(URI uri) {
         this.uri = uri.getPath().isEmpty() ? uri.resolve("/api/v1/command") : uri;
         credentials = uri.getUserInfo();
         if (StringUtils.isNotBlank(credentials)) {
             AtsdUtil.logInfo("Connecting to " + uri.getHost() + ":" + uri.getPort());
-        }else{
+        } else {
             throw new IllegalStateException("Credentials cannot be empty");
         }
     }
 
-    protected void setMethod(String method) {
-        this.method = method;
-    }
-
-    public void setTimeout(int timeout) {
+    void setTimeout(int timeout) {
         if (timeout > 0) {
             this.timeout = timeout;
         }
     }
 
-    @Override
-    public abstract int write(ByteBuffer src) throws IOException;
-
-    @Override
-    public abstract boolean isOpen();
-
-    @Override
-    public abstract void close() throws IOException;
-
-    public abstract int getStatusCode() throws IOException;
-
-    protected void initConnection(HttpURLConnection con) throws IOException {
-        con.setRequestMethod(method);
-        if (StringUtils.isNotBlank(credentials)) {
-            final String encodedAuthorization = DatatypeConverter.printBase64Binary(urlDecode(credentials).getBytes(AtsdUtil.UTF_8));
-            con.setRequestProperty("Authorization", "Basic " + encodedAuthorization);
+    public int write(ByteBuffer src) throws IOException {
+        if (!isOpen()) {
+            init();
         }
-        con.setRequestProperty("Content-Type", "text/plain; charset=\"UTF-8\"");
-        con.setConnectTimeout(timeout);
-        con.setReadTimeout(timeout);
-        con.setDoOutput(true);
+        return writeBuffer(outputStream, src);
+    }
+
+    protected abstract void init() throws IOException;
+
+    public boolean isOpen() {
+        return (outputStream != null) && (connection != null);
+    }
+
+    public void close() throws IOException {
+        if (outputStream != null) {
+            outputStream.flush();
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                AtsdUtil.logInfo("Could not close output stream. " + e.getMessage());
+            }
+            outputStream = null;
+        }
+        if (connection != null) {
+            int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Illegal response code: " + code);
+            }
+            try {
+                connection.disconnect();
+            } catch (Exception e) {
+                AtsdUtil.logInfo("Could not disconnect. " + e.getMessage());
+            }
+            connection = null;
+        }
+    }
+
+    public int getStatusCode() throws IOException {
+        int responseCode = -1;
+        if (isOpen()) {
+            responseCode = connection.getResponseCode();
+        }
+        return responseCode;
+    }
+
+
+    void initConnection() throws IOException {
+        connection.setRequestMethod(method);
+        final String encodedAuthorization = DatatypeConverter.printBase64Binary(urlDecode(credentials).getBytes(AtsdUtil.UTF_8));
+        connection.setRequestProperty("Authorization", "Basic " + encodedAuthorization);
+        connection.setRequestProperty("Content-Type", "text/plain; charset=\"UTF-8\"");
+        connection.setConnectTimeout(timeout);
+        connection.setReadTimeout(timeout);
+        connection.setDoOutput(true);
+        connection.setChunkedStreamingMode(DEFAULT_CHUNK_SIZE);
+        connection.setUseCaches(false);
+        outputStream = connection.getOutputStream();
     }
 
     private static String urlDecode(String value) {
@@ -86,10 +118,20 @@ public abstract class BaseHttpAtsdWriter implements WritableByteChannel {
         }
     }
 
-    protected static int writeBuffer(OutputStream outputStream, ByteBuffer buffer) throws IOException {
+    private int writeBuffer(OutputStream outputStream, ByteBuffer buffer) throws IOException {
         byte[] data = new byte[buffer.remaining()];
         buffer.get(data);
-        outputStream.write(data);
+//        try {
+            outputStream.write(data);
+//        } catch (IOException e) {
+//            if (e.getMessage().equals("Stream is closed")) {
+//                close();
+//                init();
+//                outputStream.write(data);
+//            } else {
+//                throw e;
+//            }
+//        }
         return data.length;
     }
 }

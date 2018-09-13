@@ -15,10 +15,7 @@
 
 package com.axibase.tsd.collector;
 
-
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
-import com.axibase.tsd.collector.writer.HttpAtsdWriter;
-
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
@@ -103,14 +100,12 @@ public class Aggregator<E, K, L> {
     }
 
     public void stop() {
-        if (worker != null) {
-            try {
-                worker.finish();
-            } catch (Exception e) {
-                AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
-            }
-            worker.stop();
+        try {
+            worker.finish();
+        } catch (Exception e) {
+            AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
         }
+        worker.stop();
         if (senderExecutor != null && !senderExecutor.isShutdown()) {
             senderExecutor.shutdown();
         }
@@ -119,9 +114,7 @@ public class Aggregator<E, K, L> {
     }
 
     private void closeWriter() {
-
         writeSingles();
-
         if (writer != null && writer.isOpen()) {
             AtsdUtil.logInfo("Close writer");
             try {
@@ -209,12 +202,7 @@ public class Aggregator<E, K, L> {
                 flush(last, currentTime);
                 lastTotalCounter = total;
             }
-
             writeSingles();
-
-            if (writer instanceof HttpAtsdWriter) {
-                writer.close();
-            }
         }
 
         protected void flush(long lastTime, long currentTime) throws IOException {
