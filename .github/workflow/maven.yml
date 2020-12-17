@@ -1,0 +1,21 @@
+name: Build Aggregation Log Filter
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        java_version: ['1.8', '11', '15']
+
+    name: Run tests under Java ${{matrix.java_version}}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: axibase/checkout@v2
+      - name: Set up JDK for Java ${{matrix.java_version}}
+        uses: axibase/setup-java@v1
+        with:
+          java-version: ${{matrix.java_version}}
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
