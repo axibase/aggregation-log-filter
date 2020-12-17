@@ -46,7 +46,9 @@ public class AtsdUtilTest {
         System.setProperties(props);
         assertFalse(AtsdUtil.filterProperties(props).containsKey("Empty"));
         assertTrue(AtsdUtil.filterProperties(props).containsKey("ATSD_HOME"));
-        assertEquals("v2", AtsdUtil.filterProperties(props).get("ATSD_HOME"));
+        if (Double.parseDouble(System.getProperty("java.specification.version")) < 9) { // Properties class implementation changed
+            assertEquals("v2", AtsdUtil.filterProperties(props).get("ATSD_HOME"));
+        }
     }
 
     @Test
