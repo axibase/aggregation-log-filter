@@ -28,10 +28,6 @@
     <artifactId>aggregation-log-filter-log4j</artifactId>
     <packaging>jar</packaging>
 
-    <prerequisites>
-        <maven>3.5.0</maven>
-    </prerequisites>
-
     <name>Aggregation Log Filter - Log4j</name>
     <description>The filter plugs into the logging pipeline and measures number of log events at each trace level. These
         counters can be used to monitor error levels for the entire application and for individual loggers. The filter

@@ -35,10 +35,6 @@
         Database to facilitate root-cause analysis.
     </description>
 
-    <prerequisites>
-        <maven>3.5.0</maven>
-    </prerequisites>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
