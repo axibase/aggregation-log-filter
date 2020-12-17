@@ -23,18 +23,19 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.String;
-import java.lang.StringBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
 public class AtsdUtil {
     public static final String EMPTY_MESSAGE = "\"\"";
+    public static final char[] ESCAPED_CHARS = " =\t".toCharArray();
     private static InternalLogger internalLogger = InternalLogger.SYSTEM;
 
     public static final String DEFAULT_ENTITY = "defaultEntity";
@@ -58,13 +59,18 @@ public class AtsdUtil {
     }
 
     public static String escapeCSV(String s) {
-        if (s == null || s.trim().length() == 0) {
+        if (s == null) {
             s = EMPTY_MESSAGE;
-        } else
-            s = StringEscapeUtils.escapeCsv(s.trim());
-        if (s.contains(" ") && !s.startsWith("\"")) {
-            StringBuilder sb = new StringBuilder("\"");
-            s = sb.append(s).append("\"").toString();
+        } else {
+            s = s.trim();
+            if (s.isEmpty()) {
+                s = EMPTY_MESSAGE;
+            } else {
+                s = StringEscapeUtils.escapeCsv(s);
+                if (s.contains(" ") && !s.startsWith("\"")) {
+                    s = "\"" + s + "\"";
+                }
+            }
         }
         return s;
     }
@@ -86,8 +92,7 @@ public class AtsdUtil {
     public static String sanitizeName(String s) {
         s = StringEscapeUtils.escapeCsv(SPACE.matcher(s.trim()).replaceAll("_"));
         if (s.contains("=") && !s.startsWith("\"")) {
-            StringBuilder sb = new StringBuilder("\"");
-            s = sb.append(s).append("\"").toString();
+            s = "\"" + s + "\"";
         }
         return s;
     }
@@ -98,22 +103,18 @@ public class AtsdUtil {
         }
         s = CRLF.matcher(s).replaceAll("\\\\n");
         s = escapeCSV(s);
-        if ((s.contains(" ") || s.contains("=") || s.contains("\t")) && !s.startsWith("\"")) {
-            StringBuilder sb = new StringBuilder("\"");
-            s = sb.append(s).append("\"").toString();
+        if (!s.startsWith("\"") && StringUtils.containsAny(s, ESCAPED_CHARS)) {
+            s = "\"" + s + "\"";
         }
-
         return s;
     }
 
     public static String sanitizeValue(int i) {
-        String s = Integer.toString(i);
-        return sanitizeValue(s.trim());
+        return sanitizeValue(Integer.toString(i));
     }
 
     public static String sanitizeValue(long l) {
-        String s = Long.toString(l);
-        return sanitizeValue(s.trim());
+        return sanitizeValue(Long.toString(l));
     }
 
     public static String sanitize(String s) {
