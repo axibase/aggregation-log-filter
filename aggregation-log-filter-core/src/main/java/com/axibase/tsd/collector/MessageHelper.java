@@ -17,6 +17,7 @@ package com.axibase.tsd.collector;
 
 import com.axibase.tsd.collector.config.SeriesSenderConfig;
 import com.sun.management.UnixOperatingSystemMXBean;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -24,7 +25,9 @@ import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 
 public class MessageHelper {
     public static final String COMMAND_TAG = "command";
@@ -144,11 +147,14 @@ public class MessageHelper {
 
         try {
             RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-            sb.append(" v:").append("getBootClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getBootClassPath()));
+            if (runtimeMXBean.isBootClassPathSupported()) {
+                sb.append(" v:").append("getBootClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getBootClassPath()));
+            }
             String name = runtimeMXBean.getName();
             sb.append(" v:").append("Name=").append(AtsdUtil.sanitizeValue(name));
-            if (name.contains("@")) {
-                sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(name.lastIndexOf('@') + 1)));
+            final int indexOfAt = name.lastIndexOf('@');
+            if (indexOfAt >= 0) {
+                sb.append(" v:").append("Hostname=").append(AtsdUtil.sanitizeValue(name.substring(indexOfAt + 1)));
             }
             sb.append(" v:").append("ClassPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getClassPath()));
             sb.append(" v:").append("LibraryPath=").append(AtsdUtil.sanitizeValue(runtimeMXBean.getLibraryPath()));
