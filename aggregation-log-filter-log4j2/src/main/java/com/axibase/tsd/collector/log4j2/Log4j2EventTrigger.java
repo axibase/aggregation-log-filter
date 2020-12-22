@@ -21,12 +21,12 @@ import org.apache.logging.log4j.core.LogEvent;
 
 public class Log4j2EventTrigger extends SendMessageTrigger<LogEvent> {
     public static final Level DEFAULT_LEVEL = Level.WARN;
-    private Level level = DEFAULT_LEVEL;
+    private Level level;
 
     private boolean definedSendMultiplier = false;
 
     public Log4j2EventTrigger() {
-        super();
+        this(DEFAULT_LEVEL);
     }
 
     public Log4j2EventTrigger(Level level) {
@@ -39,8 +39,7 @@ public class Log4j2EventTrigger extends SendMessageTrigger<LogEvent> {
         return event != null && event.getLevel().intLevel() == level.intLevel() && super.onEvent(event);
     }
 
-    @Override
-    public boolean isErrorInstance(LogEvent event) {
+    public static boolean isErrorInstance(LogEvent event) {
         return (event.getLevel().intLevel() == Level.ERROR.intLevel() && event.getThrown() instanceof Error);
     }
 

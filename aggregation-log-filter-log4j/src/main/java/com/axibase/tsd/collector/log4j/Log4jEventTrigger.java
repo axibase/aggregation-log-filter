@@ -22,12 +22,12 @@ import org.apache.log4j.spi.ThrowableInformation;
 
 public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
     public static final Level DEFAULT_LEVEL = Level.WARN;
-    private Level level = DEFAULT_LEVEL;
+    private Level level;
 
     private boolean definedSendMultiplier = false;
 
     public Log4jEventTrigger() {
-        super();
+        this(DEFAULT_LEVEL);
     }
 
     public Log4jEventTrigger(Level level) {
@@ -40,8 +40,7 @@ public class Log4jEventTrigger extends SendMessageTrigger<LoggingEvent>{
         return event != null && event.getLevel().toInt() == level.toInt() && super.onEvent(event);
     }
 
-    @Override
-    public boolean isErrorInstance(LoggingEvent event) {
+    public static boolean isErrorInstance(LoggingEvent event) {
         if (event.getLevel().toInt() == Level.ERROR.toInt()){
             ThrowableInformation throwableInformation = event.getThrowableInformation();
             return (throwableInformation != null && throwableInformation.getThrowable() instanceof Error);

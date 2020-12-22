@@ -31,18 +31,17 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class Aggregator<E, K, L> {
     private final Worker worker = new Worker();
-    private final ConcurrentMap<K, SyncEventCounter<E, L>> total =
-            new ConcurrentHashMap<K, SyncEventCounter<E, L>>();
-    private CountedQueue<EventWrapper<E>> singles = new CountedQueue<>();
-    private AtomicLong totalCounter = new AtomicLong(0);
+    private final ConcurrentMap<K, SyncEventCounter<E, L>> total = new ConcurrentHashMap<>();
+    private final CountedQueue<EventWrapper<E>> singles = new CountedQueue<>();
+    private final AtomicLong totalCounter = new AtomicLong(0);
     private WritableByteChannel writer;
     private final MessageWriter<E, K, L> messageWriter;
     private final EventProcessor<E, K, L> eventProcessor;
     private ExecutorService senderExecutor;
-    private SendMessageTrigger[] triggers = null;
+    private SendMessageTrigger<E>[] triggers = null;
     private SeriesSenderConfig seriesSenderConfig = SeriesSenderConfig.DEFAULT;
 
-    private WorkerFinisher workerFinisher = new WorkerFinisher();
+    private final WorkerFinisher workerFinisher = new WorkerFinisher();
 
     public Aggregator(MessageWriter<E, K, L> messageWriter, EventProcessor<E, K, L> eventProcessor) {
         this.messageWriter = messageWriter;
@@ -103,14 +102,12 @@ public class Aggregator<E, K, L> {
     }
 
     public void stop() {
-        if (worker != null) {
-            try {
-                worker.finish();
-            } catch (Exception e) {
-                AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
-            }
-            worker.stop();
+        try {
+            worker.finish();
+        } catch (Exception e) {
+            AtsdUtil.logInfo("Could not finish worker. " + e.getMessage());
         }
+        worker.stop();
         if (senderExecutor != null && !senderExecutor.isShutdown()) {
             senderExecutor.shutdown();
         }
@@ -148,12 +145,13 @@ public class Aggregator<E, K, L> {
         this.writer = writer;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public void addSendMessageTrigger(SendMessageTrigger<E> messageTrigger) {
         messageTrigger.init();
         if (triggers == null) {
             triggers = new SendMessageTrigger[]{messageTrigger};
         } else {
-            Map<Integer, SendMessageTrigger> triggerMap = new HashMap<Integer, SendMessageTrigger>();
+            Map<Integer, SendMessageTrigger> triggerMap = new HashMap<>();
             for (SendMessageTrigger trigger : triggers) {
                 int intLevel = trigger.getIntLevel();
                 triggerMap.put(intLevel, trigger);

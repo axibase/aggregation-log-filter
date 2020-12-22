@@ -169,8 +169,7 @@ public class LogbackWriter<E extends ILoggingEvent>
 
     @Override
     public boolean sendErrorInstance(WritableByteChannel writableByteChannel, E event) {
-        LogbackEventTrigger logbackEventTrigger = new LogbackEventTrigger();
-        if (logbackEventTrigger.isErrorInstance(event)) {
+        if (LogbackEventTrigger.isErrorInstance(event)) {
             writeSingle(writableByteChannel, createWrapper(event, Integer.MAX_VALUE));
             return true;
         }

@@ -24,7 +24,6 @@ import com.axibase.tsd.collector.writer.TcpAtsdWriter;
 import org.apache.log4j.Level;
 import org.apache.log4j.MDC;
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
@@ -163,8 +162,7 @@ public class Log4jMessageWriter implements MessageWriter<LoggingEvent, String, S
     }
 
     public boolean sendErrorInstance(WritableByteChannel writer, LoggingEvent loggingEvent) {
-        Log4jEventTrigger log4jEventTrigger = new Log4jEventTrigger(Level.ERROR);
-        if (log4jEventTrigger.isErrorInstance(loggingEvent)) {
+        if (Log4jEventTrigger.isErrorInstance(loggingEvent)) {
             writeSingle(writer, createWrapper(loggingEvent, Integer.MAX_VALUE));
             return true;
         }

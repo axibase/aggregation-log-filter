@@ -23,12 +23,12 @@ import com.axibase.tsd.collector.SendMessageTrigger;
 
 public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTrigger<E> {
     public static final Level DEFAULT_LEVEL = Level.WARN;
-    private Level level = DEFAULT_LEVEL;
+    private Level level;
 
     private boolean definedSendMultiplier = false;
 
     public LogbackEventTrigger() {
-        super();
+        this(DEFAULT_LEVEL);
     }
 
     public LogbackEventTrigger(Level level) {
@@ -46,11 +46,10 @@ public class LogbackEventTrigger<E extends ILoggingEvent> extends SendMessageTri
         return event != null && event.getLevel().levelInt == level.levelInt && super.onEvent(event);
     }
 
-    @Override
-    public boolean isErrorInstance(E event) {
+    public static boolean isErrorInstance(ILoggingEvent event) {
         if (event.getLevel().toInt() == Level.ERROR.toInt()) {
             IThrowableProxy throwableProxy = event.getThrowableProxy();
-            return (throwableProxy != null && Error.class.isInstance(((ThrowableProxy) throwableProxy).getThrowable()));
+            return (throwableProxy != null && ((ThrowableProxy) throwableProxy).getThrowable() instanceof Error);
         }
         return false;
     }
