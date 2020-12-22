@@ -21,6 +21,8 @@ import com.axibase.tsd.collector.config.Tag;
 import com.axibase.tsd.collector.writer.BaseHttpAtsdWriter;
 import com.axibase.tsd.collector.writer.LoggingWrapper;
 import com.axibase.tsd.collector.writer.TcpAtsdWriter;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.ExtendedStackTraceElement;
 import org.apache.logging.log4j.core.impl.ThrowableProxy;
@@ -28,7 +30,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.core.pattern.LogEventPatternConverter;
 import org.apache.logging.log4j.core.pattern.PatternFormatter;
 import org.apache.logging.log4j.core.pattern.PatternParser;
-import org.apache.logging.log4j.*;
+
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.*;
@@ -42,7 +44,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
     private MessageHelper messageHelper = new MessageHelper();
     private String pattern;
     private String atsdUrl;
-    private List<PatternFormatter> formatters;
+    private PatternFormatter[] formatters;
     private Set<String> mdcTags = new HashSet<>();
     private int messageLength = -1;
 
@@ -229,7 +231,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
         if (pattern != null) {
             final PatternParser patternParser = new PatternParser(null, PatternLayout.KEY,
                     LogEventPatternConverter.class);
-            formatters = patternParser.parse(pattern);
+            formatters = patternParser.parse(pattern).toArray(new PatternFormatter[0]);
         }
         for (Level l : levels) {
             if (l.intLevel() > level)
@@ -271,10 +273,10 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
 
     @Override
     public EventWrapper<LogEvent> createWrapper(LogEvent event, int lines) {
-        String message;
-        Object om = event.getMessage();
+        event = event.toImmutable();
+        final String message;
         if (formatters == null) {
-            message = (om == null ? "" : om.toString());
+            message = Objects.toString(event.getMessage(), "");
         } else {
             final StringBuilder sb = new StringBuilder();
             for (PatternFormatter formatter : formatters) {
@@ -282,7 +284,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
             }
             message = sb.toString();
         }
-        return new EventWrapper<LogEvent>(event, lines, message, ThreadContext.getContext());
+        return new EventWrapper<>(event, lines, message, ThreadContext.getContext());
     }
 
     public void addTag(Tag tag) {
