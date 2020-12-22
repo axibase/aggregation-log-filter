@@ -165,8 +165,7 @@ public class Log4j2MessageWriter implements MessageWriter<LogEvent, String, Stri
 
     @Override
     public boolean sendErrorInstance(WritableByteChannel writableByteChannel, LogEvent logEvent) {
-        Log4j2EventTrigger log4j2EventTrigger = new Log4j2EventTrigger();
-        if (log4j2EventTrigger.isErrorInstance(logEvent)) {
+        if (Log4j2EventTrigger.isErrorInstance(logEvent)) {
             writeSingle(writableByteChannel, createWrapper(logEvent, Integer.MAX_VALUE));
             return true;
         }
