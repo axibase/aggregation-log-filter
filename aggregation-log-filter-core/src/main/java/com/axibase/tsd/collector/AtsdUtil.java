@@ -98,6 +98,9 @@ public class AtsdUtil {
     }
 
     public static String sanitizeValue(String s) {
+        if (s == null) {
+            return EMPTY_MESSAGE;
+        }
         if (s.length() > TRUNCATE_SIZE) {
             s = s.substring(0, TRUNCATE_SIZE);
         }

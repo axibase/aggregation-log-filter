@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Plugin(name = "Collector", category = "Core", elementType = "filter", printObject = true)
 public class Log4j2Collector extends AbstractFilter {
@@ -262,6 +263,17 @@ public class Log4j2Collector extends AbstractFilter {
 
     public void setIgnoreSslErrors(String ignoreSslErrors) {
         this.ignoreSslErrors = ignoreSslErrors;
+    }
+
+    @Override
+    public boolean stop(long timeout, TimeUnit timeUnit) {
+        if (aggregator != null) {
+            aggregator.stop();
+        }
+        if (messageBuilder != null) {
+            messageBuilder.stop();
+        }
+        return super.stop(timeout, timeUnit);
     }
 
     @Override
