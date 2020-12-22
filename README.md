@@ -1,4 +1,5 @@
 [![Travis](https://api.travis-ci.org/axibase/aggregation-log-filter.svg)](https://travis-ci.org/axibase/aggregation-log-filter)
+[![Build](https://github.com/axibase/aggregation-log-filter/workflows/Build%20Aggregation%20Log%20Filter/badge.svg)](https://github.com/axibase/aggregation-log-filter/actions)
 [![Maven central](https://maven-badges.herokuapp.com/maven-central/com.axibase/aggregation-log-filter/badge.svg)](https://mvnrepository.com/artifact/com.axibase/aggregation-log-filter/)
 
 # Aggregation Logger
