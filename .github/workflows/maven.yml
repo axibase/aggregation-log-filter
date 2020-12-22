@@ -17,6 +17,13 @@ jobs:
 
     steps:
       - uses: axibase/checkout@v2
+      - name: Cache local Maven repository
+        uses: axibase/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - name: Set up JDK for Java ${{matrix.java_version}}
         uses: axibase/setup-java@v1
         with:
