@@ -53,10 +53,5 @@ public class SendMessageTriggerTest {
         public int getIntLevel() {
             return 0;
         }
-
-        @Override
-        public boolean isErrorInstance(String event) {
-            return false;
-        }
     }
 }
