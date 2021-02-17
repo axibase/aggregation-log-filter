@@ -124,7 +124,7 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("level") final Level level,
             @PluginAttribute("url") final String url,
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
-            @PluginAttribute("sendLoggerCounter") final Boolean sendLoggerCounter,
+            @PluginAttribute(value = "sendLoggerCounter", defaultBoolean = true) final Boolean sendLoggerCounter,
             @PluginAttribute(value = "pattern", defaultString = DEFAULT_PATTERN) final String pattern,
             @PluginAttribute(value = "messageLength", defaultString = DEFAULT_MESSAGE_LENGTH) final String messageLength,
             @PluginAttribute(value = "debug", defaultString = "false") final String debug,
