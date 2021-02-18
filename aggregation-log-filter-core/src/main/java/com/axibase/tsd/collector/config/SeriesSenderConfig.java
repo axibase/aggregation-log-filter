@@ -32,7 +32,7 @@ public class SeriesSenderConfig {
     public static final int MIN_MESSAGE_SKIP_THRESHOLD = 10;
     public static final int DEFAULT_MESSAGE_SKIP_THRESHOLD = 100;
     public static final int MAX_MESSAGE_SKIP_THRESHOLD = 1000;
-    private static final boolean DEFAULT_SEND_LOGGER_COUNTER = true;
+    public static final boolean DEFAULT_SEND_LOGGER_COUNTER = true;
 
     public static final SeriesSenderConfig DEFAULT = new SeriesSenderConfig();
 

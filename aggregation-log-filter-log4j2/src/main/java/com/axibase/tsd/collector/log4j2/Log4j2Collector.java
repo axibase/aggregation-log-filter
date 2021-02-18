@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.axibase.tsd.collector.config.SeriesSenderConfig.DEFAULT_SEND_LOGGER_COUNTER;
+
 @Plugin(name = "Collector", category = "Core", elementType = "filter", printObject = true)
 public class Log4j2Collector extends AbstractFilter {
     private Aggregator<LogEvent, String, String> aggregator;
@@ -124,7 +126,7 @@ public class Log4j2Collector extends AbstractFilter {
             @PluginAttribute("level") final Level level,
             @PluginAttribute("url") final String url,
             @PluginAttribute("intervalSeconds") final Integer intervalSeconds,
-            @PluginAttribute(value = "sendLoggerCounter", defaultBoolean = true) final Boolean sendLoggerCounter,
+            @PluginAttribute(value = "sendLoggerCounter", defaultBoolean = DEFAULT_SEND_LOGGER_COUNTER) final boolean sendLoggerCounter,
             @PluginAttribute(value = "pattern", defaultString = DEFAULT_PATTERN) final String pattern,
             @PluginAttribute(value = "messageLength", defaultString = DEFAULT_MESSAGE_LENGTH) final String messageLength,
             @PluginAttribute(value = "debug", defaultString = "false") final String debug,
@@ -142,15 +144,11 @@ public class Log4j2Collector extends AbstractFilter {
         collector.setPattern(pattern);
         collector.setIgnoreSslErrors(ignoreSslErrors);
         if (intervalSeconds <= 0) {
-            collector.setIntervalSeconds(collector.DEFAULT_INTERVAL);
+            collector.setIntervalSeconds(DEFAULT_INTERVAL);
         } else {
             collector.setIntervalSeconds(intervalSeconds);
         }
-        if (sendLoggerCounter == null) {
-            collector.setSendLoggerCounter(false);
-        } else {
-            collector.setSendLoggerCounter(sendLoggerCounter);
-        }
+        collector.setSendLoggerCounter(sendLoggerCounter);
         try {
             collector.init();
         } catch (Exception e) {
