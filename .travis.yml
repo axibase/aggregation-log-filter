@@ -12,7 +12,6 @@ script:
   - linkcheck
   - stylecheck
 jdk:
-  - openjdk7
   - openjdk8
 dist: trusty
 notifications:
