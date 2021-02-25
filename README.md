@@ -6,11 +6,11 @@
 
 ## Overview
 
-The aggregation logger plugs into a log appender and tracks the total number of log events raised by a Java application with breakdown by level: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`.
+The logger counts the total number of events logged by the hosting Java application with breakdown by severity level: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`.
 
-The counters are sent via the TCP/UDP/HTTP/HTTPS protocol to a time series database every 60 seconds for alerting and long-term retention.
+The counters are flushed asyncronously to the Axibase Time Series Database every 60 seconds for long-term retention and alerting.
 
-Collecting aggregate error counts is particularly relevant for applications where individual errors are too numerous to analyze. See **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
+View **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
 
 The logger consists of the core library and adapters for **`Logback`**, **`Log4j`**, and **`Log4j2`** logging frameworks.
 
@@ -48,22 +48,20 @@ Aggregation Logger collects the following metrics:
 
 | **Metric** | **Tags** | **Type** | **Description** |
 |:---|:---|---|:---|
-| `log_event_total_counter`| level | counter | Total number of log events raised by the application. |
-| `log_event_counter` | level<br>logger | counter | Number of log events raised by each logger.<br>Controlled with the `sendLoggerCounter` [setting](#configuration-settings). |
+| `log_event_total_counter`| level | counter | Total number of events logged by the application, by level. |
+| `log_event_counter` | level<br>logger | counter | Number of events raised by each logger.<br>Controlled with the `sendLoggerCounter` [setting](#configuration-settings). |
 
-Counter values are continuously incremented to protect against accidental data loss and to minimize dependency on the sampling interval.
+The metrics are continuously incrementing counters. The first derivative (delta) between two samples represents the number of events per interval.
 
 ### Messages
 
-The logger can send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of the period.
+The logger can also send a small subset of raw events to the database for triage. The index of events sent within a 10-minute period is determined using exponential backoff multipliers. The index is reset at the end of each 10-minute period.
 
 * `INFO.  Multiplier 5. Events sent: 1, 5, 25, 125, ..., 5^(n-1)`
 * `WARN.  Multiplier 3. Events sent: 1, 3, 9, 27, ..., 3^(n-1)`
 * `ERROR. Multiplier 2. Events sent: 1, 2, 4, 8, ..., 2^(n-1)`
 
-> `ERROR` events that inherit from `java.lang.Error` are sent to the database instantly, regardless of the event index.
-
-The aggregation logger sends only a small subset of events to the database and is not a replacement for specialized log search tools. Instead, logger attempts to strike a balance between the volume of collected data and response time.
+> `ERROR`-level events that inherit from `java.lang.Error` are sent to the database instantly, regardless of the event index.
 
 ### Properties
 
@@ -78,7 +76,7 @@ The following `java.log_aggregator.*` properties are stored by logger:
 
 ## Heartbeat
 
-Since counters are flushed to the database every 60 seconds, the incoming event stream can be used for heartbeat monitoring as an early warning of network outages, garbage collection freezes, and application crashes.
+Since counters are flushed to the database every 60 seconds, the incoming samples (or the lack thereof) can be used for heartbeat monitoring as an early warning of network outages, garbage collection freezes, and application crashes.
 
 ![](./readme_1.png)
 ![](./readme_2.png)
@@ -88,7 +86,7 @@ Heartbeat rule [configuration](./rule.xml) in XML.
 
 ## Requirements
 
-* Java `1.7` and later
+* Java `1.8` and later
 
 ## Supported Logging Frameworks
 
@@ -290,21 +288,21 @@ log4j.appender.APPENDER.filter.COLLECTOR.mdcTags=job_name;task_id
 | Name | Required | Default | Description |
 |---|---|---|---|
 | `url` | yes | - | Database address specified with URI syntax: `scheme:[//[user:password@]host[:port]]`.<br>Supported schemes: [TCP](#tcp), [UDP](#udp), [HTTP](#http), [HTTPS](#https). |
-| `entity` | no | machine hostname | Entity name for series and messages, usually the hostname of the machine where the application is running. |
+| `entity` | no | Server hostname | Entity name for series and messages, usually the hostname of the machine where the application is running. |
 | `tag` | no | - | User-defined tags to be included in series and message commands, MULTIPLE. |
-| `level` | no | TRACE | Minimum level for processed events. |
+| `level` | no | TRACE | Minimum level for counting events. |
 | `intervalSeconds` | no | 60 | Interval in seconds for sending collected counters. |
 | `sendMessage` | no | - | See the [`sendMessage`](#sendmessage) config, MULTIPLE. |
 | `pattern` | no | `%m` | Pattern to format logging events sent to the database. <br>The pattern cannot include fields that are already included as tags such as logger name, level, etc. |
 | `sendLoggerCounter` | no | `true` | When disabled, event counts by logger are not tracked and the [`log_event_counter`](#counters) metric is not sent. |
 | `mdcTags` | no | - | User-defined tags to be included in message commands, value extracted from [`MDC context`](#mdc-context-parameters-in-messages), MULTIPLE. |
-| `debug` | no | `false` | Enable logging to `stdout` debug information, see [**Troubleshooting**](#troubleshooting). |
-| `messageLength` | no | `-1` | Allow to control event message size, default value to show the whole message. |
-| `ignoreSslErrors` | no | `true` | Ignore errors if the SSL certificated presented by the endpoint is self-signed, expired, or otherwise invalid. |
+| `debug` | no | `false` | Enable logging debug information to `stdout`, see [**Troubleshooting**](#troubleshooting). |
+| `messageLength` | no | `-1` | Maximum event message size. No truncation is performed if the length is negative or zero. |
+| `ignoreSslErrors` | no | `true` | Ignore SSL errors if the SSL certificate presented by ATSD is self-signed, expired, or otherwise invalid. |
 
 ## Database Address
 
-Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to a supported time series database.
+Configures a TCP, UDP, HTTP, or HTTPS writer to send statistics and messages to Axibase Time Series Database.
 
 ### TCP
 
