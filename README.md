@@ -10,8 +10,6 @@ The logger counts the total number of events logged by the hosting Java applicat
 
 The counters are flushed asyncronously to the Axibase Time Series Database every 60 seconds for long-term retention and alerting.
 
-View **LogInfo/.../LogFatal** metrics in [Hadoop](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Metrics.html) as an example.
-
 The logger consists of the core library and adapters for **`Logback`**, **`Log4j`**, and **`Log4j2`** logging frameworks.
 
 ## Sample Portal
