@@ -8,7 +8,7 @@
 
 The logger counts the total number of events logged by the hosting Java application with breakdown by severity level: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`.
 
-The counters are flushed asyncronously to the Axibase Time Series Database every 60 seconds for long-term retention and alerting.
+The counters are flushed asynchronously to the Axibase Time Series Database every 60 seconds for long-term retention and alerting.
 
 The logger consists of the core library and adapters for **`Logback`**, **`Log4j`**, and **`Log4j2`** logging frameworks.
 
