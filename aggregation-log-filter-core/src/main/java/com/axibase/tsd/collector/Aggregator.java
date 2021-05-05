@@ -112,7 +112,11 @@ public class Aggregator<E, K, L> {
             senderExecutor.shutdown();
         }
         closeWriter();
-        Runtime.getRuntime().removeShutdownHook(workerFinisher);
+        try {
+            Runtime.getRuntime().removeShutdownHook(workerFinisher);
+        } catch (Exception e) {
+            // ignore error on JVM shutdown
+        }
     }
 
     private void closeWriter() {
